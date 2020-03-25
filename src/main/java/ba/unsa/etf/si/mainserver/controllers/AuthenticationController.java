@@ -1,11 +1,11 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
-import ba.unsa.etf.si.mainserver.models.User;
-import ba.unsa.etf.si.mainserver.requests.LoginRequest;
-import ba.unsa.etf.si.mainserver.requests.RegistrationRequest;
-import ba.unsa.etf.si.mainserver.responses.LoginResponse;
-import ba.unsa.etf.si.mainserver.responses.RegistrationResponse;
-import ba.unsa.etf.si.mainserver.responses.RoleResponse;
+import ba.unsa.etf.si.mainserver.models.auth.User;
+import ba.unsa.etf.si.mainserver.requests.auth.LoginRequest;
+import ba.unsa.etf.si.mainserver.requests.auth.RegistrationRequest;
+import ba.unsa.etf.si.mainserver.responses.auth.LoginResponse;
+import ba.unsa.etf.si.mainserver.responses.auth.RegistrationResponse;
+import ba.unsa.etf.si.mainserver.responses.auth.RoleResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;

@@ -1,4 +1,4 @@
-package ba.unsa.etf.si.mainserver.models;
+package ba.unsa.etf.si.mainserver.models.auth;
 
 public enum RoleName {
     ROLE_ADMIN,

@@ -1,6 +1,6 @@
-package ba.unsa.etf.si.mainserver.repositories;
+package ba.unsa.etf.si.mainserver.repositories.auth;
 
-import ba.unsa.etf.si.mainserver.models.User;
+import ba.unsa.etf.si.mainserver.models.auth.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

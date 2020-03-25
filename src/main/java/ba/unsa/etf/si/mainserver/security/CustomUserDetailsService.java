@@ -1,7 +1,7 @@
 package ba.unsa.etf.si.mainserver.security;
 
-import ba.unsa.etf.si.mainserver.models.User;
-import ba.unsa.etf.si.mainserver.repositories.UserRepository;
+import ba.unsa.etf.si.mainserver.models.auth.User;
+import ba.unsa.etf.si.mainserver.repositories.auth.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

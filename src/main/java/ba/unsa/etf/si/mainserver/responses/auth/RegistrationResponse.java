@@ -1,6 +1,5 @@
-package ba.unsa.etf.si.mainserver.requests;
+package ba.unsa.etf.si.mainserver.responses.auth;
 
-import ba.unsa.etf.si.mainserver.responses.RoleResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +9,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RegistrationRequest {
+public class RegistrationResponse {
+    private Long id;
     private String username;
     private String password;
     private String email;

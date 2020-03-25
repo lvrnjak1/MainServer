@@ -1,6 +1,6 @@
 package ba.unsa.etf.si.mainserver.security;
 
-import ba.unsa.etf.si.mainserver.models.User;
+import ba.unsa.etf.si.mainserver.models.auth.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;

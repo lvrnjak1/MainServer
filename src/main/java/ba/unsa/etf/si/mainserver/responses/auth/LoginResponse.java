@@ -1,4 +1,4 @@
-package ba.unsa.etf.si.mainserver.responses;
+package ba.unsa.etf.si.mainserver.responses.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

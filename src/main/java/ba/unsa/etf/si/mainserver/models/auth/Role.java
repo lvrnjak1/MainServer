@@ -1,4 +1,4 @@
-package ba.unsa.etf.si.mainserver.models;
+package ba.unsa.etf.si.mainserver.models.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

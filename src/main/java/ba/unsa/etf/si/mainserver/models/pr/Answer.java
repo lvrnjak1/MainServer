@@ -1,11 +1,19 @@
 package ba.unsa.etf.si.mainserver.models.pr;
 
 import ba.unsa.etf.si.mainserver.models.AuditModel;
+import ba.unsa.etf.si.mainserver.models.auth.User;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 @Entity
 @Table(name = "answers")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Answer extends AuditModel {
 
     @Id
@@ -17,11 +25,9 @@ public class Answer extends AuditModel {
     @OneToOne(mappedBy = "answer")
     private Question question;
 
-    //TODO
-    //Add answerAuthor that has to be PR worker
-
-    public Answer() {
-    }
+    @ManyToOne
+    @JsonManagedReference
+    private User author;
 
     public Answer(String text, Question question) {
         this.text = text;
@@ -32,27 +38,8 @@ public class Answer extends AuditModel {
         this.text = text;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
+    public Answer(String text, User author) {
         this.text = text;
-    }
-
-    public Question getQuestion() {
-        return question;
-    }
-
-    public void setQuestion(Question question) {
-        this.question = question;
+        this.author = author;
     }
 }

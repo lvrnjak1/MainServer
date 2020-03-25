@@ -1,12 +1,18 @@
 package ba.unsa.etf.si.mainserver.models.pr;
 
 import ba.unsa.etf.si.mainserver.models.AuditModel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "question_authors")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class QuestionAuthor extends AuditModel {
 
     @Id
@@ -25,40 +31,6 @@ public class QuestionAuthor extends AuditModel {
     public QuestionAuthor(String nameSurname, String email, Question question) {
         this.nameAndSurname = nameSurname;
         this.email = email;
-        this.question = question;
-    }
-
-    public QuestionAuthor(){}
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNameAndSurname() {
-        return nameAndSurname;
-    }
-
-    public void setNameAndSurname(String nameAndSurname) {
-        this.nameAndSurname = nameAndSurname;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public Question getQuestion() {
-        return question;
-    }
-
-    public void setQuestion(Question question) {
         this.question = question;
     }
 }

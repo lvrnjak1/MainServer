@@ -1,6 +1,9 @@
 package ba.unsa.etf.si.mainserver.models.pr;
 
 import ba.unsa.etf.si.mainserver.models.AuditModel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -11,6 +14,9 @@ import java.util.Date;
 
 @Entity
 @Table(name = "questions")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Question extends AuditModel {
 
     @Id
@@ -43,56 +49,6 @@ public class Question extends AuditModel {
         this.text = text;
         this.questionAuthor = questionAuthor;
         this.date = date;
-        this.time = time;
-    }
-
-    public Question(){}
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-
-    public QuestionAuthor getQuestionAuthor() {
-        return questionAuthor;
-    }
-
-    public void setQuestionAuthor(QuestionAuthor questionAuthor) {
-        this.questionAuthor = questionAuthor;
-    }
-
-    public Answer getAnswer() {
-        return answer;
-    }
-
-    public void setAnswer(Answer answer) {
-        this.answer = answer;
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public Date getTime() {
-        return time;
-    }
-
-    public void setTime(Date time) {
         this.time = time;
     }
 

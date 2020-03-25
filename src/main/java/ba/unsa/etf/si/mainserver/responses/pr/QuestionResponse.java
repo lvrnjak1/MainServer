@@ -1,7 +1,13 @@
 package ba.unsa.etf.si.mainserver.responses.pr;
 
 import ba.unsa.etf.si.mainserver.models.pr.Question;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class QuestionResponse {
     private Long id;
     private String text;
@@ -22,64 +28,5 @@ public class QuestionResponse {
         }
         this.date = question.getStringDate();
         this.time = question.getStringTime();
-    }
-
-    public QuestionResponse() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-
-    public String getAuthorNameAndSurname() {
-        return authorNameAndSurname;
-    }
-
-    public void setAuthorNameAndSurname(String authorNameAndSurname) {
-        this.authorNameAndSurname = authorNameAndSurname;
-    }
-
-    public String getAuthorEmail() {
-        return authorEmail;
-    }
-
-    public void setAuthorEmail(String authorEmail) {
-        this.authorEmail = authorEmail;
-    }
-
-    public AnswerResponse getAnswer() {
-        return answer;
-    }
-
-    public void setAnswer(AnswerResponse answer) {
-        this.answer = answer;
-    }
-
-    public String getDate() {
-        return date;
-    }
-
-    public void setDate(String date) {
-        this.date = date;
-    }
-
-    public String getTime() {
-        return time;
-    }
-
-    public void setTime(String time) {
-        this.time = time;
     }
 }

@@ -39,12 +39,3 @@ public class UserCreationPermissions {
 
     }};
 }
-
-//
-//    ROLE_ADMIN,
-//            ROLE_MANAGER,
-//            ROLE_MERCHANT,
-//            ROLE_WAREMAN,
-//            ROLE_PRW,
-//            ROLE_CASHIER,
-//            ROLE_BARTENDER

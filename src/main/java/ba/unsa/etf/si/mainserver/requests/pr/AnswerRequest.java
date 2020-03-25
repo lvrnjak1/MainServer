@@ -1,4 +1,4 @@
-package ba.unsa.etf.si.mainserver.requests;
+package ba.unsa.etf.si.mainserver.requests.pr;
 
 public class AnswerRequest {
     private String text;

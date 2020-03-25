@@ -1,4 +1,4 @@
-package ba.unsa.etf.si.mainserver.responses;
+package ba.unsa.etf.si.mainserver.responses.pr;
 
 import ba.unsa.etf.si.mainserver.models.pr.Question;
 

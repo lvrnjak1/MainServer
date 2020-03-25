@@ -1,4 +1,4 @@
-package ba.unsa.etf.si.mainserver.requests;
+package ba.unsa.etf.si.mainserver.requests.pr;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

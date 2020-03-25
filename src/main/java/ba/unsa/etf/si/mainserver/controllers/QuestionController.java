@@ -4,11 +4,11 @@ import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.models.pr.Answer;
 import ba.unsa.etf.si.mainserver.models.pr.Question;
 import ba.unsa.etf.si.mainserver.models.pr.QuestionAuthor;
-import ba.unsa.etf.si.mainserver.requests.AnswerRequest;
-import ba.unsa.etf.si.mainserver.requests.QuestionRequest;
-import ba.unsa.etf.si.mainserver.responses.QuestionResponse;
-import ba.unsa.etf.si.mainserver.services.AnswerService;
-import ba.unsa.etf.si.mainserver.services.QuestionService;
+import ba.unsa.etf.si.mainserver.requests.pr.AnswerRequest;
+import ba.unsa.etf.si.mainserver.requests.pr.QuestionRequest;
+import ba.unsa.etf.si.mainserver.responses.pr.QuestionResponse;
+import ba.unsa.etf.si.mainserver.services.pr.AnswerService;
+import ba.unsa.etf.si.mainserver.services.pr.QuestionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,4 +1,4 @@
-package ba.unsa.etf.si.mainserver.services;
+package ba.unsa.etf.si.mainserver.services.pr;
 
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.models.pr.Answer;

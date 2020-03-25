@@ -3,10 +3,14 @@ spring:
     url: ${JDBC_DATABASE_URL}
     username: ${JDBC_DATABASE_USERNAME}
     password: ${JDBC_DATABASE_PASSWORD}
-
   jpa:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
+  flyway:
+    baseline-on-migrate: true
+app:
+  jwtSecret: "supershhhhh"
+  jwtExpirationInMs: 9000000

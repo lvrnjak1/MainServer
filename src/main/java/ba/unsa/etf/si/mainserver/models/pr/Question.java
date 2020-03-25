@@ -21,10 +21,12 @@ public class Question extends AuditModel {
 
     @Basic
     @Temporal(TemporalType.DATE)
+    @NotNull
     private Date date;
 
     @Basic
     @Temporal(TemporalType.TIME)
+    @NotNull
     private Date time;
 
     @OneToOne(cascade = CascadeType.ALL)

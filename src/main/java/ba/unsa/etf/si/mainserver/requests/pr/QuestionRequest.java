@@ -62,10 +62,10 @@ public class QuestionRequest {
     }
 
     public Date getDateFromString() throws ParseException {
-        return new SimpleDateFormat("dd.MM.yyyy").parse(date);
+        return date == null ? null : new SimpleDateFormat("dd.MM.yyyy").parse(date);
     }
 
     public Date getTimeFromString() throws ParseException {
-        return new SimpleDateFormat("HH:mm").parse(time);
+        return time == null ? null : new SimpleDateFormat("HH:mm").parse(time);
     }
 }

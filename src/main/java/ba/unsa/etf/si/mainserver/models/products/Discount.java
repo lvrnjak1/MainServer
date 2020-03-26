@@ -3,12 +3,14 @@ package ba.unsa.etf.si.mainserver.models.products;
 import ba.unsa.etf.si.mainserver.models.AuditModel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "products")
+@Table(name = "discounts")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,8 +20,38 @@ public class Discount extends AuditModel {
     @Column(name = "id")
     private Long id;
 
-    @OneToOne(mappedBy = "answer")
-    private Product product;
+//    @OneToOne(mappedBy = "discount")
+//    @JsonBackReference
+//    private Product product;
 
     private int percentage = 0;
+
+    public Discount(Product product, int percentage) {
+        //this.product = product;
+        this.percentage = percentage;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+//    public Product getProduct() {
+//        return product;
+//    }
+//
+//    public void setProduct(Product product) {
+//        this.product = product;
+//    }
+
+    public int getPercentage() {
+        return percentage;
+    }
+
+    public void setPercentage(int percentage) {
+        this.percentage = percentage;
+    }
 }

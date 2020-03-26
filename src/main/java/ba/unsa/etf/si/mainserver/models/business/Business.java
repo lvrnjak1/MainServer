@@ -1,9 +1,9 @@
 package ba.unsa.etf.si.mainserver.models.business;
 
 import ba.unsa.etf.si.mainserver.models.AuditModel;
+import ba.unsa.etf.si.mainserver.models.products.Product;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
@@ -27,6 +27,10 @@ public class Business extends AuditModel { //ovo je kao Bingo
     @JsonManagedReference
     private Set<Office> offices;
 
+    @OneToMany(mappedBy="business")
+    @JsonManagedReference
+    private Set<Product> products;
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "merchant_id", referencedColumnName = "id")
     private EmployeeProfile merchant;
@@ -36,6 +40,7 @@ public class Business extends AuditModel { //ovo je kao Bingo
         this.restaurantFeature = restaurantFeature;
         this.merchant = merchant;
         this.offices = new HashSet<>(); //???
+        this.products = new HashSet<>();
     }
 
     public Long getId() {
@@ -76,5 +81,13 @@ public class Business extends AuditModel { //ovo je kao Bingo
 
     public void setMerchant(EmployeeProfile merchant) {
         this.merchant = merchant;
+    }
+
+    public Set<Product> getProducts() {
+        return products;
+    }
+
+    public void setProducts(Set<Product> products) {
+        this.products = products;
     }
 }

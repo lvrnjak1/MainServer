@@ -22,7 +22,11 @@ public class ProductResponse {
         this.id = product.getId();
         this.name = product.getName();
         this.price = product.getPrice();
-        this.discount = new DiscountResponse(product.getDiscount());
+        if(discount != null) {
+            this.discount = new DiscountResponse(product.getDiscount());
+        }else{
+            this.discount = new DiscountResponse(0);
+        }
         this.unit = product.getUnit();
     }
 }

@@ -3,8 +3,6 @@ package ba.unsa.etf.si.mainserver.services.business;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.Office;
-import ba.unsa.etf.si.mainserver.models.pr.Answer;
-import ba.unsa.etf.si.mainserver.models.pr.Question;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeRepository;
 import org.springframework.stereotype.Service;
 
@@ -45,4 +43,7 @@ public class OfficeService {
     }
 
 
+    public Optional<Office> findByBusiness(Business business) {
+        return officeRepository.findByBusiness(business);
+    }
 }

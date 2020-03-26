@@ -28,4 +28,12 @@ public class ContactInformation {
     private String email;
     @NotBlank
     private String phoneNumber;
+
+    public ContactInformation(String address, String city, String country, String email, String phoneNumber){
+        this.address = address;
+        this.city = city;
+        this.country = country;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+    }
 }

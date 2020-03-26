@@ -23,6 +23,10 @@ public class CashRegister extends AuditModel {
     @JoinColumn(name="office_id", nullable=false)
     private Office office;
 
+    public CashRegister(Office office){
+        this.office = office;
+    }
+
     //staticki QR kod ce biti samo ova tri podatka zakodirana
     //to oni trebaju iz ova tri podatka generisati
     //id, officeId, businessId

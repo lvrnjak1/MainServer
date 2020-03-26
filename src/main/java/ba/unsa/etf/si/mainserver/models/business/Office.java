@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -36,5 +37,12 @@ public class Office extends AuditModel { //ovo je poslovnica
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "manager_id", referencedColumnName = "id")
-    private EmployeeProfile manager;
+    private EmployeeProfile manager = null;
+
+    public Office(ContactInformation contactInformation, Business business){
+        this.contactInformation = contactInformation;
+        this.business = business;
+        this.cashRegisters = new HashSet<>();
+        this.officeProfiles = new HashSet<>();
+    }
 }

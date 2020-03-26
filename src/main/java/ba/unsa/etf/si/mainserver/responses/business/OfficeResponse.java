@@ -1,6 +1,7 @@
 package ba.unsa.etf.si.mainserver.responses.business;
 
 import ba.unsa.etf.si.mainserver.models.business.Office;
+import ba.unsa.etf.si.mainserver.responses.pr.AnswerResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,6 +20,7 @@ public class OfficeResponse {
     private String email;
     private String phoneNumber;
     private Set<CashRegisterResponse> cashRegisters;
+    private EmployeeProfileResponse manager;
 
     public OfficeResponse(Office office){
         this.id = office.getId();
@@ -29,5 +31,9 @@ public class OfficeResponse {
         this.phoneNumber = office.getContactInformation().getPhoneNumber();
         this.cashRegisters = office.getCashRegisters().stream().
                 map(CashRegisterResponse::new).collect(Collectors.toSet());
+        this.manager = new EmployeeProfileResponse();
+        if(office.getManager() != null){
+            this.manager = new EmployeeProfileResponse(office.getManager());
+        }
     }
 }

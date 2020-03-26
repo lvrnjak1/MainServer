@@ -34,5 +34,7 @@ public class Office extends AuditModel { //ovo je poslovnica
     @OneToMany(mappedBy="office")
     private Set<OfficeProfile> officeProfiles;
 
-    private int maxNumberOfCashRegisters;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "manager_id", referencedColumnName = "id")
+    private EmployeeProfile manager;
 }

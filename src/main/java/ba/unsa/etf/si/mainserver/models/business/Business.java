@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -28,4 +29,11 @@ public class Business extends AuditModel { //ovo je kao Bingo
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "merchant_id", referencedColumnName = "id")
     private EmployeeProfile merchant;
+
+    public Business(String name, boolean restaurantFeature, EmployeeProfile merchant) {
+        this.name = name;
+        this.restaurantFeature = restaurantFeature;
+        this.merchant = merchant;
+        this.offices = new HashSet<>(); //???
+    }
 }

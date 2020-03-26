@@ -20,10 +20,12 @@ public class Business extends AuditModel { //ovo je kao Bingo
     private Long id;
 
     private String name;
-
-    //TODO
-    //Add UserProfile of the merchant
+    private boolean restaurantFeature = false;
 
     @OneToMany(mappedBy="business")
     private Set<Office> offices;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "merchant_id", referencedColumnName = "id")
+    private EmployeeProfile merchant;
 }

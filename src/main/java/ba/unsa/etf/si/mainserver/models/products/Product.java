@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Entity
 @Table(name = "products")
@@ -30,18 +31,7 @@ public class Product extends AuditModel {
     private byte[] image;
     private String unit;
 
-//    @ManyToMany
-//    @JoinTable(
-//            name = "office_inventory",
-//            joinColumns = @JoinColumn(name = "office_id"),
-//            inverseJoinColumns = @JoinColumn(name = "product_id"))
-//    private Set<Office> offices;
-
-//    u office klasu napisati
-//    @ManyToMany
-//    @ManyToMany(mappedBy = "offices")
-//    private Set<Product> products;
-    //mora i quantity da se doda nece ici bas ovako
-    //ima ovdje ispod https://www.baeldung.com/jpa-many-to-many
+    @OneToMany(mappedBy = "product")
+    private Set<OfficeInventory> officeInventories;
 
 }

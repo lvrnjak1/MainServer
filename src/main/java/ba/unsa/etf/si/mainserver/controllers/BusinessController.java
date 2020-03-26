@@ -4,8 +4,10 @@ import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.requests.business.BusinessRequest;
+import ba.unsa.etf.si.mainserver.requests.business.EmployeeProfileRequest;
 import ba.unsa.etf.si.mainserver.requests.business.OfficeRequest;
 import ba.unsa.etf.si.mainserver.responses.business.BusinessResponse;
+import ba.unsa.etf.si.mainserver.responses.business.EmployeeProfileResponse;
 import ba.unsa.etf.si.mainserver.responses.business.OfficeResponse;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
@@ -94,5 +96,15 @@ public class BusinessController {
                                           @PathVariable("officeId") Long officeId,
                                           @PathVariable("cashRegId") Long cashRegisterId){
         return null;
+    }
+
+
+    //ovo nije dobra ruta treba napravit fino ovo je samo pomocna za testiranje
+    //TODO
+    @PostMapping("/employees")
+    @Secured("ROLE_ADMIN")
+    public EmployeeProfileResponse saveEmployee(@RequestBody EmployeeProfileRequest employeeProfileRequest){
+        return new EmployeeProfileResponse(employeeProfileService.
+                save(new EmployeeProfile(employeeProfileRequest.getName(), employeeProfileRequest.getSurname())));
     }
 }

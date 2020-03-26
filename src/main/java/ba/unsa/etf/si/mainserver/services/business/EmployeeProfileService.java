@@ -17,4 +17,8 @@ public class EmployeeProfileService {
     public Optional<EmployeeProfile> findById(Long id) {
         return employeeProfileRepository.findById(id);
     }
+
+    public EmployeeProfile save(EmployeeProfile employeeProfile) {
+        return employeeProfileRepository.save(employeeProfile);
+    }
 }

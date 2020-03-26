@@ -30,4 +30,9 @@ public class EmployeeProfile extends AuditModel {
 
     private String name;
     private String surname;
+
+    public EmployeeProfile(String name, String surname) {
+        this.name = name;
+        this.surname = surname;
+    }
 }

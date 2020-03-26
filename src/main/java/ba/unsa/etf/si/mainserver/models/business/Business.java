@@ -1,6 +1,7 @@
 package ba.unsa.etf.si.mainserver.models.business;
 
 import ba.unsa.etf.si.mainserver.models.AuditModel;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,6 @@ import java.util.Set;
 
 @Entity
 @Table(name = "businesses")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Business extends AuditModel { //ovo je kao Bingo
@@ -24,6 +24,7 @@ public class Business extends AuditModel { //ovo je kao Bingo
     private boolean restaurantFeature = false;
 
     @OneToMany(mappedBy="business")
+    @JsonManagedReference
     private Set<Office> offices;
 
     @OneToOne(cascade = CascadeType.ALL)
@@ -35,5 +36,45 @@ public class Business extends AuditModel { //ovo je kao Bingo
         this.restaurantFeature = restaurantFeature;
         this.merchant = merchant;
         this.offices = new HashSet<>(); //???
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public boolean isRestaurantFeature() {
+        return restaurantFeature;
+    }
+
+    public void setRestaurantFeature(boolean restaurantFeature) {
+        this.restaurantFeature = restaurantFeature;
+    }
+
+    public Set<Office> getOffices() {
+        return offices;
+    }
+
+    public void setOffices(Set<Office> offices) {
+        this.offices = offices;
+    }
+
+    public EmployeeProfile getMerchant() {
+        return merchant;
+    }
+
+    public void setMerchant(EmployeeProfile merchant) {
+        this.merchant = merchant;
     }
 }

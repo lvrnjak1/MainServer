@@ -28,13 +28,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtAuthenticationEntryPoint unauthorizedHandler;
-    //TODO
-    //obrisati api/business
     private final String[] unprotectedRoutes = {
                     "/api/questions",
                     "api/questions/unanswered",
-                    "/api/auth/**",
-                    "/api/business/**"
+                    "/api/auth/**"
             };
 
     public SecurityConfiguration(CustomUserDetailsService customUserDetailsService, JwtAuthenticationEntryPoint unauthorizedHandler) {

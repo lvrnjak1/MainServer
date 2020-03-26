@@ -3,13 +3,13 @@ package ba.unsa.etf.si.mainserver.models.business;
 import ba.unsa.etf.si.mainserver.models.AuditModel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 @Entity
 @Table(name = "cash_registers")
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class CashRegister extends AuditModel {
@@ -30,4 +30,21 @@ public class CashRegister extends AuditModel {
     //staticki QR kod ce biti samo ova tri podatka zakodirana
     //to oni trebaju iz ova tri podatka generisati
     //id, officeId, businessId
+
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Office getOffice() {
+        return office;
+    }
+
+    public void setOffice(Office office) {
+        this.office = office;
+    }
 }

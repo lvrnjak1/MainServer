@@ -11,11 +11,8 @@ import lombok.NoArgsConstructor;
 public class EmployeeProfileRequest {
     private String name;
     private String surname;
-
-    //dodati ostalo
-
-    public EmployeeProfileRequest(EmployeeProfile employeeProfile){
-        this.name = employeeProfile.getName();
-        this.surname = employeeProfile.getSurname();
-    }
+    private String address;
+    private String city;
+    private String country;
+    private String phoneNumber;
 }

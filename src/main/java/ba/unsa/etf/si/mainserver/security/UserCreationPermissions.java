@@ -11,6 +11,7 @@ public class UserCreationPermissions {
                         "ROLE_MERCHANT",
                         "ROLE_PRW",
                         "ROLE_WAREMAN",
+                        "ROLE_OFFICEMAN",
                         "ROLE_CASHIER",
                         "ROLE_BARTENDER")));
         put("ROLE_MERCHANT",new ArrayList<>(
@@ -19,6 +20,7 @@ public class UserCreationPermissions {
                         "ROLE_MERCHANT",
                         "ROLE_PRW",
                         "ROLE_WAREMAN",
+                        "ROLE_OFFICEMAN",
                         "ROLE_CASHIER",
                         "ROLE_BARTENDER")));
         put("ROLE_MANAGER",new ArrayList<>(
@@ -26,11 +28,14 @@ public class UserCreationPermissions {
                         "ROLE_MANAGER",
                         "ROLE_PRW",
                         "ROLE_WAREMAN",
+                        "ROLE_OFFICEMAN",
                         "ROLE_CASHIER",
                         "ROLE_BARTENDER")));
         put("ROLE_PRW",new ArrayList<>(
                 Collections.emptyList()));
         put("ROLE_WAREMAN",new ArrayList<>(
+                Collections.emptyList()));
+        put("ROLE_OFFICEMAN",new ArrayList<>(
                 Collections.emptyList()));
         put("ROLE_CASHIER",new ArrayList<>(
                 Collections.emptyList()));

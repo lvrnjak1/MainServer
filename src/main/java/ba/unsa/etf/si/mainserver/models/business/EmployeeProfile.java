@@ -31,8 +31,27 @@ public class EmployeeProfile extends AuditModel {
     private String name;
     private String surname;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id")
+    private Business business;
+
     public EmployeeProfile(String name, String surname) {
         this.name = name;
         this.surname = surname;
+    }
+
+    public EmployeeProfile(String name, String surname, ContactInformation contactInformation,User account) {
+        this.name = name;
+        this.surname = surname;
+        this.contactInformation = contactInformation;
+        this.account = account;
+    }
+
+    public EmployeeProfile(String name, String surname, ContactInformation contactInformation, User account, Business business) {
+        this.name = name;
+        this.surname = surname;
+        this.contactInformation = contactInformation;
+        this.account = account;
+        this.business = business;
     }
 }

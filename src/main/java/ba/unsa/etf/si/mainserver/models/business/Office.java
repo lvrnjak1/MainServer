@@ -30,24 +30,13 @@ public class Office extends AuditModel { //ovo je poslovnica
     @JoinColumn(name="business_id", nullable=false)
     private Business business;
 
-    @OneToMany(mappedBy="office")
-    private Set<CashRegister> cashRegisters;
-
-    @OneToMany(mappedBy="office")
-    private Set<OfficeProfile> officeProfiles;
-
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "manager_id", referencedColumnName = "id")
-    private EmployeeProfile manager = null;
-
-    @OneToMany(mappedBy = "office")
-    private Set<OfficeInventory> officeInventories;
+    private EmployeeProfile manager;
 
     public Office(ContactInformation contactInformation, Business business){
         this.contactInformation = contactInformation;
         this.business = business;
-        this.cashRegisters = new HashSet<>();
-        this.officeProfiles = new HashSet<>();
     }
 
     public Long getId() {
@@ -74,35 +63,11 @@ public class Office extends AuditModel { //ovo je poslovnica
         this.business = business;
     }
 
-    public Set<CashRegister> getCashRegisters() {
-        return cashRegisters;
-    }
-
-    public void setCashRegisters(Set<CashRegister> cashRegisters) {
-        this.cashRegisters = cashRegisters;
-    }
-
-    public Set<OfficeProfile> getOfficeProfiles() {
-        return officeProfiles;
-    }
-
-    public void setOfficeProfiles(Set<OfficeProfile> officeProfiles) {
-        this.officeProfiles = officeProfiles;
-    }
-
     public EmployeeProfile getManager() {
         return manager;
     }
 
     public void setManager(EmployeeProfile manager) {
         this.manager = manager;
-    }
-
-    public Set<OfficeInventory> getOfficeInventories() {
-        return officeInventories;
-    }
-
-    public void setOfficeInventories(Set<OfficeInventory> officeInventories) {
-        this.officeInventories = officeInventories;
     }
 }

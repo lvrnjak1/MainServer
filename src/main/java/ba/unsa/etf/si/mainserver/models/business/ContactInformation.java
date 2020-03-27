@@ -17,7 +17,6 @@ public class ContactInformation {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     private Long id;
-
     @NotBlank
     private String address;
     @NotBlank

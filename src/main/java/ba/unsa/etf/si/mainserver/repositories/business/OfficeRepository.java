@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface OfficeRepository extends JpaRepository<Office, Long> {
     List<Office> findByBusiness(Business business);
+
+    List<Office> findAllByBusinessId(Long businessId);
 }

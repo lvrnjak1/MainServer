@@ -31,7 +31,6 @@ public class CashRegister extends AuditModel {
     //to oni trebaju iz ova tri podatka generisati
     //id, officeId, businessId
 
-
     public Long getId() {
         return id;
     }

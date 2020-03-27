@@ -54,6 +54,7 @@ INSERT INTO public.roles (id, name) VALUES (4, 'ROLE_WAREMAN') ON CONFLICT ON CO
 INSERT INTO public.roles (id, name) VALUES (5, 'ROLE_PRW') ON CONFLICT ON CONSTRAINT roles_pkey DO NOTHING;
 INSERT INTO public.roles (id, name) VALUES (6, 'ROLE_CASHIER') ON CONFLICT ON CONSTRAINT roles_pkey DO NOTHING;
 INSERT INTO public.roles (id, name) VALUES (7, 'ROLE_BARTENDER') ON CONFLICT ON CONSTRAINT roles_pkey DO NOTHING;
+INSERT INTO public.roles (id, name) VALUES (8, 'ROLE_OFFICEMAN') ON CONFLICT ON CONSTRAINT roles_pkey DO NOTHING;
 
 -- we must create admin user
 INSERT INTO public.users (id, created_at, updated_at, email, password, username)

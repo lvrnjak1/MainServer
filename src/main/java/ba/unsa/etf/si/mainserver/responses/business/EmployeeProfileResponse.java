@@ -12,6 +12,11 @@ public class EmployeeProfileResponse {
     private Long id;
     private String name;
     private String surname;
+    private String address;
+    private String city;
+    private String country;
+    private String email;
+    private String phoneNumber;
 
     public EmployeeProfileResponse(EmployeeProfile employeeProfile) {
         this.id = employeeProfile.getId();
@@ -19,5 +24,4 @@ public class EmployeeProfileResponse {
         this.surname = employeeProfile.getSurname();
     }
 
-    //dodati ostalo
 }

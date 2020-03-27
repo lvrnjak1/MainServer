@@ -23,14 +23,6 @@ public class Business extends AuditModel { //ovo je kao Bingo
     private String name;
     private boolean restaurantFeature = false;
 
-    @OneToMany(mappedBy="business")
-    @JsonManagedReference
-    private Set<Office> offices;
-
-    @OneToMany(mappedBy="business")
-    @JsonManagedReference
-    private Set<Product> products;
-
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "merchant_id", referencedColumnName = "id")
     private EmployeeProfile merchant;
@@ -39,8 +31,6 @@ public class Business extends AuditModel { //ovo je kao Bingo
         this.name = name;
         this.restaurantFeature = restaurantFeature;
         this.merchant = merchant;
-        this.offices = new HashSet<>(); //???
-        this.products = new HashSet<>();
     }
 
     public Long getId() {
@@ -67,14 +57,6 @@ public class Business extends AuditModel { //ovo je kao Bingo
         this.restaurantFeature = restaurantFeature;
     }
 
-    public Set<Office> getOffices() {
-        return offices;
-    }
-
-    public void setOffices(Set<Office> offices) {
-        this.offices = offices;
-    }
-
     public EmployeeProfile getMerchant() {
         return merchant;
     }
@@ -83,11 +65,4 @@ public class Business extends AuditModel { //ovo je kao Bingo
         this.merchant = merchant;
     }
 
-    public Set<Product> getProducts() {
-        return products;
-    }
-
-    public void setProducts(Set<Product> products) {
-        this.products = products;
-    }
 }

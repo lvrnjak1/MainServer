@@ -28,4 +28,12 @@ public class OfficeInventoryService {
     public Optional<OfficeInventory> findByProductAndOffice(Product product, Office office) {
         return officeInventoryRepository.findByProductAndOffice(product, office);
     }
+
+    public List<OfficeInventory> findByProduct(Product product) {
+        return officeInventoryRepository.findAllByProduct(product);
+    }
+
+    public void delete(OfficeInventory officeInventory) {
+        officeInventoryRepository.delete(officeInventory);
+    }
 }

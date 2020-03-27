@@ -20,14 +20,9 @@ public class Discount extends AuditModel {
     @Column(name = "id")
     private Long id;
 
-//    @OneToOne(mappedBy = "discount")
-//    @JsonBackReference
-//    private Product product;
-
     private int percentage = 0;
 
-    public Discount(Product product, int percentage) {
-        //this.product = product;
+    public Discount(int percentage) {
         this.percentage = percentage;
     }
 
@@ -38,14 +33,6 @@ public class Discount extends AuditModel {
     public void setId(Long id) {
         this.id = id;
     }
-
-//    public Product getProduct() {
-//        return product;
-//    }
-//
-//    public void setProduct(Product product) {
-//        this.product = product;
-//    }
 
     public int getPercentage() {
         return percentage;

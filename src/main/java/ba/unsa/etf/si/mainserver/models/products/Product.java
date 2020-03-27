@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -37,9 +36,6 @@ public class Product extends AuditModel {
 
     private byte[] image;
     private String unit;
-
-    @OneToMany(mappedBy = "product")
-    private Set<OfficeInventory> officeInventories;
 
     @ManyToOne
     @JsonBackReference
@@ -102,13 +98,13 @@ public class Product extends AuditModel {
         this.unit = unit;
     }
 
-    public Set<OfficeInventory> getOfficeInventories() {
-        return officeInventories;
-    }
-
-    public void setOfficeInventories(Set<OfficeInventory> officeInventories) {
-        this.officeInventories = officeInventories;
-    }
+//    public Set<OfficeInventory> getOfficeInventories() {
+//        return officeInventories;
+//    }
+//
+//    public void setOfficeInventories(Set<OfficeInventory> officeInventories) {
+//        this.officeInventories = officeInventories;
+//    }
 
     public Business getBusiness() {
         return business;

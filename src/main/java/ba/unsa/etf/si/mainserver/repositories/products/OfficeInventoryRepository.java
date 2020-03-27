@@ -12,4 +12,6 @@ public interface OfficeInventoryRepository extends JpaRepository<OfficeInventory
     List<OfficeInventory> findAllByOffice(Office office);
 
     Optional<OfficeInventory> findByProductAndOffice(Product product, Office office);
+
+    List<OfficeInventory> findAllByProduct(Product product);
 }

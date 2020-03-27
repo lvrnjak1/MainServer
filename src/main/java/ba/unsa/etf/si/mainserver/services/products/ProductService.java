@@ -5,6 +5,7 @@ import ba.unsa.etf.si.mainserver.models.products.Product;
 import ba.unsa.etf.si.mainserver.repositories.products.ProductRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -23,7 +24,7 @@ public class ProductService {
         productRepository.delete(product);
     }
 
-    public Optional<Product> findByBusiness(Business business) {
+    public List<Product> findByBusiness(Business business) {
         return productRepository.findByBusiness(business);
     }
 

@@ -4,8 +4,8 @@ import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.products.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
+import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    Optional<Product> findByBusiness(Business business);
+    List<Product> findByBusiness(Business business);
 }

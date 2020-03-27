@@ -15,4 +15,11 @@ public class RegistrationRequest {
     private String password;
     private String email;
     private List<RoleResponse> roles;
+    private String name;
+    private String surname;
+    private String address;
+    private String city;
+    private String country;
+    private String phoneNumber;
+    private Long businessId;
 }

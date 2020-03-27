@@ -4,8 +4,8 @@ import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
+import java.util.List;
 
 public interface OfficeRepository extends JpaRepository<Office, Long> {
-    Optional<Office> findByBusiness(Business business);
+    List<Office> findByBusiness(Business business);
 }

@@ -14,7 +14,7 @@ public class ProductResponse {
     private Long id;
     private String name;
     private BigDecimal price;
-    //private byte[] image;
+    private byte[] image;
     private String unit;
     private DiscountResponse discount;
 
@@ -22,7 +22,8 @@ public class ProductResponse {
         this.id = product.getId();
         this.name = product.getName();
         this.price = product.getPrice();
-        if(discount != null) {
+        this.image = product.getImage();
+        if(product.getDiscount() != null) {
             this.discount = new DiscountResponse(product.getDiscount());
         }else{
             this.discount = new DiscountResponse(0);

@@ -32,7 +32,7 @@ public class Product extends AuditModel {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "discount_id", referencedColumnName = "id")
     @JsonManagedReference
-    private Discount discount;
+    private Discount discount = null;
 
     private byte[] image;
     private String unit;
@@ -48,6 +48,14 @@ public class Product extends AuditModel {
         this.unit = unit;
         this.image = image;
         this.discount = null;
+    }
+
+    public Product(String name, BigDecimal price, String unit, byte[] image, Discount discount) throws IOException {
+        this.name = name;
+        this.price = price;
+        this.unit = unit;
+        this.image = image;
+        this.discount = discount;
     }
 
     public Long getId() {

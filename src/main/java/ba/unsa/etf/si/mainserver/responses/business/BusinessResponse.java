@@ -15,13 +15,13 @@ public class BusinessResponse {
     private Long id;
     private String name;
     private boolean restaurantFeature;
-    private Set<OfficeResponse> officeResponses;
+    private Set<OfficeResponse> offices;
 
     public BusinessResponse(Business business){
         this.id = business.getId();
         this.name = business.getName();
         this.restaurantFeature = business.isRestaurantFeature();
-        this.officeResponses = business.getOffices().stream()
+        this.offices = business.getOffices().stream()
                 .map(OfficeResponse::new).collect(Collectors.toSet());
     }
 }

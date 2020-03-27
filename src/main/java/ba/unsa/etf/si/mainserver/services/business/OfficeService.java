@@ -6,6 +6,7 @@ import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -43,7 +44,7 @@ public class OfficeService {
     }
 
 
-    public Optional<Office> findByBusiness(Business business) {
+    public List<Office> findByBusiness(Business business) {
         return officeRepository.findByBusiness(business);
     }
 }

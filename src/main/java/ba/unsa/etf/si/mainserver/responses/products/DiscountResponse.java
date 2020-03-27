@@ -9,9 +9,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DiscountResponse {
-    private int percentage;
+    private int percentage = 0;
 
     public DiscountResponse(Discount discount){
-        this.percentage = discount.getPercentage();
+        if(discount != null) {
+            this.percentage = discount.getPercentage();
+        }
     }
 }

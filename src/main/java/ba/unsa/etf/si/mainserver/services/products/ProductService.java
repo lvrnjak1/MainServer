@@ -56,6 +56,12 @@ public class ProductService {
     }
 
     public List<ProductResponse> findAllProductResponsesForCurrentUser(UserPrincipal userPrincipal) {
+        if (userPrincipal == null) {
+            return productRepository.findAllByBusinessId(1L)
+                    .stream()
+                    .map(ProductResponse::new)
+                    .collect(Collectors.toList());
+        }
         Optional<User> optionalUser = userService.findByUsername(userPrincipal.getUsername());
         if (!optionalUser.isPresent()) {
             throw new AppException("You did some nasty things!");

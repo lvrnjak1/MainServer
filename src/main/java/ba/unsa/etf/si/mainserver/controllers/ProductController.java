@@ -55,7 +55,7 @@ public class ProductController {
     }
 
     @GetMapping("/products")
-    @Secured({"ROLE_MERCHANT","ROLE_PRW","ROLE_WAREMAN"})
+//    @Secured({"ROLE_MERCHANT","ROLE_PRW","ROLE_WAREMAN"}) // this is for the first sprint for PR help only
     public List<ProductResponse> getAllProductsForBusiness(@CurrentUser UserPrincipal userPrincipal){
         return productService.findAllProductResponsesForCurrentUser(userPrincipal);
     }

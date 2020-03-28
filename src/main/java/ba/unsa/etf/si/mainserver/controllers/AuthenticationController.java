@@ -1,6 +1,7 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
 import ba.unsa.etf.si.mainserver.models.auth.User;
+import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.requests.auth.LoginRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.RegistrationRequest;
@@ -12,6 +13,7 @@ import ba.unsa.etf.si.mainserver.responses.business.EmployeeProfileResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
+import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -28,10 +30,12 @@ import java.util.stream.Collectors;
 public class AuthenticationController {
     private final UserService userService;
     private final EmployeeProfileService employeeProfileService;
+    private final BusinessService businessService;
 
-    public AuthenticationController(UserService userService, EmployeeProfileService employeeProfileService) {
+    public AuthenticationController(UserService userService, EmployeeProfileService employeeProfileService, BusinessService businessService) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
+        this.businessService = businessService;
     }
 
     @PostMapping("/_register")
@@ -49,6 +53,8 @@ public class AuthenticationController {
     public ResponseEntity<RegistrationResponse> registerEmployee(
             @Valid @RequestBody RegistrationRequest registrationRequest,
             @CurrentUser UserPrincipal userPrincipal) {
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        registrationRequest.setBusinessId(business.getId());
         userService.checkPermissions(registrationRequest,userPrincipal);
         userService.checkAvailability(registrationRequest);
         userService.checkBusinessPermissions(registrationRequest.getBusinessId(),userPrincipal);

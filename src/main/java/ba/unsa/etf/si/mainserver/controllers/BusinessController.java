@@ -14,6 +14,8 @@ import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.business.BusinessResponse;
 import ba.unsa.etf.si.mainserver.responses.business.CashRegisterResponse;
 import ba.unsa.etf.si.mainserver.responses.business.OfficeResponse;
+import ba.unsa.etf.si.mainserver.security.CurrentUser;
+import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.CashRegisterService;
@@ -93,6 +95,23 @@ public class BusinessController {
         return officeService
                 .findByBusiness(
                         optionalBusiness.get()
+                )
+                .stream()
+                .map(
+                        office -> new OfficeResponse(
+                                office,
+                                cashRegisterService.getAllCashRegisterResponsesByOfficeId(office.getId()))
+                )
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/offices")
+    @Secured({"ROLE_MERCHANT","ROLE_MANAGER", "ROLE_WAREMAN", "ROLE_PRW"})
+    public List<OfficeResponse> getAllOfficesForMyBusiness(@CurrentUser UserPrincipal userPrincipal) {
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        return officeService
+                .findByBusiness(
+                        business
                 )
                 .stream()
                 .map(

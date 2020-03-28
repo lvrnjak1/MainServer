@@ -198,6 +198,38 @@ public class UserController {
         EmployeeProfile result = employeeProfileService.save(employeeProfile);
         return ResponseEntity.ok(new EmployeeProfileResponse(result));
     }
+    @GetMapping("/users/{userId}")
+    @Secured({"ROLE_ADMIN", "ROLE_MERCHANT", "ROLE_MANAGER"})
+    public ResponseEntity<EmployeeProfileResponse> getUserProfile(@PathVariable Long userId,
+                                                                  @CurrentUser UserPrincipal userPrincipal) {
+        Optional<User> optionalUser = userService.findUserById(userId);
+        if (!optionalUser.isPresent()) {
+            throw new ResourceNotFoundException("User with id " + userId + " does not exist");
+        }
+        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(optionalUser.get());
+        if (!optionalEmployeeProfile.isPresent()) {
+            throw new ResourceNotFoundException("User is not an employee");
+        }
+        if (userPrincipal.getAuthorities().stream().noneMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
+            Optional<User> optionalManager = userService.findByUsername(userPrincipal.getUsername());
+            if (!optionalManager.isPresent()) {
+                throw new AppException("This shouldn't happen. Contact your administrator!");
+            }
+            Optional<EmployeeProfile> optionalManagerProfile = employeeProfileService.findByAccount(optionalManager.get());
+            if (!optionalManagerProfile.isPresent()) {
+                throw new AppException("THIS IS HORROR. KILL THE MACHINE!");
+            }
+            if (!optionalEmployeeProfile.get().getBusiness().getId().equals(optionalManagerProfile.get().getBusiness().getId())) {
+                throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
+            }
+        }
+        EmployeeProfile employeeProfile = optionalEmployeeProfile.get();
 
+        Optional<EmployeeProfile> result = employeeProfileService.findById(employeeProfile.getId());
+        if (!result.isPresent()) {
+            throw new ResourceNotFoundException("This user is not an employee");
+        }
+        return ResponseEntity.ok(new EmployeeProfileResponse(result.get()));
+    }
 
 }

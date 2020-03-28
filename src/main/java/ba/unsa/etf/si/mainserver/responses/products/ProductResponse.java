@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.util.Base64;
 
@@ -16,7 +15,7 @@ public class ProductResponse {
     private Long id;
     private String name;
     private BigDecimal price;
-    private String image;
+    private String image = null;
     private String unit;
     private DiscountResponse discount;
 
@@ -24,8 +23,10 @@ public class ProductResponse {
         this.id = product.getId();
         this.name = product.getName();
         this.price = product.getPrice();
-        String encodedString = Base64.getEncoder().encodeToString(product.getImage());
-        this.image = "data:image/png;base64,"+encodedString;
+        if(product.getImage() != null) {
+            String encodedString = Base64.getEncoder().encodeToString(product.getImage());
+            this.image = "data:image/png;base64," + encodedString;
+        }
         if(product.getDiscount() != null) {
             this.discount = new DiscountResponse(product.getDiscount());
         }else{

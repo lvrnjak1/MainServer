@@ -22,6 +22,11 @@ public class EmployeeProfileResponse {
         this.id = employeeProfile.getId();
         this.name = employeeProfile.getName();
         this.surname = employeeProfile.getSurname();
+        this.address = employeeProfile.getContactInformation().getAddress();
+        this.city = employeeProfile.getContactInformation().getCity();
+        this.country = employeeProfile.getContactInformation().getCountry();
+        this.email = employeeProfile.getContactInformation().getEmail();
+        this.phoneNumber = employeeProfile.getContactInformation().getPhoneNumber();
     }
 
 }

@@ -30,8 +30,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private final JwtAuthenticationEntryPoint unauthorizedHandler;
     private final String[] unprotectedRoutes = {
                     "/api/questions",
-                    "api/questions/unanswered",
-                    "/api/auth/**"
+                    "/api/questions/unanswered",
+                    "/api/auth/**",
+                    "/api/logs"
             };
 
     public SecurityConfiguration(CustomUserDetailsService customUserDetailsService, JwtAuthenticationEntryPoint unauthorizedHandler) {

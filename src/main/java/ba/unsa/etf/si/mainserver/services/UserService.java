@@ -109,6 +109,9 @@ public class UserService {
                         loginRequest.getPassword()
                 )
         );
+        System.out.println("Proso");
+
+        authentication.getAuthorities().stream().forEach(authority -> System.out.println(authority.getAuthority()));
         if(!authentication.getAuthorities().stream().anyMatch(authority -> authority.toString().equals(loginRequest.getRole()))){
             throw new UnauthorizedException("You do not have such permissions!");
         }

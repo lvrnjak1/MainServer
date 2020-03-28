@@ -41,7 +41,7 @@ public class EmployeeProfileService {
     }
 
     public EmployeeProfile createEmployeeProfile(RegistrationRequest registrationRequest, User user) {
-        Optional<Business> optionalBusiness = businessService.findById(registrationRequest.getBusinessId());
+        Optional<Business> optionalBusiness = businessService.findById(registrationRequest.getBusinessId()!=null?registrationRequest.getBusinessId():0);
         EmployeeProfile employeeProfile = new EmployeeProfile(
                 registrationRequest.getName(),
                 registrationRequest.getSurname(),

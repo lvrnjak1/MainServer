@@ -1,3 +1,23 @@
+drop sequence if exists hibernate_sequence;
+drop table if exists logs cascade;
+drop table if exists user_roles cascade;
+drop table if exists roles cascade;
+drop table if exists cash_registers cascade;
+drop table if exists office_inventories cascade;
+drop table if exists office_profiles cascade;
+drop table if exists offices cascade;
+drop table if exists products cascade;
+drop table if exists businesses cascade;
+drop table if exists discounts cascade;
+drop table if exists employee_profiles cascade;
+drop table if exists contact_information cascade;
+drop table if exists questions cascade;
+drop table if exists answers cascade;
+drop table if exists users cascade;
+drop table if exists question_authors cascade;
+
+create sequence if not exists hibernate_sequence MINVALUE 50;
+
 create table if not exists logs
 (
     id         bigint    not null

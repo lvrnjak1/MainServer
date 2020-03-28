@@ -27,7 +27,6 @@ public class Product extends AuditModel {
 
     private String name;
     private BigDecimal price;
-    //image
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "discount_id", referencedColumnName = "id")

@@ -4,6 +4,7 @@ import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.requests.auth.LoginRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.RegistrationRequest;
+import ba.unsa.etf.si.mainserver.responses.UserResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.LoginResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.RegistrationResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.RoleResponse;
@@ -86,8 +87,10 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+        System.out.println(loginRequest);
         String jwt = userService.authenticateUser(loginRequest);
-        return ResponseEntity.ok(new LoginResponse(jwt,"Bearer"));
+        UserResponse userResponse = userService.getUserResponseByUsername(loginRequest.getUsername());
+        return ResponseEntity.ok(new LoginResponse(jwt,"Bearer",userResponse));
     }
 
 

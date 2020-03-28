@@ -25,7 +25,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -156,7 +159,7 @@ public class BusinessController {
     @DeleteMapping("/{businessId}/offices/{officeId}")
     @Secured("ROLE_ADMIN")
     public ResponseEntity<ApiResponse> deleteOffice(@PathVariable("businessId") Long businessId,
-                                       @PathVariable("officeId") Long officeId){
+                                                    @PathVariable("officeId") Long officeId){
         return ResponseEntity.ok(officeService.deleteOfficeOfBusiness(officeId, businessId));
     }
 
@@ -231,4 +234,52 @@ public class BusinessController {
         }
         throw new AppException("Bad request");
     }
+
+//    @PostMapping("/employees")
+//    @Secured("ROLE_MANAGER")
+//    public ResponseEntity<ApiResponse> hireEmployeeForOffice(@CurrentUser UserPrincipal userPrincipal,
+//                                                             @RequestBody HiringRequest hiringRequest){
+//        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+//        Optional<Office> officeOptional = officeService.findById(hiringRequest.getOfficeId());
+//        if(!officeOptional.isPresent()){
+//            throw new ResourceNotFoundException("This office doesn't exist");
+//        }
+//
+//        Optional<EmployeeProfile> employeeProfile  = employeeProfileService.findById(hiringRequest.getEmployeeId());
+//        if(!employeeProfile.isPresent()){
+//            throw new ResourceNotFoundException("This employee doesn't exist");
+//        }
+//
+//        OfficeProfile officeProfile = new OfficeProfile(officeOptional.get(), employeeProfile.get());
+//        officeProfileRepository.save(officeProfile);
+//        return ResponseEntity.ok(new ApiResponse("Employee successfully hired at this office", 200));
+//    }
+//
+//    @DeleteMapping("/employees")
+//    @Secured("ROLE_MANAGER")
+//    public ResponseEntity<ApiResponse> fireEmployeeFromOffice(@CurrentUser UserPrincipal userPrincipal,
+//                                                             @RequestBody HiringRequest hiringRequest){
+//        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+//        Optional<Office> officeOptional = officeService.findById(hiringRequest.getOfficeId());
+//        if(!officeOptional.isPresent()){
+//            throw new ResourceNotFoundException("This office doesn't exist");
+//        }
+//
+//        Optional<EmployeeProfile> employeeProfile  = employeeProfileService.findById(hiringRequest.getEmployeeId());
+//        if(!employeeProfile.isPresent()){
+//            throw new ResourceNotFoundException("This employee doesn't exist");
+//        }
+//
+//        Optional<OfficeProfile> officeProfile = officeProfileRepository.findByEmployee_Id(employeeProfile.get().getId());
+//        if(!officeProfile.isPresent()){
+//            throw new AppException("This office doesn't hire this employee");
+//        }
+//        if(officeOptional.get().getManager().getId().equals(employeeProfile.get().getId())){
+//            officeOptional.get().setManager(null);
+//            officeService.save(officeOptional.get());
+//        }
+//
+//        officeProfileRepository.delete(officeProfile.get());
+//        return ResponseEntity.ok(new ApiResponse("Employee successfully fired from this office", 200));
+//    }
 }

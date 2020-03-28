@@ -210,11 +210,3 @@ VALUES (1,'2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000',1,3,3);
 INSERT INTO public.office_profiles (id, created_at, updated_at, employee_id, office_id)
 VALUES (1, '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000', 3, 1);
 
-
-
-
-
-
-
-
-

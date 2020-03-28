@@ -27,7 +27,6 @@ public class Product extends AuditModel {
 
     private String name;
     private BigDecimal price;
-    //image
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "discount_id", referencedColumnName = "id")
@@ -56,6 +55,13 @@ public class Product extends AuditModel {
         this.unit = unit;
         this.image = image;
         this.discount = discount;
+    }
+
+    public Product(String name, BigDecimal price, String unit) {
+        this.name = name;
+        this.price = price;
+        this.unit = unit;
+        this.discount = null;
     }
 
     public Long getId() {

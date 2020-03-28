@@ -4,9 +4,7 @@ import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
-import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
-import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.products.Discount;
 import ba.unsa.etf.si.mainserver.models.products.OfficeInventory;
@@ -92,18 +90,13 @@ public class ProductController {
         Long businessId = business.getId();
         Optional<Business> businessOptional = businessService.findById(businessId);
         if(businessOptional.isPresent()){
-            try {
-                Product product = new Product(productRequest.getName(),
-                        productRequest.getPrice(),
-                        productRequest.getUnit(),
-                        productRequest.getImage());
+            Product product = new Product(productRequest.getName(),
+                    productRequest.getPrice(),
+                    productRequest.getUnit());
 
-                product.setBusiness(businessOptional.get());
-                businessService.save(businessOptional.get());
-                return new ProductResponse(productService.save(product));
-            } catch (IOException e) {
-                throw new AppException("Invalid image");
-            }
+            product.setBusiness(businessOptional.get());
+            businessService.save(businessOptional.get());
+            return new ProductResponse(productService.save(product));
         }
         throw new AppException("Business with id " + businessId + " doesn't exist");
     }
@@ -130,147 +123,141 @@ public class ProductController {
         }
     }
 
-//    @PutMapping("/products/{productId}")
-//    @Secured("ROLE_ADMIN")
-//    public ProductResponse updateProductForBusiness(@PathVariable("businessId") Long businessId,
-//                                         @PathVariable("productId") Long productId,
-//                                                 @RequestBody ProductRequest productRequest){
-//        Optional<Business> businessOptional = businessService.findById(businessId);
-//        if(businessOptional.isPresent()){
-//                Optional<Product> productOptional = productService.findById(productId);
-//                if(productOptional.isPresent()){
-//                    productOptional.get().setName(productRequest.getName());
-//                    productOptional.get().setPrice(productRequest.getPrice());
-//                    productOptional.get().setImage(productRequest.getImage());
-//                    productOptional.get().setUnit(productRequest.getUnit());
-//                    return new ProductResponse(productService.save(productOptional.get()));
-//                }
-//                throw new AppException("Product with id " + productId + " doesn't exist");
-//        }
-//        throw new AppException("Business with id " + businessId + " doesn't exist");
-//    }
+    @PutMapping("/products/{productId}")
+    @Secured({"ROLE_WAREMAN", "ROLE_MERCHANT"})
+    public ProductResponse updateProductForBusiness(@PathVariable("productId") Long productId,
+                                                 @RequestBody ProductRequest productRequest,
+                                                    @CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Optional<Product> optionalProduct = productService.findById(productId);
+        if (!optionalProduct.isPresent()) {
+            throw new ResourceNotFoundException("Product does not exist");
+        }
+        Product product = optionalProduct.get();
+        if (!product.getBusiness().getId().equals(business.getId())) {
+            throw new UnauthorizedException("Not your product");
+        }
 
-    //TODO OVO NE RADI
+        product.setName(productRequest.getName());
+        product.setPrice(product.getPrice());
+        product.setUnit(productRequest.getUnit());
+
+        return new ProductResponse(productService.save(product));
+    }
+
+    //TODO popraviti ovo
 //    @DeleteMapping("/products/{productId}")
 //    @Secured("ROLE_ADMIN")
-//    public ResponseEntity<?> deleteProductForBusiness(@PathVariable("businessId") Long businessId,
-//                                                   @PathVariable("productId") Long productId){
-//        Optional<Business> businessOptional = businessService.findById(businessId);
-//        if(businessOptional.isPresent()){
-//            Optional<Product> productOptional = productService.findById(productId);
-//            if(productOptional.isPresent()){
-//                if(productOptional.get().getBusiness().getId().equals(businessId)){
-//                    officeInventoryService.findByProduct(productOptional.get()).forEach(officeInventoryService::delete);
-//                    //productService.delete(productOptional.get());
-//                    return ResponseEntity.ok(new ApiResponse("Product successfully deleted", 200));
-//                }
-//                throw new AppException("Product with id " + productId + " doesn't exist for business with id" + businessId);
-//            }
-//            throw new AppException("Product with id " + productId + " doesn't exist");
+//    public ResponseEntity<?> deleteProductForBusiness(@PathVariable("productId") Long productId,
+//                                                      @CurrentUser UserPrincipal userPrincipal){
+//        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+//        Optional<Product> optionalProduct = productService.findById(productId);
+//        if (!optionalProduct.isPresent()) {
+//            throw new ResourceNotFoundException("Product does not exist");
 //        }
-//        throw new AppException("Business with id " + businessId + " doesn't exist");
+//        Product product = optionalProduct.get();
+//        if (!product.getBusiness().getId().equals(business.getId())) {
+//            throw new UnauthorizedException("Not your product");
+//        }
+//
+//        //officeInventoryService.findByProduct(product).forEach(officeInventoryService::delete);
+//        //productService.delete(productOptional.get());
+//        return ResponseEntity.ok(new ApiResponse("Product successfully deleted", 200));
 //    }
 
-//    @PostMapping("/inventory")
-//    @Secured("ROLE_ADMIN")
-//    public OfficeInventoryResponse addInventoryForBusiness(@PathVariable("businessId") Long businessId,
-//                                        @RequestBody InventoryRequest inventoryRequest){
-//
-//        Optional<Business> businessOptional = businessService.findById(businessId);
-//        if(businessOptional.isPresent()){
-//            Optional<Product> productOptional = productService.findById(inventoryRequest.getProductId());
-//            if(productOptional.isPresent()){
-//                if(productOptional.get().getBusiness().getId().equals(businessId)){
-//                    Optional<Office> officeOptional = officeService.findById(inventoryRequest.getOfficeId());
-//                    if(officeOptional.isPresent()){
-//                        if(officeOptional.get().getBusiness().getId().equals(businessId)){
-//                            OfficeInventory officeInventory = new OfficeInventory(officeOptional.get(),
-//                            productOptional.get(),
-//                            inventoryRequest.getQuantity());
-//                            return new OfficeInventoryResponse(
-//                                    officeInventoryService.save(officeInventory),
-//                                    cashRegisterService.getAllCashRegisterResponsesByOfficeId(
-//                                            officeOptional.get().getId()
-//                                    )
-//                            );
-//                        }
-//                        throw new AppException("Office with id " + inventoryRequest.getOfficeId() + " doesn't exist for business with id " + businessId);
-//                    }
-//                    throw new AppException("Office with id " + inventoryRequest.getOfficeId() + " doesn't exist");
-//                }
-//                throw new AppException("Product with id " + inventoryRequest.getProductId() + " doesn't exist for business with id " + businessId);
-//            }
-//            throw new AppException("Product with id " + inventoryRequest.getProductId() + " doesn't exist");
-//        }
-//
-//        throw new AppException("Business with id " + businessId + " doesn't exist");
-//    }
 
-//    @PutMapping("/inventory")
-//    @Secured("ROLE_ADMIN")
-//    public OfficeInventoryResponse updateInventoryForBusiness(@PathVariable("businessId") Long businessId,
-//                                                               @RequestBody InventoryRequest inventoryRequest) {
-//
-//        Optional<Business> businessOptional = businessService.findById(businessId);
-//        if(businessOptional.isPresent()){
-//            Optional<Product> productOptional = productService.findById(inventoryRequest.getProductId());
-//            if(productOptional.isPresent()){
-//                if(productOptional.get().getBusiness().getId().equals(businessId)){
-//                    Optional<Office> officeOptional = officeService.findById(inventoryRequest.getOfficeId());
-//                    if(officeOptional.isPresent()){
-//                        if(officeOptional.get().getBusiness().getId().equals(businessId)){
-//                            Optional<OfficeInventory> officeInventoryOptional = officeInventoryService.
-//                                    findByProductAndOffice(productOptional.get(), officeOptional.get());
-//                            if (officeInventoryOptional.isPresent()) {
-//                                officeInventoryOptional.get().setOffice(officeOptional.get());
-//                                officeInventoryOptional.get().setProduct(productOptional.get());
-//                                officeInventoryOptional.get().setQuantity(inventoryRequest.getQuantity());
-//                                return new OfficeInventoryResponse(
-//                                        officeInventoryService.save(officeInventoryOptional.get()),
-//                                        cashRegisterService.getAllCashRegisterResponsesByOfficeId(
-//                                                officeOptional.get().getId()
-//                                        )
-//                                );
-//                            }
-//
-//                            OfficeInventory officeInventory = new OfficeInventory(officeOptional.get(),
-//                                    productOptional.get(),
-//                                    inventoryRequest.getQuantity());
-//                            return new OfficeInventoryResponse(
-//                                    officeInventoryService.save(officeInventory),
-//                                    cashRegisterService.getAllCashRegisterResponsesByOfficeId(
-//                                            officeOptional.get().getId()
-//                                    ));
-//                        }
-//                        throw new AppException("Office with id " + inventoryRequest.getOfficeId() + " doesn't exist for business with id " + businessId);
-//                    }
-//                    throw new AppException("Office with id " + inventoryRequest.getOfficeId() + " doesn't exist");
-//                }
-//                throw new AppException("Product with id " + inventoryRequest.getProductId() + " doesn't exist for business with id " + businessId);
-//            }
-//            throw new AppException("Product with id " + inventoryRequest.getProductId() + " doesn't exist");
-//        }
-//        throw new AppException("Business with id " + businessId + " doesn't exist");
-//    }
-//
-//    @PutMapping("/products/{productId}/discount")
-//    @Secured("ROLE_ADMIN")
-//    public ProductResponse updateDiscount(@PathVariable("businessId") Long businessId,
-//                                        @PathVariable("productId") Long productId,
-//                                        @RequestBody DiscountRequest discountRequest){
-//        Optional<Business> businessOptional = businessService.findById(businessId);
-//        if(businessOptional.isPresent()){
-//            Optional<Product> productOptional = productService.findById(productId);
-//            if (productOptional.isPresent()){
-//                if(productOptional.get().getBusiness().getId().equals(businessId)){
-//                        Discount discount = new Discount(discountRequest.getPercentage());
-//                        productOptional.get().setDiscount(discount);
-//                    return new ProductResponse(productService.save(productOptional.get()));
-//                }
-//                throw new AppException("Product with id " + productId+ " doesn't exist for business with id " + businessId);
-//            }
-//            throw new AppException("Product with id " + productId+ " doesn't exist");
-//        }
-//        throw new AppException("Business with id " + businessId + " doesn't exist");
-//    }
+    @PostMapping("/inventory")
+    @Secured("ROLE_WAREMAN")
+    public OfficeInventoryResponse addInventoryForBusiness(@RequestBody InventoryRequest inventoryRequest,
+                                                           @CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Optional<Product> optionalProduct = productService.findById(inventoryRequest.getProductId());
+        if (!optionalProduct.isPresent()) {
+            throw new ResourceNotFoundException("Product does not exist");
+        }
+        Product product = optionalProduct.get();
+        if (!product.getBusiness().getId().equals(business.getId())) {
+            throw new UnauthorizedException("Not your product");
+        }
+
+        Optional<Office> optionalOffice = officeService.findById(inventoryRequest.getOfficeId());
+        if (!optionalOffice.isPresent()) {
+            throw new ResourceNotFoundException("Office does not exist");
+        }
+        Office office = optionalOffice.get();
+        if (!office.getBusiness().getId().equals(business.getId())) {
+            throw new UnauthorizedException("Not your office");
+        }
+
+        OfficeInventory officeInventory = new OfficeInventory(office, product, inventoryRequest.getQuantity());
+        return new OfficeInventoryResponse(
+                officeInventoryService.save(officeInventory),
+                cashRegisterService.getAllCashRegisterResponsesByOfficeId(
+                        office.getId()
+                )
+        );
+    }
+
+    @PutMapping("/inventory")
+    @Secured("ROLE_WAREMAN")
+    public OfficeInventoryResponse updateInventoryForBusiness(@RequestBody InventoryRequest inventoryRequest,
+                                                              @CurrentUser UserPrincipal userPrincipal) {
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Optional<Product> optionalProduct = productService.findById(inventoryRequest.getProductId());
+        if (!optionalProduct.isPresent()) {
+            throw new ResourceNotFoundException("Product does not exist");
+        }
+        Product product = optionalProduct.get();
+        if (!product.getBusiness().getId().equals(business.getId())) {
+            throw new UnauthorizedException("Not your product");
+        }
+
+        Optional<Office> optionalOffice = officeService.findById(inventoryRequest.getOfficeId());
+        if (!optionalOffice.isPresent()) {
+            throw new ResourceNotFoundException("Office does not exist");
+        }
+        Office office = optionalOffice.get();
+        if (!office.getBusiness().getId().equals(business.getId())) {
+            throw new UnauthorizedException("Not your office");
+        }
+
+        Optional<OfficeInventory> officeInventoryOptional = officeInventoryService.
+                findByProductAndOffice(product, office);
+        if (officeInventoryOptional.isPresent()) {
+            officeInventoryOptional.get().setOffice(office);
+            officeInventoryOptional.get().setProduct(product);
+            officeInventoryOptional.get().setQuantity(inventoryRequest.getQuantity());
+            return new OfficeInventoryResponse(
+                    officeInventoryService.save(officeInventoryOptional.get()),
+                    cashRegisterService.getAllCashRegisterResponsesByOfficeId(
+                            office.getId()
+                    )
+            );
+        }
+
+        throw new AppException("Use POST request");
+
+    }
+
+
+    @PutMapping("/products/{productId}/discount")
+    @Secured("ROLE_MERCHANT")
+    public ProductResponse updateDiscount(@PathVariable("productId") Long productId,
+                                        @RequestBody DiscountRequest discountRequest,
+                                          @CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Optional<Product> optionalProduct = productService.findById(productId);
+        if (!optionalProduct.isPresent()) {
+            throw new ResourceNotFoundException("Product does not exist");
+        }
+        Product product = optionalProduct.get();
+        if (!product.getBusiness().getId().equals(business.getId())) {
+            throw new UnauthorizedException("Not your product");
+        }
+
+        Discount discount = new Discount(discountRequest.getPercentage());
+        product.setDiscount(discount);
+        return new ProductResponse(productService.save(product));
+    }
+
 }

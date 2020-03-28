@@ -12,6 +12,7 @@ import ba.unsa.etf.si.mainserver.repositories.auth.UserRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.EmployeeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.auth.LoginRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.RegistrationRequest;
+import ba.unsa.etf.si.mainserver.responses.UserResponse;
 import ba.unsa.etf.si.mainserver.security.JwtTokenProvider;
 import ba.unsa.etf.si.mainserver.security.UserCreationPermissions;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
@@ -161,5 +162,24 @@ public class UserService {
 
     public Optional<User> findUserById(Long userId) {
         return userRepository.findById(userId);
+    }
+
+    public UserResponse getUserResponseByUsername(String username) {
+        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileRepository.findByContactInformation_EmailOrAccount_UsernameOrAccount_IdOrId("", username, 0L, 0L);
+        if (!optionalEmployeeProfile.isPresent()) {
+            return new UserResponse();
+        }
+        EmployeeProfile employeeProfile = optionalEmployeeProfile.get();
+        return new UserResponse(
+                employeeProfile.getAccount().getId(),
+                username,
+                employeeProfile.getContactInformation().getEmail(),
+                employeeProfile.getName(),
+                employeeProfile.getSurname(),
+                employeeProfile.getContactInformation().getAddress(),
+                employeeProfile.getContactInformation().getPhoneNumber(),
+                employeeProfile.getContactInformation().getCountry(),
+                employeeProfile.getContactInformation().getCity()
+        );
     }
 }

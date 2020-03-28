@@ -15,7 +15,6 @@ import java.util.Date;
 public class NotificationRequest {
     private Long employeeId;
     private boolean hired;
-    private boolean read;
     private String date;
     private String time;
 

@@ -45,8 +45,8 @@ public class NotificationController {
             Notification notification = null;
             try {
                 notification = new Notification(business, employeeProfileOptional.get(),
-                        notificationRequest.isHired(), notificationRequest.isRead(),
-                        notificationRequest.getDateFromString(),notificationRequest.getTimeFromString());
+                        notificationRequest.isHired(), notificationRequest.getDateFromString(),
+                        notificationRequest.getTimeFromString());
             } catch (ParseException e) {
             }
             return new NotificationResponse(notificationService.save(notification));

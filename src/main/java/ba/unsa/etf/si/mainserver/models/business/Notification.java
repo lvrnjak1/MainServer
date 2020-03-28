@@ -34,7 +34,7 @@ public class Notification extends AuditModel {
     private EmployeeProfile employeeProfile;
 
     private boolean hired;
-    private boolean read;
+    private boolean read = false;
 
     @Basic
     @Temporal(TemporalType.DATE)
@@ -105,11 +105,10 @@ public class Notification extends AuditModel {
     }
 
     public Notification(Business business, EmployeeProfile employeeProfile, boolean hired,
-                        boolean read, Date date, Date time){
+                        Date date, Date time){
         this.business = business;
         this.employeeProfile = employeeProfile;
         this.hired = hired;
-        this.read = read;
         this.date = date;
         this.time = time;
     }

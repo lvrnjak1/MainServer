@@ -30,9 +30,9 @@ public class NNotificationsController {
         this.businessService = businessService;
     }
 
-    @PostMapping("/openOffice")
+    @PostMapping("/office")
     @Secured("ROLE_MERCHANT")
-    public ResponseEntity<ApiResponse> notifyAdminToOpenNewOffice(@CurrentUser UserPrincipal userPrincipal,
+    public ResponseEntity<ApiResponse> notifyAdmin(@CurrentUser UserPrincipal userPrincipal,
                                                                   @RequestBody MANotificationRequest notificationRequest){
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
         ContactInformation officeInformation = new ContactInformation(
@@ -42,6 +42,9 @@ public class NNotificationsController {
                 notificationRequest.getEmail(),
                 notificationRequest.getPhoneNumber()
         );
+
+        //ako je close provjerit imal office-a
+
         AdminMerchantNotification adminMerchantNotification = new AdminMerchantNotification(
                 business, officeInformation, notificationRequest.isOpen()
         );
@@ -68,16 +71,31 @@ public class NNotificationsController {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping("/admin/read")
-    @Secured("ROLE_ADMIN")
-    public List<MANotificationResponse> getAllReadNotifications(){
-        return adminMerchantNotificationRepository
-                .findAll()
-                .stream()
-                .filter(AdminMerchantNotification::isRead)
-                .map(MANotificationResponse::new)
-                .collect(Collectors.toList());
-    }
+//    @GetMapping("/admin/read")
+//    @Secured("ROLE_ADMIN")
+//    public List<MANotificationResponse> getAllReadNotifications(){
+//        return adminMerchantNotificationRepository
+//                .findAll()
+//                .stream()
+//                .filter(AdminMerchantNotification::isRead)
+//                .map(notification -> {
+//                    if(!notification.isOpen()){
+//                        Optional<AdminMerchantNotification> optional = adminMerchantNotificationRepository
+//                                .findByOffice_AddressAndOffice_CityAndOffice_CountryAndOffice_EmailAndOffice_PhoneNumber(
+//                                        notification.getOffice().getAddress(),
+//                                        notification.getOffice().getCity(),
+//                                        notification.getOffice().getCountry(),
+//                                        notification.getOffice().getEmail(),
+//                                        notification.getOffice().getPhoneNumber()
+//                                );
+//
+////                        if(!optional.isPresent()){
+////                            throw new BadParameterValueException("Thes")
+////                        }
+//                    }
+//                })
+//                .collect(Collectors.toList());
+//    }
 
     @PostMapping("/admin/read/{notificationId}")
     @Secured("ROLE_ADMIN")

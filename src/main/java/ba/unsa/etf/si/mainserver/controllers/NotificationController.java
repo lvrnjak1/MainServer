@@ -5,17 +5,17 @@ import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.models.business.Notification;
 import ba.unsa.etf.si.mainserver.requests.business.NotificationRequest;
-import ba.unsa.etf.si.mainserver.responses.business.BusinessResponse;
 import ba.unsa.etf.si.mainserver.responses.business.NotificationResponse;
-import ba.unsa.etf.si.mainserver.responses.pr.QuestionResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
 import ba.unsa.etf.si.mainserver.services.business.NotificationService;
+
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,12 +38,17 @@ public class NotificationController {
     @PostMapping("/send")
     @Secured({"ROLE_MANAGER"})
     public NotificationResponse addNewNotification(@CurrentUser UserPrincipal userPrincipal,
-                                                   NotificationRequest notificationRequest){
+                                                   @RequestBody NotificationRequest notificationRequest){
         Optional<EmployeeProfile> employeeProfileOptional = employeeProfileService.findById(notificationRequest.getEmployeeId());
         if(employeeProfileOptional.isPresent()) {
             Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-            Notification notification = new Notification(business, employeeProfileOptional.get(),
-                    notificationRequest.isHired(), notificationRequest.isRead(), notificationRequest.getDate());
+            Notification notification = null;
+            try {
+                notification = new Notification(business, employeeProfileOptional.get(),
+                        notificationRequest.isHired(), notificationRequest.isRead(),
+                        notificationRequest.getDateFromString(),notificationRequest.getTimeFromString());
+            } catch (ParseException e) {
+            }
             return new NotificationResponse(notificationService.save(notification));
 
         }
@@ -54,7 +59,8 @@ public class NotificationController {
     @Secured({"ROLE_MERCHANT","ROLE_MANAGER"})
     public List<NotificationResponse> getAllReadNotifications(@CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        return notificationService.findAllByBusiness(business.getId())
+        System.out.println(notificationService.findAllByBusinessId(business.getId()));
+        return notificationService.findAllByBusinessId(business.getId())
                 .stream()
                 .filter(notification -> notification.isRead())
                 .map(NotificationResponse::new)
@@ -65,14 +71,14 @@ public class NotificationController {
     @Secured({"ROLE_MERCHANT","ROLE_MANAGER"})
     public List<NotificationResponse> getAllUnreadNotifications(@CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        return notificationService.findAllByBusiness(business.getId())
+        return notificationService.findAllByBusinessId(business.getId())
                 .stream()
                 .filter(notification -> !notification.isRead())
                 .map(NotificationResponse::new)
                 .collect(Collectors.toList());
     }
 
-    @PostMapping("/markRead/{notificationId}")
+    @PostMapping("/{notificationId}/markRead")
     @Secured({"ROLE_MERCHANT"})
     public NotificationResponse markNotification(@CurrentUser UserPrincipal userPrincipal,
                                                  @PathVariable Long notificationId){

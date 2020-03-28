@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -21,19 +24,29 @@ public class Notification extends AuditModel {
     @Column(name = "id")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JsonBackReference
-    @JoinColumn(name="business_id", nullable=false)
+    @JoinColumn(name="business_id", referencedColumnName = "id")
     private Business business;
 
-    @ManyToOne
-    @JsonBackReference
-    @JoinColumn(name="employee_id", nullable=false)
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name="employee_id", referencedColumnName = "id")
     private EmployeeProfile employeeProfile;
 
     private boolean hired;
     private boolean read;
-    private LocalDateTime date;
+
+    @Basic
+    @Temporal(TemporalType.DATE)
+    @NotNull
+    private Date date;
+
+    @Basic
+    @Temporal(TemporalType.TIME)
+    @NotNull
+    private Date time;
+
+
 
     public Long getId() {
         return id;
@@ -67,14 +80,6 @@ public class Notification extends AuditModel {
         this.read = read;
     }
 
-    public LocalDateTime getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDateTime date) {
-        this.date = date;
-    }
-
     public EmployeeProfile getEmployeeProfile() {
         return employeeProfile;
     }
@@ -83,12 +88,40 @@ public class Notification extends AuditModel {
         this.employeeProfile = employeeProfile;
     }
 
-    public Notification(Business business, EmployeeProfile employeeProfile, boolean hired, boolean read, LocalDateTime date){
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public Date getTime() {
+        return time;
+    }
+
+    public void setTime(Date time) {
+        this.time = time;
+    }
+
+    public Notification(Business business, EmployeeProfile employeeProfile, boolean hired,
+                        boolean read, Date date, Date time){
         this.business = business;
         this.employeeProfile = employeeProfile;
         this.hired = hired;
         this.read = read;
         this.date = date;
+        this.time = time;
+    }
+
+    public String getStringDate(){
+        DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+        return dateFormat.format(getDate());
+    }
+
+    public String getStringTime(){
+        DateFormat dateFormat = new SimpleDateFormat("HH:mm");
+        return dateFormat.format(getTime());
     }
 }
 

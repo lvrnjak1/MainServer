@@ -24,8 +24,8 @@ public class NotificationService {
         return notificationRepository.save(notification);
     }
 
-    public List<Notification> findAllByBusiness(Long businessId){
-        return notificationRepository.findAllByBusiness(businessId);
+    public List<Notification> findAllByBusinessId(Long businessId){
+        return notificationRepository.findAllByBusinessId(businessId);
     }
 
     public Notification findByIdInBusiness(Long notificationId, Business business) {

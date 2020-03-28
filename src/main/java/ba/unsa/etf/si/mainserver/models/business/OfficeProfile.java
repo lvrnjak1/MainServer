@@ -18,11 +18,16 @@ public class OfficeProfile extends AuditModel {
     @Column(name = "id")
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "office_id", referencedColumnName = "id")
     private Office office;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "employee_id", referencedColumnName = "id")
     private EmployeeProfile employee;
+
+    public OfficeProfile(Office office, EmployeeProfile employeeProfile) {
+        this.office = office;
+        this.employee = employeeProfile;
+    }
 }

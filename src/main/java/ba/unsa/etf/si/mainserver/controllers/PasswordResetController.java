@@ -5,7 +5,7 @@ import ba.unsa.etf.si.mainserver.models.auth.PasswordResetToken;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.requests.auth.PasswordResetRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.SaveNewPasswordRequest;
-import ba.unsa.etf.si.mainserver.responses.auth.ResetPasswordResponse;
+import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.services.EmailService;
 import ba.unsa.etf.si.mainserver.services.PasswordTokenService;
 import ba.unsa.etf.si.mainserver.services.UserService;
@@ -32,14 +32,14 @@ public class PasswordResetController {
     }
 
     @PostMapping("/user/resetPassword")
-    public void resetPassword(@RequestBody PasswordResetRequest passwordResetRequest) {
+    public ApiResponse resetPassword(@RequestBody PasswordResetRequest passwordResetRequest) {
         Optional<User> userOptional = userService.findByEmail(passwordResetRequest.getEmail());
         if (!userOptional.isPresent()) {
             throw new AppException("User with email " + passwordResetRequest.getEmail() + " doesn't exist");
         }
         User user = userOptional.get();
         String token = UUID.randomUUID().toString();
-        userService.createPasswordResetTokenForUser(user, token); //upisano je u tabelu
+        userService.createPasswordResetTokenForUser(user, token);
 
         SimpleMailMessage passwordResetEmail = new SimpleMailMessage();
         passwordResetEmail.setTo(user.getEmail());
@@ -47,12 +47,11 @@ public class PasswordResetController {
         passwordResetEmail.setText("To reset your password, use token below:\n" + token);
 
         emailService.sendEmail(passwordResetEmail);
+        return new ApiResponse("E-mail successfully sent", 200);
     }
 
-    //unesen neki token i nova sifra
     @PostMapping("/user/savePassword")
-    public ResetPasswordResponse savePassword(@RequestBody SaveNewPasswordRequest saveNewPasswordRequest) {
-        System.out.println("lkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk");
+    public ApiResponse savePassword(@RequestBody SaveNewPasswordRequest saveNewPasswordRequest) {
         String token = saveNewPasswordRequest.getToken();
         String newPassword = saveNewPasswordRequest.getNewPassword();
         User user = userService.findUserByEmailToken(token);
@@ -60,17 +59,16 @@ public class PasswordResetController {
         Optional<PasswordResetToken> passToken = passwordTokenService.findByToken(token);
 
         Calendar cal = Calendar.getInstance();
-        System.out.println(cal.getTime());
-        System.out.println(passToken.get().getExpiryDate());
         if ((passToken.get().getExpiryDate()
                 .getTime() - cal.getTime()
                 .getTime()) <= 0) {
             throw new AppException("Expired token");
         }
 
-        return new ResetPasswordResponse(userService.changePasswordForUser(user,newPassword));
+        userService.changePasswordForUser(user,newPassword);
+        passwordTokenService.deletePasswordResetToken(passToken.get().getId());
 
-        //obrisi iz tabele usera i taj token
+        return new ApiResponse("Password successfully changed", 200);
 
     }
 

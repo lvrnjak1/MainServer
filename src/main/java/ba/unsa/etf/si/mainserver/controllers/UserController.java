@@ -16,9 +16,7 @@ import ba.unsa.etf.si.mainserver.responses.business.EmployeeProfileResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
-import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
-import ba.unsa.etf.si.mainserver.services.business.OfficeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
@@ -34,17 +32,11 @@ public class UserController {
     private final UserService userService;
     private final EmployeeProfileService employeeProfileService;
     private final OfficeProfileRepository officeProfileRepository;
-    private final BusinessService businessService;
-    private final OfficeService officeService;
-
     public UserController(UserService userService, EmployeeProfileService employeeProfileService,
-                          OfficeProfileRepository officeProfileRepository,
-                          BusinessService businessService, OfficeService officeService) {
+                          OfficeProfileRepository officeProfileRepository) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.officeProfileRepository = officeProfileRepository;
-        this.businessService = businessService;
-        this.officeService = officeService;
     }
 
     @GetMapping("/users")
@@ -233,28 +225,4 @@ public class UserController {
         }
         return ResponseEntity.ok(new EmployeeProfileResponse(result.get()));
     }
-
-//    @GetMapping("/employees/{employeeId}/office")
-//    @Secured("USER_MANAGER")
-//    public OfficeResponse getOfficeForEmployee(@PathVariable Long employeeId,
-//                                                      @CurrentUser UserPrincipal userPrincipal){
-//        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-//        Optional<EmployeeProfile> employeeProfileOptional = employeeProfileService.findById(employeeId);
-//        if(!employeeProfileOptional.isPresent()){
-//            throw new BadParameterValueException("Employee with this id doesn't exist");
-//        }
-//
-//        if(!employeeProfileOptional.get().getBusiness().getId().equals(business.getId())){
-//            throw new BadParameterValueException("Employee with this id doesn't exist");
-//        }
-//
-//        Optional<OfficeProfile> officeProfileOptional = officeProfileRepository.findByEmployee_Id(employeeId);
-//        if(!officeProfileOptional.isPresent()){
-//            throw new BadParameterValueException("Employee with this id isn't hired at any office");
-//        }
-    //TODO OVO TREBA POLJI ALI ZA OVO TREBA NAPRAVIT DA SE MOGU ZAPOSLIT RADNICI U NEKU POSLOVNICU
-    //I DA IM SE MOZE DATI OTKAZ
-    //LAMIJA KRENULA DA RADI
-//    }
-
 }

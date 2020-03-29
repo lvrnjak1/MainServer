@@ -1,6 +1,7 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
+import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.*;
@@ -8,6 +9,7 @@ import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.EmployeeProfileRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.business.BusinessRequest;
+import ba.unsa.etf.si.mainserver.requests.business.HiringRequest;
 import ba.unsa.etf.si.mainserver.requests.business.OfficeManagerRequest;
 import ba.unsa.etf.si.mainserver.requests.business.OfficeRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
@@ -235,27 +237,61 @@ public class BusinessController {
         throw new AppException("Bad request");
     }
 
+    @GetMapping("/employees/{employeeId}/office")
+    @Secured("ROLE_MANAGER")
+    public OfficeResponse getOfficeForEmployee(@PathVariable Long employeeId,
+                                               @CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Optional<EmployeeProfile> employeeProfileOptional = employeeProfileService.findById(employeeId);
+        if(!employeeProfileOptional.isPresent()){
+            throw new BadParameterValueException("Employee with this id doesn't exist");
+        }
+
+        if(!employeeProfileOptional.get().getBusiness().getId().equals(business.getId())){
+            throw new BadParameterValueException("Employee with this id doesn't exist");
+        }
+
+        Optional<OfficeProfile> officeProfileOptional = officeProfileRepository.findByEmployee_Id(employeeId);
+        if(!officeProfileOptional.isPresent()){
+            throw new BadParameterValueException("Employee with this id isn't hired at any office");
+        }
+
+        Office office = officeProfileOptional.get().getOffice();
+        return new OfficeResponse(office, cashRegisterService.getAllCashRegisterResponsesByOfficeId(office.getId()));
+    }
+
 //TODO fire hire employees
 
-//    @PostMapping("/employees")
-//    @Secured("ROLE_MANAGER")
-//    public ResponseEntity<ApiResponse> hireEmployeeForOffice(@CurrentUser UserPrincipal userPrincipal,
-//                                                             @RequestBody HiringRequest hiringRequest){
-//        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-//        Optional<Office> officeOptional = officeService.findById(hiringRequest.getOfficeId());
-//        if(!officeOptional.isPresent()){
-//            throw new ResourceNotFoundException("This office doesn't exist");
-//        }
-//
-//        Optional<EmployeeProfile> employeeProfile  = employeeProfileService.findById(hiringRequest.getEmployeeId());
-//        if(!employeeProfile.isPresent()){
-//            throw new ResourceNotFoundException("This employee doesn't exist");
-//        }
-//
-//        OfficeProfile officeProfile = new OfficeProfile(officeOptional.get(), employeeProfile.get());
-//        officeProfileRepository.save(officeProfile);
-//        return ResponseEntity.ok(new ApiResponse("Employee successfully hired at this office", 200));
-//    }
+    @PostMapping("/employees")
+    @Secured("ROLE_MANAGER")
+    public ResponseEntity<ApiResponse> hireEmployeeForOffice(@CurrentUser UserPrincipal userPrincipal,
+                                                             @RequestBody HiringRequest hiringRequest){
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Optional<Office> officeOptional = officeService.findById(hiringRequest.getOfficeId());
+        if(!officeOptional.isPresent()){
+            throw new ResourceNotFoundException("This office doesn't exist");
+        }
+
+        if(!officeOptional.get().getBusiness().getId().equals(business.getId())){
+            throw new ResourceNotFoundException("This office doesn't exist");
+        }
+
+        Optional<EmployeeProfile> employeeProfile  = employeeProfileService.findById(hiringRequest.getEmployeeId());
+        if(!employeeProfile.isPresent()){
+            throw new ResourceNotFoundException("This employee doesn't exist");
+        }
+
+        Optional<OfficeProfile> officeProfileOptional = officeProfileRepository
+                .findByEmployee_Id(employeeProfile.get().getId());
+
+        if(officeProfileOptional.isPresent()){
+            throw new BadParameterValueException("This employee is already hired at this office");
+        }
+
+        OfficeProfile officeProfile = new OfficeProfile(officeOptional.get(), employeeProfile.get());
+        officeProfileRepository.save(officeProfile);
+        return ResponseEntity.ok(new ApiResponse("Employee successfully hired at this office", 200));
+    }
 //
 //    @DeleteMapping("/employees")
 //    @Secured("ROLE_MANAGER")

@@ -8,6 +8,7 @@ import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.models.products.Product;
 import ba.unsa.etf.si.mainserver.repositories.business.BusinessRepository;
 import ba.unsa.etf.si.mainserver.repositories.products.ProductRepository;
+import ba.unsa.etf.si.mainserver.responses.products.ExtendedProductResponse;
 import ba.unsa.etf.si.mainserver.responses.products.ProductResponse;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
@@ -67,6 +68,20 @@ public class ProductService {
         return productRepository.findAllByBusinessId(optionalEmployeeProfile.get().getBusiness().getId())
                 .stream()
                 .map(ProductResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    public List<ExtendedProductResponse> getAllProductResponsesWithBusiness() {
+        List<Product> products = productRepository.findAll();
+        return products.stream().map(ExtendedProductResponse::new).collect(Collectors.toList());
+    }
+
+    public List<ExtendedProductResponse> getAllProductOnSaleResponsesWithBusiness() {
+        List<Product> products = productRepository.findAll();
+        return products
+                .stream()
+                .filter(product -> product.getDiscount() != null && product.getDiscount().getPercentage() > 0)
+                .map(ExtendedProductResponse::new)
                 .collect(Collectors.toList());
     }
 }

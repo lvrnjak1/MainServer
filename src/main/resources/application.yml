@@ -11,6 +11,18 @@ spring:
       ddl-auto: update
   flyway:
     baseline-on-migrate: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: mainserverapp@gmail.com
+    password: mainserver1
+    protocol: smtp
+    tls: true
+    properties.mail.smtp:
+      auth: true
+      starttls.enable: true
+      ssl.trust: smtp.gmail.com
 app:
   jwtSecret: "supershhhhh"
   jwtExpirationInMs: 604800000
+

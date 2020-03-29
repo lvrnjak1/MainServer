@@ -65,7 +65,7 @@ public class PasswordResetController {
             throw new AppException("Expired token");
         }
 
-        userService.changePasswordForUser(user,newPassword);
+        userService.changeUserPassword(user.getId(),newPassword);
         passwordTokenService.deletePasswordResetToken(passToken.get().getId());
 
         return new ApiResponse("Password successfully changed", 200);

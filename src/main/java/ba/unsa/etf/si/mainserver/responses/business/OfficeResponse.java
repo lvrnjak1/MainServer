@@ -1,15 +1,11 @@
 package ba.unsa.etf.si.mainserver.responses.business;
 
-import ba.unsa.etf.si.mainserver.models.business.CashRegister;
 import ba.unsa.etf.si.mainserver.models.business.Office;
-import ba.unsa.etf.si.mainserver.responses.pr.AnswerResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor

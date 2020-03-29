@@ -182,4 +182,14 @@ public class UserService {
                 employeeProfile.getContactInformation().getCity()
         );
     }
+
+    public User changeUserPassword(Long userId, String password) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if (!optionalUser.isPresent()) {
+            throw new ResourceNotFoundException("User does not exist");
+        }
+        User user = optionalUser.get();
+        user.setPassword(passwordEncoder.encode(password));
+        return userRepository.save(user);
+    }
 }

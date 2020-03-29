@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -24,16 +25,34 @@ public class AdminMerchantNotification extends AuditModel {
     @JoinColumn(name = "business_id", referencedColumnName = "id")
     private Business business;
 
-    @OneToOne
-    @JoinColumn(name = "contact_info_id", referencedColumnName = "id")
-    ContactInformation office;
+//    @OneToOne
+//    @JoinColumn(name = "contact_info_id", referencedColumnName = "id")
+//    ContactInformation office;
+
+    @NotBlank
+    private String address;
+    @NotBlank
+    private String city;
+    @NotBlank
+    private String country;
+    @NotBlank
+    private String email;
+    @NotBlank
+    private String phoneNumber;
 
     private boolean open;
     private boolean read = false;
+    private Long officeId = null;
 
-    public AdminMerchantNotification(Business business, ContactInformation officeInformation, boolean open) {
+    public AdminMerchantNotification(Business business, String address,
+                                     String city, String country, String email,
+                                     String phoneNumber, boolean open) {
         this.business = business;
-        this.office = officeInformation;
         this.open = open;
+        this.address = address;
+        this.city = city;
+        this.country = country;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
     }
 }

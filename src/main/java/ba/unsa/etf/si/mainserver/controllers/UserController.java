@@ -4,12 +4,10 @@ import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
 import ba.unsa.etf.si.mainserver.models.auth.User;
-import ba.unsa.etf.si.mainserver.models.business.ContactInformation;
 import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.business.OfficeProfile;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
-import ba.unsa.etf.si.mainserver.repositories.business.OfficeRepository;
 import ba.unsa.etf.si.mainserver.requests.business.EmployeeProfileRequest;
 import ba.unsa.etf.si.mainserver.responses.UserResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.RegistrationResponse;
@@ -18,7 +16,9 @@ import ba.unsa.etf.si.mainserver.responses.business.EmployeeProfileResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
+import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
+import ba.unsa.etf.si.mainserver.services.business.OfficeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
@@ -34,22 +34,24 @@ public class UserController {
     private final UserService userService;
     private final EmployeeProfileService employeeProfileService;
     private final OfficeProfileRepository officeProfileRepository;
-    private final OfficeRepository officeRepository;
+    private final BusinessService businessService;
+    private final OfficeService officeService;
 
-
-    public UserController(UserService userService, EmployeeProfileService employeeProfileService, OfficeProfileRepository officeProfileRepository, OfficeRepository officeRepository) {
+    public UserController(UserService userService, EmployeeProfileService employeeProfileService,
+                          OfficeProfileRepository officeProfileRepository,
+                          BusinessService businessService, OfficeService officeService) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.officeProfileRepository = officeProfileRepository;
-        this.officeRepository = officeRepository;
+        this.businessService = businessService;
+        this.officeService = officeService;
     }
 
     @GetMapping("/users")
     @Secured("ROLE_ADMIN")
     public List<UserResponse> getUsers(@RequestParam(required = false) Long businessId) {
-        return employeeProfileService
-                .findAllByOptionalBusinessId(businessId)
-                .stream()
+       return employeeProfileService.findAllByOptionalBusinessId(businessId)
+               .stream()
                 .map(
                         employeeProfile -> new UserResponse(
                                 employeeProfile.getAccount().getId(),
@@ -198,6 +200,61 @@ public class UserController {
         EmployeeProfile result = employeeProfileService.save(employeeProfile);
         return ResponseEntity.ok(new EmployeeProfileResponse(result));
     }
+    @GetMapping("/users/{userId}")
+    @Secured({"ROLE_ADMIN", "ROLE_MERCHANT", "ROLE_MANAGER"})
+    public ResponseEntity<EmployeeProfileResponse> getUserProfile(@PathVariable Long userId,
+                                                                  @CurrentUser UserPrincipal userPrincipal) {
+        Optional<User> optionalUser = userService.findUserById(userId);
+        if (!optionalUser.isPresent()) {
+            throw new ResourceNotFoundException("User with id " + userId + " does not exist");
+        }
+        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(optionalUser.get());
+        if (!optionalEmployeeProfile.isPresent()) {
+            throw new ResourceNotFoundException("User is not an employee");
+        }
+        if (userPrincipal.getAuthorities().stream().noneMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
+            Optional<User> optionalManager = userService.findByUsername(userPrincipal.getUsername());
+            if (!optionalManager.isPresent()) {
+                throw new AppException("This shouldn't happen. Contact your administrator!");
+            }
+            Optional<EmployeeProfile> optionalManagerProfile = employeeProfileService.findByAccount(optionalManager.get());
+            if (!optionalManagerProfile.isPresent()) {
+                throw new AppException("THIS IS HORROR. KILL THE MACHINE!");
+            }
+            if (!optionalEmployeeProfile.get().getBusiness().getId().equals(optionalManagerProfile.get().getBusiness().getId())) {
+                throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
+            }
+        }
+        EmployeeProfile employeeProfile = optionalEmployeeProfile.get();
 
+        Optional<EmployeeProfile> result = employeeProfileService.findById(employeeProfile.getId());
+        if (!result.isPresent()) {
+            throw new ResourceNotFoundException("This user is not an employee");
+        }
+        return ResponseEntity.ok(new EmployeeProfileResponse(result.get()));
+    }
+
+//    @GetMapping("/employees/{employeeId}/office")
+//    @Secured("USER_MANAGER")
+//    public OfficeResponse getOfficeForEmployee(@PathVariable Long employeeId,
+//                                                      @CurrentUser UserPrincipal userPrincipal){
+//        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+//        Optional<EmployeeProfile> employeeProfileOptional = employeeProfileService.findById(employeeId);
+//        if(!employeeProfileOptional.isPresent()){
+//            throw new BadParameterValueException("Employee with this id doesn't exist");
+//        }
+//
+//        if(!employeeProfileOptional.get().getBusiness().getId().equals(business.getId())){
+//            throw new BadParameterValueException("Employee with this id doesn't exist");
+//        }
+//
+//        Optional<OfficeProfile> officeProfileOptional = officeProfileRepository.findByEmployee_Id(employeeId);
+//        if(!officeProfileOptional.isPresent()){
+//            throw new BadParameterValueException("Employee with this id isn't hired at any office");
+//        }
+    //TODO OVO TREBA POLJI ALI ZA OVO TREBA NAPRAVIT DA SE MOGU ZAPOSLIT RADNICI U NEKU POSLOVNICU
+    //I DA IM SE MOZE DATI OTKAZ
+    //LAMIJA KRENULA DA RADI
+//    }
 
 }

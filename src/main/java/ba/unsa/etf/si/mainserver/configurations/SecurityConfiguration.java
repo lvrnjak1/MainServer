@@ -32,6 +32,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     "/api/questions",
                     "/api/questions/unanswered",
                     "/api/auth/**",
+                    "/api/products",
+                    "/api/products/sale",
                     "/api/logs"
             };
 

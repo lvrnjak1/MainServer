@@ -3,6 +3,7 @@ package ba.unsa.etf.si.mainserver.controllers;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
+import ba.unsa.etf.si.mainserver.requests.auth.ChangePasswordRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.LoginRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.RegistrationRequest;
 import ba.unsa.etf.si.mainserver.responses.UserResponse;
@@ -22,6 +23,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
 import java.net.URI;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -43,21 +45,21 @@ public class AuthenticationController {
     public ResponseEntity<RegistrationResponse> registerUser(
             @Valid @RequestBody RegistrationRequest registrationRequest,
             @CurrentUser UserPrincipal userPrincipal) {
-        userService.checkPermissions(registrationRequest,userPrincipal);
+        userService.checkPermissions(registrationRequest, userPrincipal);
         userService.checkAvailability(registrationRequest);
         return evaluateRegistrationAndGetEmployeeProfile(registrationRequest);
     }
 
     @PostMapping("/register")
-    @Secured({"ROLE_ADMIN","ROLE_MERCHANT","ROLE_MANAGER"})
+    @Secured({"ROLE_ADMIN", "ROLE_MERCHANT", "ROLE_MANAGER"})
     public ResponseEntity<RegistrationResponse> registerEmployee(
             @Valid @RequestBody RegistrationRequest registrationRequest,
             @CurrentUser UserPrincipal userPrincipal) {
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
         registrationRequest.setBusinessId(business.getId());
-        userService.checkPermissions(registrationRequest,userPrincipal);
+        userService.checkPermissions(registrationRequest, userPrincipal);
         userService.checkAvailability(registrationRequest);
-        userService.checkBusinessPermissions(registrationRequest.getBusinessId(),userPrincipal);
+        userService.checkBusinessPermissions(registrationRequest.getBusinessId(), userPrincipal);
         return evaluateRegistrationAndGetEmployeeProfile(registrationRequest);
     }
 
@@ -96,9 +98,35 @@ public class AuthenticationController {
         System.out.println(loginRequest);
         String jwt = userService.authenticateUser(loginRequest);
         UserResponse userResponse = userService.getUserResponseByUsername(loginRequest.getUsername());
-        return ResponseEntity.ok(new LoginResponse(jwt,"Bearer",userResponse));
+        return ResponseEntity.ok(new LoginResponse(jwt, "Bearer", userResponse));
     }
 
+    @PutMapping("/user/{userId}")
+    @Secured("ROLE_ADMIN")
+    public ResponseEntity<RegistrationResponse> changeUserPassword(@PathVariable Long userId, @RequestBody ChangePasswordRequest changePasswordRequest) {
+        User user = userService.changeUserPassword(userId, changePasswordRequest.getPassword());
+        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(user);
+        EmployeeProfile employeeProfile = null;
+        employeeProfile = optionalEmployeeProfile.orElseGet(EmployeeProfile::new);
+        return ResponseEntity.ok(new RegistrationResponse(
+                user.getId(),
+                user.getUsername(),
+                changePasswordRequest.getPassword(),
+                user.getEmail(),
+                user.getRoles().stream().map(
+                        role -> new RoleResponse(role.getName().name())
+                ).collect(Collectors.toList()),
+                new EmployeeProfileResponse(
+                        employeeProfile.getId(),
+                        employeeProfile.getName(),
+                        employeeProfile.getSurname(),
+                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getAddress():null,
+                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getCity():null,
+                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getCountry():null,
+                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getEmail():null,
+                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getPhoneNumber():null
+                )));
+    }
 
 
 }

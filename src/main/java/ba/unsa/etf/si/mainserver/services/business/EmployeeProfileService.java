@@ -21,9 +21,9 @@ public class EmployeeProfileService {
         this.businessService = businessService;
     }
 
-    public List<EmployeeProfile> findAllByOptionalBusinessId(Long ...businessId) {
+    public List<EmployeeProfile> findAllByOptionalBusinessId(Long businessId) {
         if (businessId != null) {
-            return employeeProfileRepository.findAllByBusinessId(businessId[0]);
+            return employeeProfileRepository.findAllByBusinessId(businessId);
         }
         return employeeProfileRepository.findAll();
     }

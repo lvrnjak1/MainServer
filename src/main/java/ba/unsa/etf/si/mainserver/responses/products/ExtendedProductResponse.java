@@ -9,17 +9,18 @@ import java.math.BigDecimal;
 import java.util.Base64;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class ProductResponse {
+@NoArgsConstructor
+public class ExtendedProductResponse {
     private Long id;
     private String name;
     private BigDecimal price;
     private String image = null;
     private String unit;
     private DiscountResponse discount;
+    private String business;
 
-    public ProductResponse(Product product){
+    public ExtendedProductResponse(Product product){
         this.id = product.getId();
         this.name = product.getName();
         this.price = product.getPrice();
@@ -33,6 +34,6 @@ public class ProductResponse {
             this.discount = new DiscountResponse(0);
         }
         this.unit = product.getUnit();
-
+        this.business = product.getBusiness().getName();
     }
 }

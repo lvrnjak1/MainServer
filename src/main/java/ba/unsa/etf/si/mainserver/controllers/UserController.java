@@ -252,13 +252,9 @@ public class UserController {
 //        if(!officeProfileOptional.isPresent()){
 //            throw new BadParameterValueException("Employee with this id isn't hired at any office");
 //        }
-//
-//        return officeService.getAllOfficeResponsesByBusinessId(business.getId())
-//                .stream()
-//                .filter(officeResponse -> officeResponse.
-//                        getId()
-//                        .equals(officeProfileOptional.get().getId()))
-//                .collect()
+    //TODO OVO TREBA POLJI ALI ZA OVO TREBA NAPRAVIT DA SE MOGU ZAPOSLIT RADNICI U NEKU POSLOVNICU
+    //I DA IM SE MOZE DATI OTKAZ
+    //LAMIJA KRENULA DA RADI
 //    }
 
 }

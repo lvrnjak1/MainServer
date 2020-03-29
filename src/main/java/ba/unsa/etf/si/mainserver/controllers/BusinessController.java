@@ -235,6 +235,8 @@ public class BusinessController {
         throw new AppException("Bad request");
     }
 
+//TODO fire hire employees
+
 //    @PostMapping("/employees")
 //    @Secured("ROLE_MANAGER")
 //    public ResponseEntity<ApiResponse> hireEmployeeForOffice(@CurrentUser UserPrincipal userPrincipal,

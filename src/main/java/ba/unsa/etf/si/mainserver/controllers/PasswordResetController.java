@@ -47,7 +47,7 @@ public class PasswordResetController {
         passwordResetEmail.setText("To reset your password, use token below:\n" + token);
 
         emailService.sendEmail(passwordResetEmail);
-        return new ApiResponse("E-mail successfully sent", 200);
+        return new ApiResponse("Email successfully sent", 200);
     }
 
     @PostMapping("/user/savePassword")

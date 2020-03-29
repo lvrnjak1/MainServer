@@ -151,7 +151,6 @@ public class ProductController {
         return new ProductResponse(productService.save(product));
     }
 
-    //TODO popraviti ovo
     @DeleteMapping("/products/{productId}")
     @Secured("ROLE_WAREMAN")
     public ResponseEntity<?> deleteProductForBusiness(@PathVariable("productId") Long productId,

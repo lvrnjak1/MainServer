@@ -32,7 +32,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     "/api/questions",
                     "/api/questions/unanswered",
                     "/api/auth/**",
-                    "/api/products", // this is only for first sprint
+                    "/api/products",
+                    "/api/products/sale",
                     "/api/logs"
             };
 

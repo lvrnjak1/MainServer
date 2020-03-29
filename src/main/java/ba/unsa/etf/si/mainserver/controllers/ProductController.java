@@ -13,6 +13,7 @@ import ba.unsa.etf.si.mainserver.requests.products.DiscountRequest;
 import ba.unsa.etf.si.mainserver.requests.products.InventoryRequest;
 import ba.unsa.etf.si.mainserver.requests.products.ProductRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
+import ba.unsa.etf.si.mainserver.responses.products.ExtendedProductResponse;
 import ba.unsa.etf.si.mainserver.responses.products.OfficeInventoryResponse;
 import ba.unsa.etf.si.mainserver.responses.products.ProductInventoryResponse;
 import ba.unsa.etf.si.mainserver.responses.products.ProductResponse;
@@ -55,10 +56,15 @@ public class ProductController {
     }
 
     @GetMapping("/products")
-//    @Secured({"ROLE_MERCHANT","ROLE_PRW","ROLE_WAREMAN"}) // this is for the first sprint for PR help only
-    public List<ProductResponse> getAllProductsForBusiness(@CurrentUser UserPrincipal userPrincipal){
-        return productService.findAllProductResponsesForCurrentUser(userPrincipal);
+    public List<ExtendedProductResponse> getAllProducts(){
+        return productService.getAllProductResponsesWithBusiness();
     }
+
+    @GetMapping("/products/sale")
+    public List<ExtendedProductResponse> getAllProductsOnSale(){
+        return productService.getAllProductOnSaleResponsesWithBusiness();
+    }
+
 
     @GetMapping("/offices/{officeId}/products")
     @Secured({"ROLE_WAREMAN","ROLE_MERCHANT","ROLE_CASHIER","ROLE_OFFICEMAN","ROLE_BARTENDER"})

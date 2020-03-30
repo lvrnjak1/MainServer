@@ -3,10 +3,12 @@ package ba.unsa.etf.si.mainserver.services;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
+import ba.unsa.etf.si.mainserver.models.auth.PasswordResetToken;
 import ba.unsa.etf.si.mainserver.models.auth.Role;
 import ba.unsa.etf.si.mainserver.models.auth.RoleName;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
+import ba.unsa.etf.si.mainserver.repositories.auth.PasswordTokenRepository;
 import ba.unsa.etf.si.mainserver.repositories.auth.RoleRepository;
 import ba.unsa.etf.si.mainserver.repositories.auth.UserRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.EmployeeProfileRepository;
@@ -16,7 +18,6 @@ import ba.unsa.etf.si.mainserver.responses.UserResponse;
 import ba.unsa.etf.si.mainserver.security.JwtTokenProvider;
 import ba.unsa.etf.si.mainserver.security.UserCreationPermissions;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
-import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -37,17 +38,19 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final RoleRepository roleRepository;
     private final EmployeeProfileRepository employeeProfileRepository;
+    private final PasswordTokenRepository passwordTokenRepository;
 
 
     public UserService(JwtTokenProvider jwtTokenProvider, UserRepository userRepository,
                        PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager,
-                       RoleRepository roleRepository, EmployeeProfileRepository employeeProfileRepository) {
+                       RoleRepository roleRepository, EmployeeProfileRepository employeeProfileRepository, PasswordTokenRepository passwordTokenRepository) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.roleRepository = roleRepository;
         this.employeeProfileRepository = employeeProfileRepository;
+        this.passwordTokenRepository = passwordTokenRepository;
     }
 
     public void checkPermissions(RegistrationRequest registrationRequest, UserPrincipal userPrincipal) {
@@ -192,4 +195,20 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(password));
         return userRepository.save(user);
     }
+
+    public Optional<User> findByEmail(String email){ return userRepository.findByEmail(email); }
+
+    public void createPasswordResetTokenForUser(User user, String token) {
+        PasswordResetToken myToken = new PasswordResetToken(token, user);
+        passwordTokenRepository.save(myToken);
+    }
+
+    public User findUserByEmailToken(String token){
+        Optional<PasswordResetToken> passToken = passwordTokenRepository.findByToken(token);
+        if(!passToken.isPresent()){
+            throw new AppException("Invalid token");
+        }
+        return passToken.get().getUser();
+    }
+
 }

@@ -26,9 +26,14 @@ To contribute to this project you can
 > [Submit bugs and feature requests](https://github.com/lvrnjak1/MainServer/issues) and help us verify fixes  
 [Submit pull requests](https://github.com/lvrnjak1/MainServer/pulls) for bug fixes and features
 
-Current contributors are students of team Delta
+Current contributors are students of team Delta  
+<a href="https://github.com/abalic2" target="_blank"><img width="100px" height="100px" src="https://github.com/abalic2.png"></a>
+<a href="https://github.com/tsijercic1" target="_blank"><img width="100px" height="100px" src="https://github.com/tsijercic1.png"></a>
+<a href="https://github.com/lvrnjak1" target="_blank"><img width="100px" height="100px" src="https://github.com/lvrnjak1.png"></a>
+<a href="https://github.com/ehadzic" target="_blank"><img width="100px" height="100px" src="https://github.com/ehadzic.png"></a>
+<a href="https://github.com/megarami" target="_blank"><img width="100px" height="100px" src="https://github.com/megarami.png"></a>
+<a href="https://github.com/mfisic1" target="_blank"><img width="100px" height="100px" src="https://github.com/mfisic1.png"></a>
 
 ## Feedback
 If you have questions, or you would like to reach out to us about an issue you're having or for development advice, you can
 contact <mainserverapp@gmail.com> 
-

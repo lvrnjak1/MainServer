@@ -260,7 +260,7 @@ public class BusinessController {
         return new OfficeResponse(office, cashRegisterService.getAllCashRegisterResponsesByOfficeId(office.getId()));
     }
 
-//TODO fire hire employees
+//TODO fire employees
 
     @PostMapping("/employees")
     @Secured("ROLE_MANAGER")
@@ -292,6 +292,8 @@ public class BusinessController {
         officeProfileRepository.save(officeProfile);
         return ResponseEntity.ok(new ApiResponse("Employee successfully hired at this office", 200));
     }
+
+
 //
 //    @DeleteMapping("/employees")
 //    @Secured("ROLE_MANAGER")

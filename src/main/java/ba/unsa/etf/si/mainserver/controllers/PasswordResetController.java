@@ -9,7 +9,6 @@ import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.services.EmailService;
 import ba.unsa.etf.si.mainserver.services.PasswordTokenService;
 import ba.unsa.etf.si.mainserver.services.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,14 +20,16 @@ import java.util.UUID;
 @RequestMapping("/api")
 @CrossOrigin(origins = "*")
 public class PasswordResetController {
-    @Autowired
-    private EmailService emailService;
+    private final EmailService emailService;
     private final PasswordTokenService passwordTokenService;
     private final UserService userService;
 
-    public PasswordResetController(PasswordTokenService passwordTokenService, UserService userService) {
+    public PasswordResetController(PasswordTokenService passwordTokenService,
+                                   UserService userService,
+                                   EmailService emailService) {
         this.passwordTokenService = passwordTokenService;
         this.userService = userService;
+        this.emailService = emailService;
     }
 
     @PostMapping("/user/resetPassword")

@@ -109,7 +109,8 @@ public class ProductController {
 
     @PostMapping("/products/{productId}/image")
     @Secured({"ROLE_WAREMAN","ROLE_MERCHANT"})
-    public ResponseEntity<ApiResponse> uploadImage(@PathVariable Long productId, @RequestParam("image") MultipartFile multipartFile,
+    public ResponseEntity<ApiResponse> uploadImage(@PathVariable Long productId,
+                                                   @RequestParam("image") MultipartFile multipartFile,
                                                    @CurrentUser UserPrincipal userPrincipal) {
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
         try {

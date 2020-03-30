@@ -151,25 +151,23 @@ public class ProductController {
         return new ProductResponse(productService.save(product));
     }
 
-    //TODO popraviti ovo
-//    @DeleteMapping("/products/{productId}")
-//    @Secured("ROLE_ADMIN")
-//    public ResponseEntity<?> deleteProductForBusiness(@PathVariable("productId") Long productId,
-//                                                      @CurrentUser UserPrincipal userPrincipal){
-//        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-//        Optional<Product> optionalProduct = productService.findById(productId);
-//        if (!optionalProduct.isPresent()) {
-//            throw new ResourceNotFoundException("Product does not exist");
-//        }
-//        Product product = optionalProduct.get();
-//        if (!product.getBusiness().getId().equals(business.getId())) {
-//            throw new UnauthorizedException("Not your product");
-//        }
-//
-//        //officeInventoryService.findByProduct(product).forEach(officeInventoryService::delete);
-//        //productService.delete(productOptional.get());
-//        return ResponseEntity.ok(new ApiResponse("Product successfully deleted", 200));
-//    }
+    @DeleteMapping("/products/{productId}")
+    @Secured("ROLE_WAREMAN")
+    public ResponseEntity<?> deleteProductForBusiness(@PathVariable("productId") Long productId,
+                                                      @CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Optional<Product> optionalProduct = productService.findById(productId);
+        if (!optionalProduct.isPresent()) {
+            throw new ResourceNotFoundException("Product does not exist");
+        }
+        Product product = optionalProduct.get();
+        if (!product.getBusiness().getId().equals(business.getId())) {
+            throw new UnauthorizedException("Not your product");
+        }
+
+        productService.delete(product);
+        return ResponseEntity.ok(new ApiResponse("Product successfully deleted", 200));
+    }
 
 
     @PostMapping("/inventory")

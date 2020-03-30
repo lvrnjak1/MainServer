@@ -25,5 +25,6 @@ To contribute to this project you can
 
 ## Feedback
 If you have questions, or you would like to reach out to us about an issue you're having or for development advice, you can
-- Open an issue
-- Contact <mainserverapp@gmail.com>
+contact <mainserverapp@gmail.com> 
+
+Current contributors of student team Delta

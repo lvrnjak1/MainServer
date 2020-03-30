@@ -34,7 +34,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     "/api/auth/**",
                     "/api/products",
                     "/api/products/sale",
-                    "/api/logs"
+                    "/api/logs",
+                    "/api/user/resetPassword",
+                    "/api/user/savePassword"
             };
 
     public SecurityConfiguration(CustomUserDetailsService customUserDetailsService, JwtAuthenticationEntryPoint unauthorizedHandler) {

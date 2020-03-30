@@ -3,12 +3,16 @@ package ba.unsa.etf.si.mainserver.controllers;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
+import ba.unsa.etf.si.mainserver.models.EmployeeActivity;
 import ba.unsa.etf.si.mainserver.models.auth.User;
+import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.business.OfficeProfile;
+import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.business.EmployeeProfileRequest;
+import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.UserResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.RegistrationResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.RoleResponse;
@@ -16,7 +20,9 @@ import ba.unsa.etf.si.mainserver.responses.business.EmployeeProfileResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
+import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
+import ba.unsa.etf.si.mainserver.services.business.OfficeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
@@ -32,11 +38,20 @@ public class UserController {
     private final UserService userService;
     private final EmployeeProfileService employeeProfileService;
     private final OfficeProfileRepository officeProfileRepository;
+    private final EmployeeActivityRepository employeeActivityRepository;
+    private final BusinessService businessService;
+    private final OfficeService officeService;
+
     public UserController(UserService userService, EmployeeProfileService employeeProfileService,
-                          OfficeProfileRepository officeProfileRepository) {
+                          OfficeProfileRepository officeProfileRepository,
+                          EmployeeActivityRepository employeeActivityRepository,
+                          BusinessService businessService, OfficeService officeService) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.officeProfileRepository = officeProfileRepository;
+        this.employeeActivityRepository = employeeActivityRepository;
+        this.businessService = businessService;
+        this.officeService = officeService;
     }
 
     @GetMapping("/users")
@@ -76,20 +91,38 @@ public class UserController {
         }
         Office office = optionalOfficeProfile.get().getOffice();
         List<OfficeProfile> officeProfiles = officeProfileRepository.findAllByOfficeIdAndOffice_BusinessId(office.getId(), office.getBusiness().getId());
-        return officeProfiles.stream().map(officeProfile -> {
-            EmployeeProfile employee = officeProfile.getEmployee();
-            User user = employee.getAccount();
-            return new RegistrationResponse(
-                    user.getId(),
-                    user.getUsername(),
-                    user.getPassword(),
-                    user.getEmail(),
-                    user.getRoles()
-                            .stream()
-                            .map(role -> new RoleResponse(role.getName().name()))
-                            .collect(Collectors.toList()),
-                    new EmployeeProfileResponse(employee));
-        }).collect(Collectors.toList());
+        List<EmployeeActivity> employeeActivities = employeeActivityRepository.findAll();
+        return officeProfiles
+                .stream()
+                .map(
+                        officeProfile -> {
+                            EmployeeProfile employee = officeProfile.getEmployee();
+                            User user = employee.getAccount();
+                            return new RegistrationResponse(
+                                    user.getId(),
+                                    user.getUsername(),
+                                    user.getPassword(),
+                                    user.getEmail(),
+                                    user.getRoles()
+                                            .stream()
+                                            .map(role -> new RoleResponse(role.getName().name()))
+                                            .collect(Collectors.toList()),
+                                    new EmployeeProfileResponse(employee));
+                        }
+                )
+                .filter(
+                        userResponse ->
+                                employeeActivities
+                                        .stream()
+                                        .noneMatch(
+                                                employeeActivity ->
+                                                        employeeActivity
+                                                                .getAccount()
+                                                                .getId()
+                                                                .equals(userResponse.getId())
+                                        )
+                )
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/employees")
@@ -103,6 +136,7 @@ public class UserController {
         if (!optionalEmployeeProfile.isPresent() || optionalEmployeeProfile.get().getBusiness() == null) {
             throw new AppException("Not an employee");
         }
+        List<EmployeeActivity> employeeActivities = employeeActivityRepository.findAll();
         return employeeProfileService
                 .findAllByOptionalBusinessId(optionalEmployeeProfile.get().getBusiness().getId())
                 .stream()
@@ -118,7 +152,54 @@ public class UserController {
                                 employeeProfile.getContactInformation().getCountry(),
                                 employeeProfile.getContactInformation().getCity())
                 )
+                .filter(
+                        userResponse ->
+                                employeeActivities
+                                        .stream()
+                                        .noneMatch(
+                                                employeeActivity ->
+                                                        employeeActivity
+                                                                .getAccount()
+                                                                .getId()
+                                                                .equals(userResponse.getUserId())
+                                        )
+                )
                 .collect(Collectors.toList());
+    }
+
+    @DeleteMapping("/employees/{userId}")
+    @Secured({"ROLE_MANAGER", "ROLE_MERCHANT"})
+    public ResponseEntity<ApiResponse> fireEmployee(@CurrentUser UserPrincipal userPrincipal, @PathVariable Long userId) {
+        Optional<User> optionalUser = userService.findUserById(userId);
+        if (!optionalUser.isPresent()) {
+            throw new ResourceNotFoundException("User does not exist");
+        }
+        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(optionalUser.get());
+        if (!optionalEmployeeProfile.isPresent()) {
+            throw new ResourceNotFoundException("User is not an employee");
+        }
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        if (!business.getId().equals(optionalEmployeeProfile.get().getBusiness().getId())) {
+            throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
+        }
+
+        Optional<Office> officeOptional = officeService.findByManager(optionalEmployeeProfile.get());
+        if(officeOptional.isPresent()){
+            officeOptional.get().setManager(null);
+            officeService.save(officeOptional.get());
+        }
+
+        Optional<EmployeeActivity> employeeActivityOptional = employeeActivityRepository.
+                findByEmployeeProfile(optionalEmployeeProfile.get());
+        if(employeeActivityOptional.isPresent()){
+            throw new ResourceNotFoundException("User is not an employee");
+        }
+
+        EmployeeActivity employeeActivity = new EmployeeActivity();
+        employeeActivity.setAccount(optionalUser.get());
+        employeeActivity.setEmployeeProfile(optionalEmployeeProfile.get());
+        employeeActivityRepository.save(employeeActivity);
+        return ResponseEntity.ok(new ApiResponse("Employee successfully fired", 200));
     }
 
     @GetMapping("/offices/{officeId}/employees")
@@ -137,6 +218,7 @@ public class UserController {
                 officeId,
                 optionalEmployeeProfile.get().getBusiness().getId()
         );
+        List<EmployeeActivity> employeeActivities = employeeActivityRepository.findAll();
         return employeeProfileService
                 .findAllByOptionalBusinessId(optionalEmployeeProfile.get().getBusiness().getId())
                 .stream().filter(employeeProfile -> officeProfiles.stream().anyMatch(officeProfile -> officeProfile.getEmployee().getId().equals(employeeProfile.getId())))
@@ -151,6 +233,18 @@ public class UserController {
                                 employeeProfile.getContactInformation().getPhoneNumber(),
                                 employeeProfile.getContactInformation().getCountry(),
                                 employeeProfile.getContactInformation().getCity())
+                )
+                .filter(
+                        userResponse ->
+                                employeeActivities
+                                        .stream()
+                                        .noneMatch(
+                                                employeeActivity ->
+                                                        employeeActivity
+                                                                .getAccount()
+                                                                .getId()
+                                                                .equals(userResponse.getUserId())
+                                        )
                 )
                 .collect(Collectors.toList());
     }
@@ -192,6 +286,7 @@ public class UserController {
         EmployeeProfile result = employeeProfileService.save(employeeProfile);
         return ResponseEntity.ok(new EmployeeProfileResponse(result));
     }
+
     @GetMapping("/users/{userId}")
     @Secured({"ROLE_ADMIN", "ROLE_MERCHANT", "ROLE_MANAGER"})
     public ResponseEntity<EmployeeProfileResponse> getUserProfile(@PathVariable Long userId,

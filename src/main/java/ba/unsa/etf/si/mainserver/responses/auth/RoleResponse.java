@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoleResponse {
-    private Long roleId;
+    private Long id;
     private String rolename;
 }

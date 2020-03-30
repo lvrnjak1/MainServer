@@ -6,8 +6,11 @@ It supports work of modules for admin, warehouse, user management, public relati
 provides needed informations for other servers in this system. Main server offers RESTful API for performing basic CRUD
 operations and other needed operations for all bounded modules. 
 
-This application is developed with [Spring Boot](https://spring.io/projects/spring-boot) and deployed on [Heroku Cloud Platform](https://www.heroku.com/). JSON Web Token is used for authorization 
-and information exchange. [PostgreSQL](https://www.postgresql.org/) relational database is used for data handling.   
+This application is developed with [Spring Boot](https://spring.io/projects/spring-boot) and deployed on [Heroku Cloud Platform](https://www.heroku.com/) at  
+<https://main-server-si.herokuapp.com>.  
+JSON Web Token is used for authorization 
+and information exchange.  
+[PostgreSQL](https://www.postgresql.org/) relational database is used for data handling.   
 
 
 ## Get started

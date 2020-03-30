@@ -78,7 +78,7 @@ public class AuthenticationController {
                         registrationRequest.getPassword(),
                         result.getEmail(),
                         result.getRoles().stream().map(
-                                role -> new RoleResponse(role.getName().name())
+                                role -> new RoleResponse(role.getId(), role.getName().name())
                         ).collect(Collectors.toList()),
                         new EmployeeProfileResponse(
                                 employeeProfile.getId(),
@@ -114,7 +114,7 @@ public class AuthenticationController {
                 changePasswordRequest.getPassword(),
                 user.getEmail(),
                 user.getRoles().stream().map(
-                        role -> new RoleResponse(role.getName().name())
+                        role -> new RoleResponse(role.getId(), role.getName().name())
                 ).collect(Collectors.toList()),
                 new EmployeeProfileResponse(
                         employeeProfile.getId(),

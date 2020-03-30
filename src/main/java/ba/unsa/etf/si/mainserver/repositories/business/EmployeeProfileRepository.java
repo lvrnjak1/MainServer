@@ -1,6 +1,5 @@
 package ba.unsa.etf.si.mainserver.repositories.business;
 
-import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -13,4 +12,6 @@ public interface EmployeeProfileRepository extends JpaRepository<EmployeeProfile
     Optional<EmployeeProfile> findByAccountId(Long accountId);
 
     List<EmployeeProfile> findAllByBusinessId(Long businessId);
+
+    Optional<EmployeeProfile> findByAccount_Id(Long accountId);
 }

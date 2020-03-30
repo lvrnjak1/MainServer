@@ -22,6 +22,7 @@ import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
+import ba.unsa.etf.si.mainserver.services.business.OfficeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
@@ -39,14 +40,18 @@ public class UserController {
     private final OfficeProfileRepository officeProfileRepository;
     private final EmployeeActivityRepository employeeActivityRepository;
     private final BusinessService businessService;
+    private final OfficeService officeService;
 
     public UserController(UserService userService, EmployeeProfileService employeeProfileService,
-                          OfficeProfileRepository officeProfileRepository, EmployeeActivityRepository employeeActivityRepository, BusinessService businessService) {
+                          OfficeProfileRepository officeProfileRepository,
+                          EmployeeActivityRepository employeeActivityRepository,
+                          BusinessService businessService, OfficeService officeService) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.officeProfileRepository = officeProfileRepository;
         this.employeeActivityRepository = employeeActivityRepository;
         this.businessService = businessService;
+        this.officeService = officeService;
     }
 
     @GetMapping("/users")
@@ -176,6 +181,18 @@ public class UserController {
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
         if (!business.getId().equals(optionalEmployeeProfile.get().getBusiness().getId())) {
             throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
+        }
+
+        Optional<Office> officeOptional = officeService.findByManager(optionalEmployeeProfile.get());
+        if(officeOptional.isPresent()){
+            officeOptional.get().setManager(null);
+            officeService.save(officeOptional.get());
+        }
+
+        Optional<EmployeeActivity> employeeActivityOptional = employeeActivityRepository.
+                findByEmployeeProfile(optionalEmployeeProfile.get());
+        if(employeeActivityOptional.isPresent()){
+            throw new ResourceNotFoundException("User is not an employee");
         }
 
         EmployeeActivity employeeActivity = new EmployeeActivity();

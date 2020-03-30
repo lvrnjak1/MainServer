@@ -3,8 +3,10 @@ package ba.unsa.etf.si.mainserver.controllers;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
+import ba.unsa.etf.si.mainserver.models.EmployeeActivity;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.*;
+import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.EmployeeProfileRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
@@ -46,10 +48,15 @@ public class BusinessController {
     private final EmployeeProfileRepository employeeProfileRepository;
     private final UserService userService;
     private final OfficeProfileRepository officeProfileRepository;
+    private final EmployeeActivityRepository employeeActivityRepository;
 
 
     public BusinessController(BusinessService businessService, EmployeeProfileService employeeProfileService,
-                              OfficeService officeService, CashRegisterService cashRegisterService, CashRegisterRepository cashRegisterRepository, EmployeeProfileRepository employeeProfileRepository, UserService userService, OfficeProfileRepository officeProfileRepository) {
+                              OfficeService officeService, CashRegisterService cashRegisterService,
+                              CashRegisterRepository cashRegisterRepository,
+                              EmployeeProfileRepository employeeProfileRepository,
+                              UserService userService, OfficeProfileRepository officeProfileRepository,
+                              EmployeeActivityRepository employeeActivityRepository) {
         this.businessService = businessService;
         this.employeeProfileService = employeeProfileService;
         this.officeService = officeService;
@@ -58,6 +65,7 @@ public class BusinessController {
         this.employeeProfileRepository = employeeProfileRepository;
         this.userService = userService;
         this.officeProfileRepository = officeProfileRepository;
+        this.employeeActivityRepository = employeeActivityRepository;
     }
 
     @PostMapping
@@ -217,7 +225,13 @@ public class BusinessController {
                             -1L,
                             officeManagerRequest.getEmployeeId());
         }
+
         if (optionalEmployeeProfile.isPresent()) {
+            Optional<EmployeeActivity> employeeActivity = employeeActivityRepository.findByEmployeeProfile(optionalEmployeeProfile.get());
+            if(employeeActivity.isPresent()){
+                //ova osoba je inactive employee
+                throw new ResourceNotFoundException("This employee doesn't exist");
+            }
             Optional<Office> optionalOffice = officeService.findById(officeId);
             if (optionalOffice.isPresent() && optionalOffice.get().getBusiness().getId().equals(businessId)) {
                 Office office = optionalOffice.get();
@@ -237,15 +251,17 @@ public class BusinessController {
         throw new AppException("Bad request");
     }
 
-    @GetMapping("/employees/{employeeId}/office")
+    @GetMapping("/employees/{userId}/office")
     @Secured("ROLE_MANAGER")
-    public OfficeResponse getOfficeForEmployee(@PathVariable Long employeeId,
+    public OfficeResponse getOfficeForEmployee(@PathVariable Long userId,
                                                @CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        Optional<EmployeeProfile> employeeProfileOptional = employeeProfileService.findById(employeeId);
+        Optional<EmployeeProfile> employeeProfileOptional = employeeProfileRepository.findByAccount_Id(userId);
         if(!employeeProfileOptional.isPresent()){
             throw new BadParameterValueException("Employee with this id doesn't exist");
         }
+
+        Long employeeId = employeeProfileOptional.get().getId();
 
         if(!employeeProfileOptional.get().getBusiness().getId().equals(business.getId())){
             throw new BadParameterValueException("Employee with this id doesn't exist");
@@ -261,12 +277,21 @@ public class BusinessController {
     }
 
 //TODO fire employees
-
+//id-evi ne valjaju omg
     @PostMapping("/employees")
     @Secured("ROLE_MANAGER")
     public ResponseEntity<ApiResponse> hireEmployeeForOffice(@CurrentUser UserPrincipal userPrincipal,
                                                              @RequestBody HiringRequest hiringRequest){
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+
+        Optional<EmployeeProfile> employeeProfileOptional = employeeProfileRepository
+                .findByAccount_Id(hiringRequest.getEmployeeId());
+        if(!employeeProfileOptional.isPresent()){
+            throw new BadParameterValueException("Employee with this id doesn't exist");
+        }
+
+        Long employeeId = employeeProfileOptional.get().getId();
+
         Optional<Office> officeOptional = officeService.findById(hiringRequest.getOfficeId());
         if(!officeOptional.isPresent()){
             throw new ResourceNotFoundException("This office doesn't exist");
@@ -276,7 +301,7 @@ public class BusinessController {
             throw new ResourceNotFoundException("This office doesn't exist");
         }
 
-        Optional<EmployeeProfile> employeeProfile  = employeeProfileService.findById(hiringRequest.getEmployeeId());
+        Optional<EmployeeProfile> employeeProfile  = employeeProfileService.findById(employeeId);
         if(!employeeProfile.isPresent()){
             throw new ResourceNotFoundException("This employee doesn't exist");
         }

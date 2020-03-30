@@ -100,7 +100,7 @@ public class UserController {
                                     user.getEmail(),
                                     user.getRoles()
                                             .stream()
-                                            .map(role -> new RoleResponse(role.getName().name()))
+                                            .map(role -> new RoleResponse(role.getId(), role.getName().name()))
                                             .collect(Collectors.toList()),
                                     new EmployeeProfileResponse(employee));
                         }

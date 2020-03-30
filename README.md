@@ -26,8 +26,9 @@ To contribute to this project you can
 > [Submit bugs and feature requests](https://github.com/lvrnjak1/MainServer/issues) and help us verify fixes  
 [Submit pull requests](https://github.com/lvrnjak1/MainServer/pulls) for bug fixes and features
 
+Current contributors are students of team Delta
+
 ## Feedback
 If you have questions, or you would like to reach out to us about an issue you're having or for development advice, you can
 contact <mainserverapp@gmail.com> 
 
-Current contributors of student team Delta

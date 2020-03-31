@@ -8,6 +8,7 @@ import ba.unsa.etf.si.mainserver.repositories.business.EmployeeProfileRepository
 import ba.unsa.etf.si.mainserver.requests.auth.RegistrationRequest;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,11 +41,13 @@ public class EmployeeProfileService {
         return employeeProfileRepository.findByAccountId(account.getId());
     }
 
-    public EmployeeProfile createEmployeeProfile(RegistrationRequest registrationRequest, User user) {
+    public EmployeeProfile createEmployeeProfile(RegistrationRequest registrationRequest, User user) throws ParseException {
         Optional<Business> optionalBusiness = businessService.findById(registrationRequest.getBusinessId()!=null?registrationRequest.getBusinessId():0);
         EmployeeProfile employeeProfile = new EmployeeProfile(
                 registrationRequest.getName(),
                 registrationRequest.getSurname(),
+                registrationRequest.getDateFromString(),
+                registrationRequest.getJmbg(),
                 new ContactInformation(
                         registrationRequest.getAddress(),
                         registrationRequest.getCity(),

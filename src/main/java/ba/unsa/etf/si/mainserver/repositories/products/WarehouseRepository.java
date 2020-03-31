@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface WarehouseRepository extends JpaRepository<Warehouse, Long> {
     Optional<Warehouse> findByProduct(Product product);
     List<Warehouse> findAllByBusiness(Business business);
+    Optional<Warehouse> findByProductAndBusiness(Product product, Business business);
 }

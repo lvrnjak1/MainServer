@@ -2,8 +2,6 @@ package ba.unsa.etf.si.mainserver.models.business;
 
 import ba.unsa.etf.si.mainserver.models.AuditModel;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
@@ -23,8 +21,15 @@ public class CashRegister extends AuditModel {
     @JoinColumn(name="office_id", nullable=false)
     private Office office;
 
+    private String name;
+
     public CashRegister(Office office){
         this.office = office;
+    }
+
+    public CashRegister(Office office, String name){
+        this.office = office;
+        this.name = name;
     }
 
     //staticki QR kod ce biti samo ova tri podatka zakodirana
@@ -45,5 +50,13 @@ public class CashRegister extends AuditModel {
 
     public void setOffice(Office office) {
         this.office = office;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

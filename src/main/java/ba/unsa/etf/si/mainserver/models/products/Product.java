@@ -58,11 +58,12 @@ public class Product extends AuditModel {
         this.discount = discount;
     }
 
-    public Product(String name, BigDecimal price, String unit) {
+    public Product(String name, BigDecimal price, String unit, String barcode) {
         this.name = name;
         this.price = price;
         this.unit = unit;
         this.discount = null;
+        this.barcode = barcode;
     }
 
     public Long getId() {

@@ -23,6 +23,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
 import java.net.URI;
+import java.text.ParseException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -44,7 +45,7 @@ public class AuthenticationController {
     @Secured("ROLE_ADMIN")
     public ResponseEntity<RegistrationResponse> registerUser(
             @Valid @RequestBody RegistrationRequest registrationRequest,
-            @CurrentUser UserPrincipal userPrincipal) {
+            @CurrentUser UserPrincipal userPrincipal) throws ParseException {
         userService.checkPermissions(registrationRequest, userPrincipal);
         userService.checkAvailability(registrationRequest);
         return evaluateRegistrationAndGetEmployeeProfile(registrationRequest);
@@ -54,7 +55,7 @@ public class AuthenticationController {
     @Secured({"ROLE_ADMIN", "ROLE_MERCHANT", "ROLE_MANAGER"})
     public ResponseEntity<RegistrationResponse> registerEmployee(
             @Valid @RequestBody RegistrationRequest registrationRequest,
-            @CurrentUser UserPrincipal userPrincipal) {
+            @CurrentUser UserPrincipal userPrincipal) throws ParseException {
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
         registrationRequest.setBusinessId(business.getId());
         userService.checkPermissions(registrationRequest, userPrincipal);
@@ -63,7 +64,8 @@ public class AuthenticationController {
         return evaluateRegistrationAndGetEmployeeProfile(registrationRequest);
     }
 
-    private ResponseEntity<RegistrationResponse> evaluateRegistrationAndGetEmployeeProfile(@RequestBody @Valid RegistrationRequest registrationRequest) {
+    private ResponseEntity<RegistrationResponse> evaluateRegistrationAndGetEmployeeProfile(
+            @RequestBody @Valid RegistrationRequest registrationRequest) throws ParseException {
         User result = userService.createUserAccount(registrationRequest);
         EmployeeProfile employeeProfile = employeeProfileService.createEmployeeProfile(registrationRequest, result);
 
@@ -84,6 +86,8 @@ public class AuthenticationController {
                                 employeeProfile.getId(),
                                 employeeProfile.getName(),
                                 employeeProfile.getSurname(),
+                                employeeProfile.getDateOfBirth(),
+                                employeeProfile.getJmbg(),
                                 employeeProfile.getContactInformation().getAddress(),
                                 employeeProfile.getContactInformation().getCity(),
                                 employeeProfile.getContactInformation().getCountry(),
@@ -120,6 +124,8 @@ public class AuthenticationController {
                         employeeProfile.getId(),
                         employeeProfile.getName(),
                         employeeProfile.getSurname(),
+                        employeeProfile.getDateOfBirth(),
+                        employeeProfile.getJmbg(),
                         employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getAddress():null,
                         employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getCity():null,
                         employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getCountry():null,

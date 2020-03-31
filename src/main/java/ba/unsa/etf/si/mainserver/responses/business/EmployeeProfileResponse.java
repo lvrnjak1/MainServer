@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -12,6 +14,8 @@ public class EmployeeProfileResponse {
     private Long id;
     private String name;
     private String surname;
+    private Date dateOfBirth;
+    private String jmbg;
     private String address;
     private String city;
     private String country;
@@ -27,6 +31,8 @@ public class EmployeeProfileResponse {
         this.country = employeeProfile.getContactInformation().getCountry();
         this.email = employeeProfile.getContactInformation().getEmail();
         this.phoneNumber = employeeProfile.getContactInformation().getPhoneNumber();
+        this.dateOfBirth = employeeProfile.getDateOfBirth();
+        this.jmbg = employeeProfile.getJmbg();
     }
 
 }

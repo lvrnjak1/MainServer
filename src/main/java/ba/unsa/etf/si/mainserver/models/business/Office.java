@@ -7,6 +7,10 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @Entity
 @Table(name = "offices")
@@ -32,9 +36,26 @@ public class Office extends AuditModel { //ovo je poslovnica
     @JoinColumn(name = "manager_id", referencedColumnName = "id")
     private EmployeeProfile manager;
 
+    @Basic
+    @Temporal(TemporalType.TIME)
+    @NotNull
+    private Date workDayStart;
+
+    @Basic
+    @Temporal(TemporalType.TIME)
+    @NotNull
+    private Date workDayEnd;
+
     public Office(ContactInformation contactInformation, Business business){
         this.contactInformation = contactInformation;
         this.business = business;
+    }
+
+    public Office(ContactInformation contactInformation, Business business, Date start, Date end){
+        this.contactInformation = contactInformation;
+        this.business = business;
+        this.workDayStart = start;
+        this.workDayEnd = end;
     }
 
     public Long getId() {
@@ -67,5 +88,31 @@ public class Office extends AuditModel { //ovo je poslovnica
 
     public void setManager(EmployeeProfile manager) {
         this.manager = manager;
+    }
+
+    public Date getWorkDayStart() {
+        return workDayStart;
+    }
+
+    public void setWorkDayStart(Date workDayStart) {
+        this.workDayStart = workDayStart;
+    }
+
+    public Date getWorkDayEnd() {
+        return workDayEnd;
+    }
+
+    public void setWorkDayEnd(Date workDayEnd) {
+        this.workDayEnd = workDayEnd;
+    }
+
+    public String getStringStart(){
+        DateFormat dateFormat = new SimpleDateFormat("HH:mm");
+        return dateFormat.format(getWorkDayStart());
+    }
+
+    public String getStringEnd(){
+        DateFormat dateFormat = new SimpleDateFormat("HH:mm");
+        return dateFormat.format(getWorkDayEnd());
     }
 }

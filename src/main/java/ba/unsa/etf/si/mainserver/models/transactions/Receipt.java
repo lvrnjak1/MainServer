@@ -26,13 +26,13 @@ public class Receipt extends AuditModel {
     private Long cashRegisterId;
     private Long officeId;
     private Long businessId;
-    private String employeeUsername;
-    private BigDecimal total;
+    private String username;
+    private BigDecimal totalPrice;
     private ReceiptStatus status;
 
     @Basic
     @Temporal(value = TemporalType.TIMESTAMP)
-    private Date createdAt;
+    private Date timestamp;
 
     @ManyToMany
     @JoinTable(name = "reciept_recieptItem",

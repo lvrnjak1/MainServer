@@ -1,7 +1,7 @@
-package ba.unsa.etf.si.mainserver.models;
+package ba.unsa.etf.si.mainserver.models.employees;
 
+import ba.unsa.etf.si.mainserver.models.AuditModel;
 import ba.unsa.etf.si.mainserver.models.auth.User;
-import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +13,7 @@ import javax.persistence.*;
 @Data
 @Entity
 @Table(name = "employee_activities")
-public class EmployeeActivity extends AuditModel{
+public class EmployeeActivity extends AuditModel {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;

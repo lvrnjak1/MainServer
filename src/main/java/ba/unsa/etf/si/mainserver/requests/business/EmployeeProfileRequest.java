@@ -1,6 +1,5 @@
 package ba.unsa.etf.si.mainserver.requests.business;
 
-import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

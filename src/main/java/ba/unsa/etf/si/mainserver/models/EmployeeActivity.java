@@ -1,7 +1,7 @@
 package ba.unsa.etf.si.mainserver.models;
 
 import ba.unsa.etf.si.mainserver.models.auth.User;
-import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

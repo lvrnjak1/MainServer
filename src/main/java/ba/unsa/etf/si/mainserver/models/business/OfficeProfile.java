@@ -1,6 +1,7 @@
 package ba.unsa.etf.si.mainserver.models.business;
 
 import ba.unsa.etf.si.mainserver.models.AuditModel;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

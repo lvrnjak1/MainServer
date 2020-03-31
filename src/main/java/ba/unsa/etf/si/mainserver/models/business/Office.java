@@ -1,14 +1,12 @@
 package ba.unsa.etf.si.mainserver.models.business;
 
 import ba.unsa.etf.si.mainserver.models.AuditModel;
-import ba.unsa.etf.si.mainserver.models.products.OfficeInventory;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "offices")

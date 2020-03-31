@@ -35,6 +35,7 @@ public class Product extends AuditModel {
 
     private byte[] image;
     private String unit;
+    private String barcode;
 
     @ManyToOne
     @JsonBackReference
@@ -112,19 +113,19 @@ public class Product extends AuditModel {
         this.unit = unit;
     }
 
-//    public Set<OfficeInventory> getOfficeInventories() {
-//        return officeInventories;
-//    }
-//
-//    public void setOfficeInventories(Set<OfficeInventory> officeInventories) {
-//        this.officeInventories = officeInventories;
-//    }
-
     public Business getBusiness() {
         return business;
     }
 
     public void setBusiness(Business business) {
         this.business = business;
+    }
+
+    public String getBarcode() {
+        return barcode;
+    }
+
+    public void setBarcode(String barcode) {
+        this.barcode = barcode;
     }
 }

@@ -7,7 +7,7 @@ import ba.unsa.etf.si.mainserver.models.auth.PasswordResetToken;
 import ba.unsa.etf.si.mainserver.models.auth.Role;
 import ba.unsa.etf.si.mainserver.models.auth.RoleName;
 import ba.unsa.etf.si.mainserver.models.auth.User;
-import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.repositories.auth.PasswordTokenRepository;
 import ba.unsa.etf.si.mainserver.repositories.auth.RoleRepository;
 import ba.unsa.etf.si.mainserver.repositories.auth.UserRepository;

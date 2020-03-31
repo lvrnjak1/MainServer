@@ -47,6 +47,7 @@ public class EmployeeProfile extends AuditModel {
     @Temporal(TemporalType.DATE)
     @NotNull
     private Date dateOfBirth;
+    @NotNull
     private String jmbg;
 
     public EmployeeProfile(String name, String surname) {

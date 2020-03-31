@@ -179,6 +179,8 @@ public class UserService {
                 employeeProfile.getContactInformation().getEmail(),
                 employeeProfile.getName(),
                 employeeProfile.getSurname(),
+                employeeProfile.getStringDate(),
+                employeeProfile.getJmbg(),
                 employeeProfile.getContactInformation().getAddress(),
                 employeeProfile.getContactInformation().getPhoneNumber(),
                 employeeProfile.getContactInformation().getCountry(),

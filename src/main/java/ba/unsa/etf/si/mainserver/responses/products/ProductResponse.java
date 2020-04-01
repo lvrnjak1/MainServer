@@ -17,6 +17,7 @@ public class ProductResponse {
     private BigDecimal price;
     private String image = null;
     private String unit;
+    private String barcode;
     private DiscountResponse discount;
 
     public ProductResponse(Product product){
@@ -33,6 +34,6 @@ public class ProductResponse {
             this.discount = new DiscountResponse(0);
         }
         this.unit = product.getUnit();
-
+        this.barcode = product.getBarcode();
     }
 }

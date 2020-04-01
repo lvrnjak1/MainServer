@@ -10,8 +10,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CashRegisterResponse {
     private Long id;
+    private String name;
 
     public CashRegisterResponse(CashRegister cashRegister){
         this.id = cashRegister.getId();
+        this.name = cashRegister.getName();
     }
 }

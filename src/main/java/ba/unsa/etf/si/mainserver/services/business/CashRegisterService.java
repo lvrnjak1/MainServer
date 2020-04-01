@@ -31,23 +31,11 @@ public class CashRegisterService {
         return cashRegisterRepository.save(cashRegister);
     }
 
-    public CashRegister findByIdInOffice(Long cashRegisterId, Office office) {
-        Optional<CashRegister> cashRegister = cashRegisterRepository.findById(cashRegisterId);
-        if (!cashRegister.isPresent()) {
-            throw new ResourceNotFoundException("CashRegister with id " + cashRegisterId + " doesn't exist");
-        }
-        if (!cashRegister.get().getOffice().getId().equals(office.getId())) {
-            throw new BadParameterValueException("Cash register with id " + cashRegisterId
-                    + "does not belong to office with id " + office.getId());
-        }
-        return cashRegister.get();
-    }
-
     public void delete(CashRegister cashRegister) {
         cashRegisterRepository.delete(cashRegister);
     }
 
-    public CashRegister createCashRegisterInOfficeOfBusiness(Long officeId, Long businessId) {
+    public CashRegister createCashRegisterInOfficeOfBusiness(Long officeId, Long businessId, String name) {
         Optional<Business> optionalBusiness = businessRepository.findById(businessId);
         if (!optionalBusiness.isPresent()) {
             throw new ResourceNotFoundException("Business with id " + businessId + " not found!");
@@ -62,6 +50,7 @@ public class CashRegisterService {
         }
         CashRegister cashRegister = new CashRegister();
         cashRegister.setOffice(optionalOffice.get());
+        cashRegister.setName(name);
         return cashRegisterRepository.save(cashRegister);
     }
 

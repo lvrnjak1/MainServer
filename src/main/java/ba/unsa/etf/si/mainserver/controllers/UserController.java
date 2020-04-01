@@ -3,10 +3,10 @@ package ba.unsa.etf.si.mainserver.controllers;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
-import ba.unsa.etf.si.mainserver.models.EmployeeActivity;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeActivity;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
-import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.business.OfficeProfile;
 import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
@@ -27,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -66,6 +67,8 @@ public class UserController {
                                 employeeProfile.getAccount().getEmail(),
                                 employeeProfile.getName(),
                                 employeeProfile.getSurname(),
+                                employeeProfile.getStringDate(),
+                                employeeProfile.getJmbg(),
                                 employeeProfile.getContactInformation().getAddress(),
                                 employeeProfile.getContactInformation().getPhoneNumber(),
                                 employeeProfile.getContactInformation().getCountry(),
@@ -147,6 +150,8 @@ public class UserController {
                                 employeeProfile.getAccount().getEmail(),
                                 employeeProfile.getName(),
                                 employeeProfile.getSurname(),
+                                employeeProfile.getStringDate(),
+                                employeeProfile.getJmbg(),
                                 employeeProfile.getContactInformation().getAddress(),
                                 employeeProfile.getContactInformation().getPhoneNumber(),
                                 employeeProfile.getContactInformation().getCountry(),
@@ -229,6 +234,8 @@ public class UserController {
                                 employeeProfile.getAccount().getEmail(),
                                 employeeProfile.getName(),
                                 employeeProfile.getSurname(),
+                                employeeProfile.getStringDate(),
+                                employeeProfile.getJmbg(),
                                 employeeProfile.getContactInformation().getAddress(),
                                 employeeProfile.getContactInformation().getPhoneNumber(),
                                 employeeProfile.getContactInformation().getCountry(),
@@ -253,7 +260,7 @@ public class UserController {
     @Secured({"ROLE_ADMIN", "ROLE_MERCHANT", "ROLE_MANAGER"})
     public ResponseEntity<EmployeeProfileResponse> updateUserProfile(@RequestBody EmployeeProfileRequest employeeProfileRequest,
                                                                      @PathVariable Long userId,
-                                                                     @CurrentUser UserPrincipal userPrincipal) {
+                                                                     @CurrentUser UserPrincipal userPrincipal) throws ParseException {
         Optional<User> optionalUser = userService.findUserById(userId);
         if (!optionalUser.isPresent()) {
             throw new ResourceNotFoundException("User with id " + userId + " does not exist");
@@ -278,6 +285,8 @@ public class UserController {
         EmployeeProfile employeeProfile = optionalEmployeeProfile.get();
         employeeProfile.setName(employeeProfileRequest.getName());
         employeeProfile.setSurname(employeeProfileRequest.getSurname());
+        employeeProfile.setDateOfBirth(employeeProfileRequest.getDateFromString());
+        employeeProfile.setJmbg(employeeProfileRequest.getJmbg());
         employeeProfile.getContactInformation().setAddress(employeeProfileRequest.getAddress());
         employeeProfile.getContactInformation().setCity(employeeProfileRequest.getCity());
         employeeProfile.getContactInformation().setCountry(employeeProfileRequest.getCountry());

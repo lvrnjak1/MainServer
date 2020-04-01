@@ -18,6 +18,7 @@ public class ExtendedProductResponse {
     private String image = null;
     private String unit;
     private DiscountResponse discount;
+    private String barcode;
     private String business;
 
     public ExtendedProductResponse(Product product){
@@ -35,5 +36,6 @@ public class ExtendedProductResponse {
         }
         this.unit = product.getUnit();
         this.business = product.getBusiness().getName();
+        this.barcode = product.getBarcode();
     }
 }

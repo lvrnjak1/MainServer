@@ -177,11 +177,11 @@ public class BusinessController {
 
     @PostMapping("/{businessId}/offices/{officeId}/cashRegisters")
     @Secured("ROLE_ADMIN")
-    public ResponseEntity<CashRegisterResponse> addCashRegisterForOffice(@PathVariable("officeId") Long officeId,
+    public CashRegisterResponse addCashRegisterForOffice(@PathVariable("officeId") Long officeId,
                                                                          @PathVariable("businessId") Long businessId,
                                                                          @RequestBody CashRegisterRequest cashRegisterRequest){
-        return ResponseEntity.ok(new CashRegisterResponse(cashRegisterService
-                .createCashRegisterInOfficeOfBusiness(officeId,businessId, cashRegisterRequest.getName())));
+        return new CashRegisterResponse(cashRegisterService
+                .createCashRegisterInOfficeOfBusiness(officeId,businessId, cashRegisterRequest.getName()));
     }
 
     @DeleteMapping("/{businessId}/offices/{officeId}/cashRegisters/{cashRegId}")

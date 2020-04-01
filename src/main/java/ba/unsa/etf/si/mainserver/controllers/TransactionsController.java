@@ -1,6 +1,10 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
+import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
+import ba.unsa.etf.si.mainserver.models.business.Business;
+import ba.unsa.etf.si.mainserver.models.business.CashRegister;
+import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.products.Product;
 import ba.unsa.etf.si.mainserver.models.transactions.Receipt;
 import ba.unsa.etf.si.mainserver.models.transactions.ReceiptItem;
@@ -19,6 +23,7 @@ import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.OfficeService;
 import ba.unsa.etf.si.mainserver.services.products.ProductService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -53,33 +58,33 @@ public class TransactionsController {
 
     //ruta na koju cash server salje racun
     @PostMapping
-    //@Secured("ROLE_OFFICEMAN")
+    @Secured("ROLE_OFFICEMAN")
     public ResponseEntity<ApiResponse> saveReceipt(@CurrentUser UserPrincipal userPrincipal,
                                                    @RequestBody ReceiptRequest receiptRequest){
-//        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-//        Optional<Office> officeOptional = officeService.findById(receiptRequest.getOfficeId());
-//        if(!business.getId().equals(receiptRequest.getBusinessId())){
-//            throw new UnauthorizedException("Not your business");
-//        }
-//
-//        if(!officeOptional.isPresent()){
-//            throw new ResourceNotFoundException("This office doesn't exist");
-//        }
-//
-//        if(!officeOptional.get().getBusiness().getId().equals(business.getId())){
-//            throw new UnauthorizedException("Not your office");
-//        }
-//
-//        Optional<CashRegister> optionalCashRegister =
-//                cashRegisterRepository.findById(receiptRequest.getCashRegisterId());
-//
-//        if(!optionalCashRegister.isPresent()){
-//            throw new ResourceNotFoundException("Cash register doesn't exist");
-//        }
-//
-//        if(!optionalCashRegister.get().getOffice().getId().equals(officeOptional.get().getId())){
-//            throw new UnauthorizedException("Not your cash register");
-//        }
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Optional<Office> officeOptional = officeService.findById(receiptRequest.getOfficeId());
+        if(!business.getId().equals(receiptRequest.getBusinessId())){
+            throw new UnauthorizedException("Not your business");
+        }
+
+        if(!officeOptional.isPresent()){
+            throw new ResourceNotFoundException("This office doesn't exist");
+        }
+
+        if(!officeOptional.get().getBusiness().getId().equals(business.getId())){
+            throw new UnauthorizedException("Not your office");
+        }
+
+        Optional<CashRegister> optionalCashRegister =
+                cashRegisterRepository.findById(receiptRequest.getCashRegisterId());
+
+        if(!optionalCashRegister.isPresent()){
+            throw new ResourceNotFoundException("Cash register doesn't exist");
+        }
+
+        if(!optionalCashRegister.get().getOffice().getId().equals(officeOptional.get().getId())){
+            throw new UnauthorizedException("Not your cash register");
+        }
 
         Optional<ReceiptStatus> receiptStatus = receiptStatusRepository.findByStatusName(
                 Enum.valueOf(ReceiptStatusName.class, receiptRequest.getStatus())
@@ -115,17 +120,17 @@ public class TransactionsController {
 
     //ruta na koju cash server polla status pojedinog racuna
     @GetMapping("/{receiptId}")
-    //@Secured("ROLE_OFFICEMAN")
+    @Secured("ROLE_OFFICEMAN")
     public ReceiptStatusResponse getReceiptStatus(@CurrentUser UserPrincipal userPrincipal,
                                                                   @PathVariable String receiptId){
-//        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-       Optional<Receipt> optionalReceipt = receiptRepository.findByReceiptId(receiptId);
-//        if(!optionalReceipt.isPresent()){
-//            throw new ResourceNotFoundException("Receipt doesn't exist");
-//        }
-//        if(!business.getId().equals(optionalReceipt.get().getBusinessId())){
-//            throw new UnauthorizedException("Not your business");
-//        }
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Optional<Receipt> optionalReceipt = receiptRepository.findByReceiptId(receiptId);
+        if(!optionalReceipt.isPresent()){
+            throw new ResourceNotFoundException("Receipt doesn't exist");
+        }
+        if(!business.getId().equals(optionalReceipt.get().getBusinessId())){
+            throw new UnauthorizedException("Not your business");
+        }
 
         return new ReceiptStatusResponse(optionalReceipt.get().getStatus(),
                 optionalReceipt.get().getReceiptId());

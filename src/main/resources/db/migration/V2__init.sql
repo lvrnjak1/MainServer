@@ -15,6 +15,7 @@ drop table if exists questions cascade;
 drop table if exists answers cascade;
 drop table if exists users cascade;
 drop table if exists question_authors cascade;
+drop table if exists receipt_statuses cascade;
 
 create sequence if not exists hibernate_sequence MINVALUE 50;
 
@@ -102,6 +103,8 @@ create table if not exists employee_profiles
     updated_at      timestamp not null,
     name            varchar(255),
     surname         varchar(255),
+    date_of_birth   date,
+    jmbg            varchar(255),
     account_id      bigint
         constraint fkh1dkqpo9xxa1lwlfkg1qv0nlu
             references users,
@@ -125,6 +128,8 @@ create table if not exists offices
             primary key,
     created_at      timestamp not null,
     updated_at      timestamp not null,
+    work_day_start  time,
+    work_day_end    time,
     business_id     bigint    not null
         constraint fkbp1p3tusy5bhen3hkcn8cb9m6
             references businesses,
@@ -152,6 +157,18 @@ create table if not exists office_profiles
             references offices
 );
 
+create table receipt_statuses
+(
+    id          bigint    not null
+        constraint receipt_statuses_pkey
+            primary key,
+    created_at  timestamp not null,
+    updated_at  timestamp not null,
+    status_name varchar(60)
+        constraint uk_kb9lhqfcds25c61t5aog9f6as
+            unique
+);
+
 -- roles must be added like this
 INSERT INTO public.roles (id, name) VALUES (1, 'ROLE_ADMIN') ON CONFLICT ON CONSTRAINT roles_pkey DO NOTHING;
 INSERT INTO public.roles (id, name) VALUES (2, 'ROLE_MANAGER') ON CONFLICT ON CONSTRAINT roles_pkey DO NOTHING;
@@ -161,6 +178,23 @@ INSERT INTO public.roles (id, name) VALUES (5, 'ROLE_PRW') ON CONFLICT ON CONSTR
 INSERT INTO public.roles (id, name) VALUES (6, 'ROLE_CASHIER') ON CONFLICT ON CONSTRAINT roles_pkey DO NOTHING;
 INSERT INTO public.roles (id, name) VALUES (7, 'ROLE_BARTENDER') ON CONFLICT ON CONSTRAINT roles_pkey DO NOTHING;
 INSERT INTO public.roles (id, name) VALUES (8, 'ROLE_OFFICEMAN') ON CONFLICT ON CONSTRAINT roles_pkey DO NOTHING;
+
+--adding receipt statuses
+INSERT INTO public.receipt_statuses (id, status_name, created_at, updated_at)
+VALUES (1, 'PAYED', '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000')
+ON CONFLICT ON CONSTRAINT receipt_statuses_pkey DO NOTHING;
+
+INSERT INTO public.receipt_statuses (id, status_name, created_at, updated_at)
+VALUES (2, 'CANCELED', '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000')
+ON CONFLICT ON CONSTRAINT receipt_statuses_pkey DO NOTHING;
+
+INSERT INTO public.receipt_statuses (id, status_name, created_at, updated_at)
+VALUES (3, 'PENDING', '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000')
+ON CONFLICT ON CONSTRAINT receipt_statuses_pkey DO NOTHING;
+
+INSERT INTO public.receipt_statuses (id, status_name, created_at, updated_at)
+VALUES (4, 'INSUFFICIENT_FUNDS', '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000')
+ON CONFLICT ON CONSTRAINT receipt_statuses_pkey DO NOTHING;
 
 -- we must create admin user
 INSERT INTO public.users (id, created_at, updated_at, email, password, username)
@@ -174,18 +208,18 @@ INSERT INTO public.businesses (id, created_at, updated_at, name, restaurant_feat
 VALUES (1, '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000', 'BINGO', false, null);
 
 INSERT INTO public.users (id, created_at, updated_at, email, password, username)
-VALUES (2, '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000', 'business1@gmail.com',
+VALUES (2, '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000', 'jbajric1@etf.unsa.ba',
         '$2a$10$uKBANDuasXdXGsJ7O1AAyuieHpwMGXQ191AgRRRzSFa9bKDab9S4e', 'business1') ON CONFLICT ON CONSTRAINT users_pkey DO NOTHING;
 
 INSERT INTO public.user_roles (user_id, role_id) VALUES (2, 3) ON CONFLICT ON CONSTRAINT user_roles_pkey DO NOTHING;
 INSERT INTO public.user_roles (user_id, role_id) VALUES (2, 2) ON CONFLICT ON CONSTRAINT user_roles_pkey DO NOTHING;
 
 INSERT INTO public.contact_information (id, address, city, country, email, phone_number)
-VALUES (2, 'some address', 'Sarajevo', 'Bosnia', 'business1@gmail.com', '+38733222111');
+VALUES (2, 'some address', 'Sarajevo', 'Bosnia', 'jbajric1@etf.unsa.ba', '+38733222111');
 
-INSERT INTO public.employee_profiles (id, created_at, updated_at, name, surname, account_id, business_id,
+INSERT INTO public.employee_profiles (id, created_at, updated_at, name, surname, date_of_birth, jmbg, account_id, business_id,
                                       contact_info_id)
-VALUES (2, '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000', 'Bman', 'SBman', 2, 1, 2);
+VALUES (2, '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000', 'Bman', 'SBman','2008-11-11','1235467891234', 2, 1, 2);
 
 UPDATE public.businesses
 SET merchant_id=2
@@ -200,12 +234,12 @@ INSERT INTO public.user_roles (user_id, role_id) VALUES (3, 8) ON CONFLICT ON CO
 INSERT INTO public.contact_information (id, address, city, country, email, phone_number)
 VALUES (3, 'some office address', 'Sarajevo', 'Bosnia', 'office1@gmail.com', '+38733222112');
 
-INSERT INTO public.employee_profiles (id, created_at, updated_at, name, surname, account_id, business_id,
+INSERT INTO public.employee_profiles (id, created_at, updated_at, name, surname, date_of_birth, jmbg, account_id, business_id,
                                       contact_info_id)
-VALUES (3, '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000', 'OFFMan', 'SOFFMan', 3, 1, 3);
+VALUES (3, '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000', 'OFFMan', 'SOFFMan', '2008-11-11','1235467891234',3, 1, 3);
 
-INSERT INTO public.offices (id, created_at, updated_at, business_id, contact_info_id, manager_id)
-VALUES (1,'2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000',1,3,3);
+INSERT INTO public.offices (id, created_at, updated_at, business_id, contact_info_id, work_day_start,work_day_end, manager_id)
+VALUES (1,'2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000',1,3,'07:00:00','16:00:00',3);
 
 INSERT INTO public.office_profiles (id, created_at, updated_at, employee_id, office_id)
 VALUES (1, '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000', 3, 1);

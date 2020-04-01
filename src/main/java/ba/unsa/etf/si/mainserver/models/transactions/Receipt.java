@@ -28,16 +28,30 @@ public class Receipt extends AuditModel {
     private Long businessId;
     private String username;
     private BigDecimal totalPrice;
+
+    @ManyToOne
+    @JoinColumn(name = "status_id")
     private ReceiptStatus status;
 
     @Basic
     @Temporal(value = TemporalType.TIMESTAMP)
     private Date timestamp;
 
-    @ManyToMany
-    @JoinTable(name = "reciept_recieptItem",
-            joinColumns = @JoinColumn(name = "reciept_id"),
-            inverseJoinColumns = @JoinColumn(name = "item_id"))
+    @OneToMany
+    @JoinColumn(name = "receipt_id")
     private Set<ReceiptItem> receiptItems;
+
+    public Receipt(String receiptId, Long cashRegisterId, Long officeId, Long businessId, String username,
+                   BigDecimal totalPrice, ReceiptStatus receiptStatus, Date timestamp, Set<ReceiptItem> receiptItems){
+        this.receiptId = receiptId;
+        this.cashRegisterId = cashRegisterId;
+        this.officeId = officeId;
+        this.businessId = businessId;
+        this.username = username;
+        this.totalPrice = totalPrice;
+        this.status = receiptStatus;
+        this.timestamp = timestamp;
+        this.receiptItems = receiptItems;
+    }
 
 }

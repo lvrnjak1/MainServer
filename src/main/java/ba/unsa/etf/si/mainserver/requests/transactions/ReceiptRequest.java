@@ -17,6 +17,7 @@ public class ReceiptRequest {
     private Long businessId;
     private String username;
     private BigDecimal totalPrice;
+    private String status;
     private Long timestamp;
     private List<ReceiptItemRequest> receiptItems;
 }

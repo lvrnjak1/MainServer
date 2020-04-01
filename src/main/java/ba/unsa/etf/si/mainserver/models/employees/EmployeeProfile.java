@@ -10,7 +10,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -45,9 +44,7 @@ public class EmployeeProfile extends AuditModel {
 
     @Basic
     @Temporal(TemporalType.DATE)
-    @NotNull
     private Date dateOfBirth;
-    @NotNull
     private String jmbg;
 
     public EmployeeProfile(String name, String surname) {

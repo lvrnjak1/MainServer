@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -38,12 +37,10 @@ public class Office extends AuditModel { //ovo je poslovnica
 
     @Basic
     @Temporal(TemporalType.TIME)
-    @NotNull
     private Date workDayStart;
 
     @Basic
     @Temporal(TemporalType.TIME)
-    @NotNull
     private Date workDayEnd;
 
     public Office(ContactInformation contactInformation, Business business){

@@ -28,7 +28,7 @@ public class ReceiptResponse {
         this.username = receipt.getUsername();
         this.totalPrice = receipt.getTotalPrice();
         this.timestamp = receipt.getTimestamp().getTime();
-        this.status = receipt.getStatus().toString();
+        this.status = receipt.getStatus().getStatusName().toString();
         //this.receiptItems = receipt.getReceiptItems().stream().map(ReceiptItemResponse::new).collect(Collectors.toList());
     }
 }

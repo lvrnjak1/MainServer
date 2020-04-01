@@ -73,7 +73,8 @@ public class UserController {
                                 employeeProfile.getContactInformation().getAddress(),
                                 employeeProfile.getContactInformation().getPhoneNumber(),
                                 employeeProfile.getContactInformation().getCountry(),
-                                employeeProfile.getContactInformation().getCity())
+                                employeeProfile.getContactInformation().getCity(),
+                                employeeProfile.getAccount())
                 )
                 .collect(Collectors.toList());
     }
@@ -156,7 +157,8 @@ public class UserController {
                                 employeeProfile.getContactInformation().getAddress(),
                                 employeeProfile.getContactInformation().getPhoneNumber(),
                                 employeeProfile.getContactInformation().getCountry(),
-                                employeeProfile.getContactInformation().getCity())
+                                employeeProfile.getContactInformation().getCity(),
+                                employeeProfile.getAccount())
                 )
                 .filter(
                         userResponse ->
@@ -240,7 +242,8 @@ public class UserController {
                                 employeeProfile.getContactInformation().getAddress(),
                                 employeeProfile.getContactInformation().getPhoneNumber(),
                                 employeeProfile.getContactInformation().getCountry(),
-                                employeeProfile.getContactInformation().getCity())
+                                employeeProfile.getContactInformation().getCity(),
+                                employeeProfile.getAccount())
                 )
                 .filter(
                         userResponse ->
@@ -297,8 +300,8 @@ public class UserController {
         return ResponseEntity.ok(new EmployeeProfileResponse(result));
     }
 
-    @PostMapping("/users/roles/{userId}")
-    @Secured({"ROLE_ADMIN", "ROLE_MERCHANT", "ROLE_MANAGER"})
+    @PutMapping("/users/roles/{userId}")
+    @Secured({"ROLE_ADMIN", "ROLE_MANAGER"})
     public ResponseEntity<EmployeeProfileResponse> updateUserRoles(@RequestBody RoleChangeRequest roleChangeRequest,
                                                                    @PathVariable Long userId,
                                                                    @CurrentUser UserPrincipal userPrincipal){
@@ -329,6 +332,9 @@ public class UserController {
                         role -> role.getRolename()
                 )
                 .collect(Collectors.toList());
+        if(listOfNames.contains("ROLE_ADMIN")){
+            throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
+        }
         userService.changeUserRoles(userId,listOfNames);
 
         return ResponseEntity.ok(new EmployeeProfileResponse(optionalEmployeeProfile.get()));

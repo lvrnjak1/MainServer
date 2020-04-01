@@ -51,6 +51,7 @@ public class CashRegisterService {
         CashRegister cashRegister = new CashRegister();
         cashRegister.setOffice(optionalOffice.get());
         cashRegister.setName(name);
+        System.out.println(cashRegister.getName());
         return cashRegisterRepository.save(cashRegister);
     }
 

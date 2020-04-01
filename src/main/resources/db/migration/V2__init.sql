@@ -259,7 +259,7 @@ INSERT INTO public.roles (id, name) VALUES (8, 'ROLE_OFFICEMAN') ON CONFLICT ON 
 
 --adding receipt statuses
 INSERT INTO public.receipt_statuses (id, status_name, created_at, updated_at)
-VALUES (1, 'PAYED', '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000')
+VALUES (1, 'PAID', '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000')
 ON CONFLICT ON CONSTRAINT receipt_statuses_pkey DO NOTHING;
 
 INSERT INTO public.receipt_statuses (id, status_name, created_at, updated_at)

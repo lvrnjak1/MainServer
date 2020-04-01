@@ -92,7 +92,8 @@ public class AuthenticationController {
                                 employeeProfile.getContactInformation().getCity(),
                                 employeeProfile.getContactInformation().getCountry(),
                                 employeeProfile.getContactInformation().getEmail(),
-                                employeeProfile.getContactInformation().getPhoneNumber()
+                                employeeProfile.getContactInformation().getPhoneNumber(),
+                                employeeProfile.getAccount()
                         )
                 ));
     }
@@ -130,7 +131,8 @@ public class AuthenticationController {
                         employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getCity():null,
                         employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getCountry():null,
                         employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getEmail():null,
-                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getPhoneNumber():null
+                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getPhoneNumber():null,
+                        employeeProfile.getAccount()
                 )));
     }
 

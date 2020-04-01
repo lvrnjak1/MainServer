@@ -104,6 +104,10 @@ public class BusinessService {
         return optionalEmployeeProfile.get().getBusiness();
     }
 
+    public Optional<Business> findByName(String businessName) {
+        return findByName(businessName);
+    }
+
 //    public Optional<Business> getBusinessByProductId(Product product){
 //        Optional<Office> officeOptional = officeRepository.findById(product.getId());
 //        if(officeOptional.isPresent()){

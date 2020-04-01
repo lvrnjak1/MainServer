@@ -1,5 +1,7 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
+import ba.unsa.etf.si.mainserver.exceptions.AppException;
+import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
 import ba.unsa.etf.si.mainserver.models.business.Business;
@@ -14,8 +16,11 @@ import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
 import ba.unsa.etf.si.mainserver.repositories.transactions.ReceiptItemRepository;
 import ba.unsa.etf.si.mainserver.repositories.transactions.ReceiptRepository;
 import ba.unsa.etf.si.mainserver.repositories.transactions.ReceiptStatusRepository;
+import ba.unsa.etf.si.mainserver.requests.transactions.PayServerInfoRequest;
+import ba.unsa.etf.si.mainserver.requests.transactions.PayServerStatusRequest;
 import ba.unsa.etf.si.mainserver.requests.transactions.ReceiptRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
+import ba.unsa.etf.si.mainserver.responses.transactions.PayServerInfoResponse;
 import ba.unsa.etf.si.mainserver.responses.transactions.ReceiptStatusResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
@@ -136,19 +141,48 @@ public class TransactionsController {
                 optionalReceipt.get().getReceiptId());
     }
 
-//    //ruta na koju pay server trazi info o racunu sa neke kase office i businessa
-//    //TODO kreirati ove response i request tako da odgovara pay serveru i meni
-//    @PostMapping("/{receiptId}")
-//    public PayServerResponse getReceiptInfo(@RequestBody PayServerRequest payServerRequest,
-//                                            @PathVariable String receiptId){
-//        return null;
-//    }
-//
-//    //ruta na koju pay server updatuje status o racunu
-//    @PutMapping("/{receiptId}")
-//    public ResponseEntity<ApiResponse> updateReceiptStatus(@PathVariable String receiptId,
-//                                                           @RequestBody ReceiptStatusRequest receiptStatusRequest){
-//        return null;
-//    }
+    //ruta na koju pay server trazi info o racunu sa neke kase office i businessa
+    //secured
+    @PostMapping("/info")
+    public PayServerInfoResponse getReceiptInfo(@RequestBody PayServerInfoRequest payServerInfoRequest){
+        Optional<Business> businessOptional = businessService.findByName(payServerInfoRequest.getBusinessName());
+
+        if(!businessOptional.isPresent()){
+            throw new BadParameterValueException("Business doesn't exist");
+        }
+
+        Optional<Receipt> receiptOptional = receiptRepository.findByBusinessIdAndCashRegisterIdAndOfficeId(
+                businessOptional.get().getId(),
+                payServerInfoRequest.getCashServerId(),
+                payServerInfoRequest.getOfficeId());
+
+        if(!receiptOptional.isPresent()){
+            throw new AppException("Receipt doesn't exist");
+        }
+
+        return new PayServerInfoResponse(receiptOptional.get());
+    }
+
+    //ruta na koju pay server updatuje status o racunu
+    @PutMapping("/{receiptId}")
+    public ResponseEntity<ApiResponse> updateReceiptStatus(@PathVariable String receiptId,
+                                                           @RequestBody PayServerStatusRequest receiptStatusRequest){
+        Optional<Receipt> receiptOptional = receiptRepository.findByReceiptId(receiptId);
+        if(!receiptOptional.isPresent()){
+            throw new BadParameterValueException("Receipt doesn't exist");
+        }
+
+        Optional<ReceiptStatus> receiptStatus = receiptStatusRepository.findByStatusName(
+                Enum.valueOf(ReceiptStatusName.class, receiptStatusRequest.getStatus())
+        );
+
+        if(!receiptStatus.isPresent()){
+            throw new ResourceNotFoundException("Invalid status");
+        }
+
+        receiptOptional.get().setStatus(receiptStatus.get());
+        receiptRepository.save(receiptOptional.get());
+        return ResponseEntity.ok(new ApiResponse("Status successfully changed", 200));
+    }
 
 }

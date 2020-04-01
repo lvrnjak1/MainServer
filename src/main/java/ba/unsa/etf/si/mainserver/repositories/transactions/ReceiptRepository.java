@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface ReceiptRepository extends JpaRepository<Receipt, Long> {
     Optional<Receipt> findByReceiptId(String id);
+    Optional<Receipt> findByBusinessIdAndCashRegisterIdAndOfficeId(Long businessId, Long cashRegisterId, Long officeId);
 }

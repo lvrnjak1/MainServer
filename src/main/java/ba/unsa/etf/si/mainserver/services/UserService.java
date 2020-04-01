@@ -184,7 +184,8 @@ public class UserService {
                 employeeProfile.getContactInformation().getAddress(),
                 employeeProfile.getContactInformation().getPhoneNumber(),
                 employeeProfile.getContactInformation().getCountry(),
-                employeeProfile.getContactInformation().getCity()
+                employeeProfile.getContactInformation().getCity(),
+                employeeProfile.getAccount()
         );
     }
 

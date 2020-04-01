@@ -12,6 +12,7 @@ import ba.unsa.etf.si.mainserver.models.business.OfficeProfile;
 import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.business.EmployeeProfileRequest;
+import ba.unsa.etf.si.mainserver.requests.business.RoleChangeRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.UserResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.RegistrationResponse;
@@ -72,7 +73,8 @@ public class UserController {
                                 employeeProfile.getContactInformation().getAddress(),
                                 employeeProfile.getContactInformation().getPhoneNumber(),
                                 employeeProfile.getContactInformation().getCountry(),
-                                employeeProfile.getContactInformation().getCity())
+                                employeeProfile.getContactInformation().getCity(),
+                                employeeProfile.getAccount())
                 )
                 .collect(Collectors.toList());
     }
@@ -155,7 +157,8 @@ public class UserController {
                                 employeeProfile.getContactInformation().getAddress(),
                                 employeeProfile.getContactInformation().getPhoneNumber(),
                                 employeeProfile.getContactInformation().getCountry(),
-                                employeeProfile.getContactInformation().getCity())
+                                employeeProfile.getContactInformation().getCity(),
+                                employeeProfile.getAccount())
                 )
                 .filter(
                         userResponse ->
@@ -239,7 +242,8 @@ public class UserController {
                                 employeeProfile.getContactInformation().getAddress(),
                                 employeeProfile.getContactInformation().getPhoneNumber(),
                                 employeeProfile.getContactInformation().getCountry(),
-                                employeeProfile.getContactInformation().getCity())
+                                employeeProfile.getContactInformation().getCity(),
+                                employeeProfile.getAccount())
                 )
                 .filter(
                         userResponse ->
@@ -294,6 +298,46 @@ public class UserController {
 
         EmployeeProfile result = employeeProfileService.save(employeeProfile);
         return ResponseEntity.ok(new EmployeeProfileResponse(result));
+    }
+
+    @PutMapping("/users/roles/{userId}")
+    @Secured({"ROLE_ADMIN", "ROLE_MANAGER"})
+    public ResponseEntity<EmployeeProfileResponse> updateUserRoles(@RequestBody RoleChangeRequest roleChangeRequest,
+                                                                   @PathVariable Long userId,
+                                                                   @CurrentUser UserPrincipal userPrincipal){
+        Optional<User> optionalUser = userService.findUserById(userId);
+        if (!optionalUser.isPresent()) {
+            throw new ResourceNotFoundException("User with id " + userId + " does not exist");
+        }
+        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(optionalUser.get());
+        if (!optionalEmployeeProfile.isPresent()) {
+            throw new ResourceNotFoundException("User is not an employee");
+        }
+        if (userPrincipal.getAuthorities().stream().noneMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
+            Optional<User> optionalManager = userService.findByUsername(userPrincipal.getUsername());
+            if (!optionalManager.isPresent()) {
+                throw new AppException("This shouldn't happen. Contact your administrator!");
+            }
+            Optional<EmployeeProfile> optionalManagerProfile = employeeProfileService.findByAccount(optionalManager.get());
+            if (!optionalManagerProfile.isPresent()) {
+                throw new AppException("THIS IS HORROR. KILL THE MACHINE!");
+            }
+            if (!optionalEmployeeProfile.get().getBusiness().getId().equals(optionalManagerProfile.get().getBusiness().getId())) {
+                throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
+            }
+        }
+        List<String> listOfNames = roleChangeRequest.getNewRoles()
+                .stream()
+                .map(
+                        role -> role.getRolename()
+                )
+                .collect(Collectors.toList());
+        if(listOfNames.contains("ROLE_ADMIN")){
+            throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
+        }
+        userService.changeUserRoles(userId,listOfNames);
+
+        return ResponseEntity.ok(new EmployeeProfileResponse(optionalEmployeeProfile.get()));
     }
 
     @GetMapping("/users/{userId}")

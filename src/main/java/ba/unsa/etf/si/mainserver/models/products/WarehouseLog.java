@@ -8,10 +8,8 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 @Data
 @NoArgsConstructor
@@ -32,30 +30,18 @@ public class WarehouseLog extends AuditModel {
 
     private double quantity;
 
-    @Basic
-    @Temporal(TemporalType.DATE)
-    @NotNull
-    private Date date;
-
-    @Basic
-    @Temporal(TemporalType.TIME)
-    @NotNull
-    private Date time;
-
-    public WarehouseLog(Product product, double quantity, Date date, Date time){
+    public WarehouseLog(Product product, double quantity){
         this.product = product;
         this.quantity = quantity;
-        this.date = date;
-        this.time = time;
     }
 
     public String getStringDate(){
-        DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
-        return dateFormat.format(getDate());
+        DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy.");
+        return dateFormat.format(getCreatedAt());
     }
 
     public String getStringTime(){
         DateFormat dateFormat = new SimpleDateFormat("HH:mm");
-        return dateFormat.format(getTime());
+        return dateFormat.format(getCreatedAt());
     }
 }

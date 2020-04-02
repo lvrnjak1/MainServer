@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PayServerInfoRequest {
-    private Long cashServerId;
+    private Long cashRegisterId;
     private Long officeId;
     private String businessName;
 }

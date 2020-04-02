@@ -12,10 +12,10 @@ import javax.persistence.*;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
-@Table(name = "receipt_statuses")
+@Table(name = "payment_methods")
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReceiptStatus extends AuditModel {
+public class PaymentMethod extends AuditModel {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -23,5 +23,5 @@ public class ReceiptStatus extends AuditModel {
     @Enumerated(EnumType.STRING)
     @NaturalId
     @Column(length = 60)
-    private ReceiptStatusName statusName;
+    private PaymentMethodName methodName;
 }

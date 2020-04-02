@@ -18,6 +18,7 @@ public class ReceiptRequest {
     private String username;
     private BigDecimal totalPrice;
     private String status;
+    private String paymentMethod;
     private Long timestamp;
     private List<ReceiptItemRequest> receiptItems;
 }

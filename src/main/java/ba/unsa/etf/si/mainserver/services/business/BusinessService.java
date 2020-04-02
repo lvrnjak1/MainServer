@@ -105,7 +105,7 @@ public class BusinessService {
     }
 
     public Optional<Business> findByName(String businessName) {
-        return findByName(businessName);
+        return businessRepository.findByName(businessName);
     }
 
 //    public Optional<Business> getBusinessByProductId(Product product){

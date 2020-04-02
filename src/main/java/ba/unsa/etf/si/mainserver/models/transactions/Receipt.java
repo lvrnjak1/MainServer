@@ -33,6 +33,10 @@ public class Receipt extends AuditModel {
     @JoinColumn(name = "status_id")
     private ReceiptStatus status;
 
+    @ManyToOne
+    @JoinColumn(name = "method_id")
+    private PaymentMethod paymentMethod;
+
     @Basic
     @Temporal(value = TemporalType.TIMESTAMP)
     private Date timestamp;
@@ -42,13 +46,15 @@ public class Receipt extends AuditModel {
     private Set<ReceiptItem> receiptItems;
 
     public Receipt(String receiptId, Long cashRegisterId, Long officeId, Long businessId, String username,
-                   BigDecimal totalPrice, ReceiptStatus receiptStatus, Date timestamp, Set<ReceiptItem> receiptItems){
+                   BigDecimal totalPrice, ReceiptStatus receiptStatus, PaymentMethod paymentMethod,
+                   Date timestamp, Set<ReceiptItem> receiptItems){
         this.receiptId = receiptId;
         this.cashRegisterId = cashRegisterId;
         this.officeId = officeId;
         this.businessId = businessId;
         this.username = username;
         this.totalPrice = totalPrice;
+        this.paymentMethod = paymentMethod;
         this.status = receiptStatus;
         this.timestamp = timestamp;
         this.receiptItems = receiptItems;

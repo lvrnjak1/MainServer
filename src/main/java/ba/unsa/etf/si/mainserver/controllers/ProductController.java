@@ -15,10 +15,7 @@ import ba.unsa.etf.si.mainserver.requests.products.DiscountRequest;
 import ba.unsa.etf.si.mainserver.requests.products.InventoryRequest;
 import ba.unsa.etf.si.mainserver.requests.products.ProductRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
-import ba.unsa.etf.si.mainserver.responses.products.ExtendedProductResponse;
-import ba.unsa.etf.si.mainserver.responses.products.OfficeInventoryResponse;
-import ba.unsa.etf.si.mainserver.responses.products.ProductInventoryResponse;
-import ba.unsa.etf.si.mainserver.responses.products.ProductResponse;
+import ba.unsa.etf.si.mainserver.responses.products.*;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
@@ -222,21 +219,23 @@ public class ProductController {
             officeInventoryOptional.get().setQuantity(inventoryRequest.getQuantity() + officeQuantity);
             officeInventoryService.logDelivery(officeInventoryOptional.get(), inventoryRequest.getQuantity());
             return new OfficeInventoryResponse(
-                    officeInventoryService.save(officeInventoryOptional.get()),
-                    cashRegisterService.getAllCashRegisterResponsesByOfficeId(
-                            office.getId()
-                    )
-            );
+                    officeInventoryService.save(officeInventoryOptional.get()));
         }
 
         OfficeInventory officeInventory = new OfficeInventory(office, product, inventoryRequest.getQuantity());
         officeInventoryService.logDelivery(officeInventory, inventoryRequest.getQuantity());
         return new OfficeInventoryResponse(
-                officeInventoryService.save(officeInventory),
-                cashRegisterService.getAllCashRegisterResponsesByOfficeId(
-                        office.getId()
-                )
-        );
+                officeInventoryService.save(officeInventory));
+    }
+
+    @GetMapping("/inventory/log")
+    @Secured("ROLE_WAREMAN")
+    public List<InventoryLogResponse> getInventoryLogs(@CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        return officeInventoryService.findAllByBusiness(business)
+                .stream()
+                .map(InventoryLogResponse::new)
+                .collect(Collectors.toList());
     }
 
     @PutMapping("/products/{productId}/discount")

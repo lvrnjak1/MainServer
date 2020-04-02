@@ -7,6 +7,7 @@ import ba.unsa.etf.si.mainserver.models.products.Product;
 import ba.unsa.etf.si.mainserver.models.products.Warehouse;
 import ba.unsa.etf.si.mainserver.repositories.products.WarehouseRepository;
 import ba.unsa.etf.si.mainserver.requests.products.WarehouseRequest;
+import ba.unsa.etf.si.mainserver.responses.products.WarehouseLogResponse;
 import ba.unsa.etf.si.mainserver.responses.products.WarehouseResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
@@ -66,33 +67,6 @@ public class WarehouseController {
         return new WarehouseResponse(warehouseRepository.save(warehouse));
     }
 
-//    @PutMapping
-//    @Secured("ROLE_WAREMAN")
-//    public WarehouseResponse addMoreOfProduct(@CurrentUser UserPrincipal userPrincipal,
-//                                                      @RequestBody WarehouseRequest warehouseRequest){
-//        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-//        Optional<Product> optionalProduct = productService.findById(warehouseRequest.getProductId());
-//        if (!optionalProduct.isPresent()) {
-//            throw new ResourceNotFoundException("Product does not exist");
-//        }
-//        Product product = optionalProduct.get();
-//        if (!product.getBusiness().getId().equals(business.getId())) {
-//            throw new UnauthorizedException("Not your product");
-//        }
-//
-//        Optional<Warehouse> optionalWarehouse = warehouseRepository.findByProduct(product);
-//        Warehouse warehouse;
-//        if(!optionalWarehouse.isPresent()){
-//            warehouse = new Warehouse(business, product, warehouseRequest.getQuantity());
-//        }else{
-//            warehouse = optionalWarehouse.get();
-//            warehouse.setQuantity(warehouse.getQuantity() + warehouseRequest.getQuantity());
-//        }
-//
-//        warehouseLogService.logNewDelivery(warehouse);
-//
-//        return new WarehouseResponse(warehouseRepository.save(warehouse));
-//    }
 
     @GetMapping
     @Secured("ROLE_WAREMAN")
@@ -105,4 +79,13 @@ public class WarehouseController {
     }
 
 
+    @GetMapping("/log")
+    @Secured("ROLE_WAREMAN")
+    public List<WarehouseLogResponse> getWarehouseLogs(@CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        return  warehouseLogService.findAllByBusiness(business)
+                .stream()
+                .map(WarehouseLogResponse::new)
+                .collect(Collectors.toList());
+    }
 }

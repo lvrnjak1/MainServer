@@ -36,7 +36,7 @@ public class WarehouseLog extends AuditModel {
     }
 
     public String getStringDate(){
-        DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+        DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy.");
         return dateFormat.format(getCreatedAt());
     }
 

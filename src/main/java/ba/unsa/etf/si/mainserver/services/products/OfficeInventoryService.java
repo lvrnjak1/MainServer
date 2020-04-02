@@ -1,5 +1,6 @@
 package ba.unsa.etf.si.mainserver.services.products;
 
+import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.products.InventoryLog;
 import ba.unsa.etf.si.mainserver.models.products.OfficeInventory;
@@ -48,5 +49,9 @@ public class OfficeInventoryService {
                 quantity);
 
         inventoryLogRepostory.save(inventoryLog);
+    }
+
+    public List<InventoryLog> findAllByBusiness(Business business) {
+        return inventoryLogRepostory.findAllByProduct_Business(business);
     }
 }

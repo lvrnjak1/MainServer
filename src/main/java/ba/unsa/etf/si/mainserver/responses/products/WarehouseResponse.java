@@ -9,11 +9,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class WarehouseResponse {
-    private ProductResponse product;
+    private Long  productId;
+    private String productName;
     private double quantity;
 
     public WarehouseResponse(Warehouse warehouse){
-        this.product = new ProductResponse(warehouse.getProduct());
+        this.productId = warehouse.getProduct().getId();
+        this.productName = warehouse.getProduct().getName();
         this.quantity = warehouse.getQuantity();
     }
 }

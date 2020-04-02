@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -39,6 +42,13 @@ public class AdminMerchantNotification extends AuditModel {
     private String email;
     @NotBlank
     private String phoneNumber;
+    @Basic
+    @Temporal(TemporalType.TIME)
+    private Date workDayStart;
+
+    @Basic
+    @Temporal(TemporalType.TIME)
+    private Date workDayEnd;
 
     private boolean open;
     private boolean read = false;
@@ -46,7 +56,7 @@ public class AdminMerchantNotification extends AuditModel {
 
     public AdminMerchantNotification(Business business, String address,
                                      String city, String country, String email,
-                                     String phoneNumber, boolean open) {
+                                     String phoneNumber, Date start, Date end, boolean open) {
         this.business = business;
         this.open = open;
         this.address = address;
@@ -54,5 +64,17 @@ public class AdminMerchantNotification extends AuditModel {
         this.country = country;
         this.email = email;
         this.phoneNumber = phoneNumber;
+        this.workDayStart = start;
+        this.workDayEnd = end;
+    }
+
+    public String getStringStart(){
+        DateFormat dateFormat = new SimpleDateFormat("HH:mm");
+        return dateFormat.format(getWorkDayStart());
+    }
+
+    public String getStringEnd(){
+        DateFormat dateFormat = new SimpleDateFormat("HH:mm");
+        return dateFormat.format(getWorkDayEnd());
     }
 }

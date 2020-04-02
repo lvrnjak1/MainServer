@@ -43,11 +43,6 @@ public class Office extends AuditModel { //ovo je poslovnica
     @Temporal(TemporalType.TIME)
     private Date workDayEnd;
 
-    public Office(ContactInformation contactInformation, Business business){
-        this.contactInformation = contactInformation;
-        this.business = business;
-    }
-
     public Office(ContactInformation contactInformation, Business business, Date start, Date end){
         this.contactInformation = contactInformation;
         this.business = business;

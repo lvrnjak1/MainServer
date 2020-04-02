@@ -53,7 +53,7 @@ ON CONFLICT ON CONSTRAINT receipt_statuses_pkey DO NOTHING;
 INSERT INTO public.payment_methods (id, method_name, created_at, updated_at)
 VALUES (1, 'CASH', '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000')
 ON CONFLICT ON CONSTRAINT payment_methods_pkey DO NOTHING;
-INSERT INTO public.payment_methods (id, method_name. created_at, updated_at)
+INSERT INTO public.payment_methods (id, method_name, created_at, updated_at)
 VALUES (2, 'CREDIT_CARD', '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000')
 ON CONFLICT ON CONSTRAINT payment_methods_pkey DO NOTHING;
 INSERT INTO public.payment_methods (id, method_name, created_at, updated_at)

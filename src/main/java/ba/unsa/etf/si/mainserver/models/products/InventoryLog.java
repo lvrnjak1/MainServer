@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "inventory_log")
+@Table(name = "inventory_logs")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

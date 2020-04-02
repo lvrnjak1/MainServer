@@ -180,7 +180,7 @@ public class ProductController {
 
     @PostMapping("/inventory")
     @Secured("ROLE_WAREMAN")
-    public OfficeInventoryResponse addInventoryForBusiness(@RequestBody InventoryRequest inventoryRequest,
+    public OfficeInventoryResponse addInventoryForOffice(@RequestBody InventoryRequest inventoryRequest,
                                                            @CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
         Optional<Product> optionalProduct = productService.findById(inventoryRequest.getProductId());
@@ -213,6 +213,21 @@ public class ProductController {
         double quantity = optionalWarehouse.get().getQuantity();
         optionalWarehouse.get().setQuantity(quantity - inventoryRequest.getQuantity());
 
+        Optional<OfficeInventory> officeInventoryOptional = officeInventoryService.
+                findByProductAndOffice(product, office);
+        if (officeInventoryOptional.isPresent()) {
+            officeInventoryOptional.get().setOffice(office);
+            officeInventoryOptional.get().setProduct(product);
+            double officeQuantity = officeInventoryOptional.get().getQuantity();
+            officeInventoryOptional.get().setQuantity(inventoryRequest.getQuantity() + officeQuantity);
+            return new OfficeInventoryResponse(
+                    officeInventoryService.save(officeInventoryOptional.get()),
+                    cashRegisterService.getAllCashRegisterResponsesByOfficeId(
+                            office.getId()
+                    )
+            );
+        }
+
         OfficeInventory officeInventory = new OfficeInventory(office, product, inventoryRequest.getQuantity());
         return new OfficeInventoryResponse(
                 officeInventoryService.save(officeInventory),
@@ -221,48 +236,6 @@ public class ProductController {
                 )
         );
     }
-
-//    @PutMapping("/inventory")
-//    @Secured("ROLE_WAREMAN")
-//    public OfficeInventoryResponse updateInventoryForBusiness(@RequestBody InventoryRequest inventoryRequest,
-//                                                              @CurrentUser UserPrincipal userPrincipal) {
-//        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-//        Optional<Product> optionalProduct = productService.findById(inventoryRequest.getProductId());
-//        if (!optionalProduct.isPresent()) {
-//            throw new ResourceNotFoundException("Product does not exist");
-//        }
-//        Product product = optionalProduct.get();
-//        if (!product.getBusiness().getId().equals(business.getId())) {
-//            throw new UnauthorizedException("Not your product");
-//        }
-//
-//        Optional<Office> optionalOffice = officeService.findById(inventoryRequest.getOfficeId());
-//        if (!optionalOffice.isPresent()) {
-//            throw new ResourceNotFoundException("Office does not exist");
-//        }
-//        Office office = optionalOffice.get();
-//        if (!office.getBusiness().getId().equals(business.getId())) {
-//            throw new UnauthorizedException("Not your office");
-//        }
-//
-//        Optional<OfficeInventory> officeInventoryOptional = officeInventoryService.
-//                findByProductAndOffice(product, office);
-//        if (officeInventoryOptional.isPresent()) {
-//            officeInventoryOptional.get().setOffice(office);
-//            officeInventoryOptional.get().setProduct(product);
-//            officeInventoryOptional.get().setQuantity(inventoryRequest.getQuantity());
-//            return new OfficeInventoryResponse(
-//                    officeInventoryService.save(officeInventoryOptional.get()),
-//                    cashRegisterService.getAllCashRegisterResponsesByOfficeId(
-//                            office.getId()
-//                    )
-//            );
-//        }
-//
-//        throw new AppException("Use POST request");
-//
-//    }
-
 
     @PutMapping("/products/{productId}/discount")
     @Secured("ROLE_MERCHANT")

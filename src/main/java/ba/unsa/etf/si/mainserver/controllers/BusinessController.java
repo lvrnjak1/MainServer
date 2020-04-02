@@ -3,17 +3,15 @@ package ba.unsa.etf.si.mainserver.controllers;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
-import ba.unsa.etf.si.mainserver.models.EmployeeActivity;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeActivity;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.*;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.EmployeeProfileRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
-import ba.unsa.etf.si.mainserver.requests.business.BusinessRequest;
-import ba.unsa.etf.si.mainserver.requests.business.HiringRequest;
-import ba.unsa.etf.si.mainserver.requests.business.OfficeManagerRequest;
-import ba.unsa.etf.si.mainserver.requests.business.OfficeRequest;
+import ba.unsa.etf.si.mainserver.requests.business.*;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.business.BusinessResponse;
 import ba.unsa.etf.si.mainserver.responses.business.CashRegisterResponse;
@@ -73,7 +71,9 @@ public class BusinessController {
     public BusinessResponse registerNewBusiness(@RequestBody BusinessRequest businessRequest){
         Optional<EmployeeProfile> employeeProfileOptional = employeeProfileService.findById(businessRequest.getMerchantId());
         if(employeeProfileOptional.isPresent()) {
-            Business business = new Business(businessRequest.getName(), businessRequest.isRestaurantFeature(), employeeProfileOptional.get());
+            Business business = new Business(businessRequest.getName(),
+                    businessRequest.isRestaurantFeature(),
+                    employeeProfileOptional.get());
             return new BusinessResponse(businessService.save(business),new ArrayList<>());
         }
 
@@ -177,9 +177,11 @@ public class BusinessController {
 
     @PostMapping("/{businessId}/offices/{officeId}/cashRegisters")
     @Secured("ROLE_ADMIN")
-    public ResponseEntity<CashRegisterResponse> addCashRegisterForOffice(@PathVariable("officeId") Long officeId,
-                                                         @PathVariable("businessId") Long businessId){
-        return ResponseEntity.ok(new CashRegisterResponse(cashRegisterService.createCashRegisterInOfficeOfBusiness(officeId,businessId)));
+    public CashRegisterResponse addCashRegisterForOffice(@PathVariable("officeId") Long officeId,
+                                                                         @PathVariable("businessId") Long businessId,
+                                                                         @RequestBody CashRegisterRequest cashRegisterRequest){
+        return new CashRegisterResponse(cashRegisterService
+                .createCashRegisterInOfficeOfBusiness(officeId,businessId, cashRegisterRequest.getName()));
     }
 
     @DeleteMapping("/{businessId}/offices/{officeId}/cashRegisters/{cashRegId}")

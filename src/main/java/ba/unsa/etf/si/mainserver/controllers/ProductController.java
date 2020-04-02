@@ -9,6 +9,8 @@ import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.products.Discount;
 import ba.unsa.etf.si.mainserver.models.products.OfficeInventory;
 import ba.unsa.etf.si.mainserver.models.products.Product;
+import ba.unsa.etf.si.mainserver.models.products.Warehouse;
+import ba.unsa.etf.si.mainserver.repositories.products.WarehouseRepository;
 import ba.unsa.etf.si.mainserver.requests.products.DiscountRequest;
 import ba.unsa.etf.si.mainserver.requests.products.InventoryRequest;
 import ba.unsa.etf.si.mainserver.requests.products.ProductRequest;
@@ -22,7 +24,6 @@ import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.CashRegisterService;
 import ba.unsa.etf.si.mainserver.services.business.OfficeService;
-import ba.unsa.etf.si.mainserver.services.products.DiscountService;
 import ba.unsa.etf.si.mainserver.services.products.OfficeInventoryService;
 import ba.unsa.etf.si.mainserver.services.products.ProductService;
 import org.springframework.http.ResponseEntity;
@@ -43,15 +44,20 @@ public class ProductController {
     private final BusinessService businessService;
     private final OfficeService officeService;
     private final OfficeInventoryService officeInventoryService;
-    private final DiscountService discountService;
     private final CashRegisterService cashRegisterService;
+    private final WarehouseRepository warehouseRepository;
 
-    public ProductController(ProductService productService, BusinessService businessService, OfficeService officeService, OfficeInventoryService officeInventoryService, DiscountService discountService, CashRegisterService cashRegisterService) {
+    public ProductController(ProductService productService,
+                             BusinessService businessService,
+                             OfficeService officeService,
+                             OfficeInventoryService officeInventoryService,
+                             CashRegisterService cashRegisterService,
+                             WarehouseRepository warehouseRepository) {
         this.productService = productService;
         this.businessService = businessService;
         this.officeService = officeService;
         this.officeInventoryService = officeInventoryService;
-        this.discountService = discountService;
+        this.warehouseRepository = warehouseRepository;
         this.cashRegisterService = cashRegisterService;
     }
 
@@ -98,7 +104,8 @@ public class ProductController {
         if(businessOptional.isPresent()){
             Product product = new Product(productRequest.getName(),
                     productRequest.getPrice(),
-                    productRequest.getUnit());
+                    productRequest.getUnit(),
+                    productRequest.getBarcode());
 
             product.setBusiness(businessOptional.get());
             businessService.save(businessOptional.get());
@@ -148,7 +155,7 @@ public class ProductController {
         product.setName(productRequest.getName());
         product.setPrice(product.getPrice());
         product.setUnit(productRequest.getUnit());
-
+        product.setBarcode(productRequest.getBarcode());
         return new ProductResponse(productService.save(product));
     }
 
@@ -194,6 +201,18 @@ public class ProductController {
             throw new UnauthorizedException("Not your office");
         }
 
+        Optional<Warehouse> optionalWarehouse = warehouseRepository.findByProductAndBusiness(product, business);
+        if(!optionalWarehouse.isPresent()){
+            throw new ResourceNotFoundException("This product is not in your warehouse");
+        }
+
+        if(optionalWarehouse.get().getQuantity() < inventoryRequest.getQuantity()){
+            throw new AppException("You don't have enough of this product to transfer this quantity");
+        }
+
+        double quantity = optionalWarehouse.get().getQuantity();
+        optionalWarehouse.get().setQuantity(quantity - inventoryRequest.getQuantity());
+
         OfficeInventory officeInventory = new OfficeInventory(office, product, inventoryRequest.getQuantity());
         return new OfficeInventoryResponse(
                 officeInventoryService.save(officeInventory),
@@ -203,46 +222,46 @@ public class ProductController {
         );
     }
 
-    @PutMapping("/inventory")
-    @Secured("ROLE_WAREMAN")
-    public OfficeInventoryResponse updateInventoryForBusiness(@RequestBody InventoryRequest inventoryRequest,
-                                                              @CurrentUser UserPrincipal userPrincipal) {
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        Optional<Product> optionalProduct = productService.findById(inventoryRequest.getProductId());
-        if (!optionalProduct.isPresent()) {
-            throw new ResourceNotFoundException("Product does not exist");
-        }
-        Product product = optionalProduct.get();
-        if (!product.getBusiness().getId().equals(business.getId())) {
-            throw new UnauthorizedException("Not your product");
-        }
-
-        Optional<Office> optionalOffice = officeService.findById(inventoryRequest.getOfficeId());
-        if (!optionalOffice.isPresent()) {
-            throw new ResourceNotFoundException("Office does not exist");
-        }
-        Office office = optionalOffice.get();
-        if (!office.getBusiness().getId().equals(business.getId())) {
-            throw new UnauthorizedException("Not your office");
-        }
-
-        Optional<OfficeInventory> officeInventoryOptional = officeInventoryService.
-                findByProductAndOffice(product, office);
-        if (officeInventoryOptional.isPresent()) {
-            officeInventoryOptional.get().setOffice(office);
-            officeInventoryOptional.get().setProduct(product);
-            officeInventoryOptional.get().setQuantity(inventoryRequest.getQuantity());
-            return new OfficeInventoryResponse(
-                    officeInventoryService.save(officeInventoryOptional.get()),
-                    cashRegisterService.getAllCashRegisterResponsesByOfficeId(
-                            office.getId()
-                    )
-            );
-        }
-
-        throw new AppException("Use POST request");
-
-    }
+//    @PutMapping("/inventory")
+//    @Secured("ROLE_WAREMAN")
+//    public OfficeInventoryResponse updateInventoryForBusiness(@RequestBody InventoryRequest inventoryRequest,
+//                                                              @CurrentUser UserPrincipal userPrincipal) {
+//        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+//        Optional<Product> optionalProduct = productService.findById(inventoryRequest.getProductId());
+//        if (!optionalProduct.isPresent()) {
+//            throw new ResourceNotFoundException("Product does not exist");
+//        }
+//        Product product = optionalProduct.get();
+//        if (!product.getBusiness().getId().equals(business.getId())) {
+//            throw new UnauthorizedException("Not your product");
+//        }
+//
+//        Optional<Office> optionalOffice = officeService.findById(inventoryRequest.getOfficeId());
+//        if (!optionalOffice.isPresent()) {
+//            throw new ResourceNotFoundException("Office does not exist");
+//        }
+//        Office office = optionalOffice.get();
+//        if (!office.getBusiness().getId().equals(business.getId())) {
+//            throw new UnauthorizedException("Not your office");
+//        }
+//
+//        Optional<OfficeInventory> officeInventoryOptional = officeInventoryService.
+//                findByProductAndOffice(product, office);
+//        if (officeInventoryOptional.isPresent()) {
+//            officeInventoryOptional.get().setOffice(office);
+//            officeInventoryOptional.get().setProduct(product);
+//            officeInventoryOptional.get().setQuantity(inventoryRequest.getQuantity());
+//            return new OfficeInventoryResponse(
+//                    officeInventoryService.save(officeInventoryOptional.get()),
+//                    cashRegisterService.getAllCashRegisterResponsesByOfficeId(
+//                            office.getId()
+//                    )
+//            );
+//        }
+//
+//        throw new AppException("Use POST request");
+//
+//    }
 
 
     @PutMapping("/products/{productId}/discount")

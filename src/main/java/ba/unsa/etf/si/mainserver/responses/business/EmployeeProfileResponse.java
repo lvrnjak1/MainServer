@@ -1,9 +1,15 @@
 package ba.unsa.etf.si.mainserver.responses.business;
 
-import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
+import ba.unsa.etf.si.mainserver.models.auth.User;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
+import ba.unsa.etf.si.mainserver.responses.auth.RoleResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -12,11 +18,14 @@ public class EmployeeProfileResponse {
     private Long id;
     private String name;
     private String surname;
+    private Date dateOfBirth;
+    private String jmbg;
     private String address;
     private String city;
     private String country;
     private String email;
     private String phoneNumber;
+    private List<RoleResponse> roles;
 
     public EmployeeProfileResponse(EmployeeProfile employeeProfile) {
         this.id = employeeProfile.getId();
@@ -27,6 +36,36 @@ public class EmployeeProfileResponse {
         this.country = employeeProfile.getContactInformation().getCountry();
         this.email = employeeProfile.getContactInformation().getEmail();
         this.phoneNumber = employeeProfile.getContactInformation().getPhoneNumber();
+        this.dateOfBirth = employeeProfile.getDateOfBirth();
+        this.jmbg = employeeProfile.getJmbg();
+
+        setRoles(employeeProfile.getAccount());
+    }
+
+    public EmployeeProfileResponse(Long id, String name, String surname, Date dateOfBirth, String jmbg, String address,
+                                   String city, String country, String email, String phoneNumber, User account) {
+        this.id = id;
+        this.name = name;
+        this.surname = surname;
+        this.dateOfBirth = dateOfBirth;
+        this.jmbg = jmbg;
+        this.address = address;
+        this.city = city;
+        this.country = country;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+
+        setRoles(account);
+    }
+
+    public void setRoles(User account){
+        this.roles = account.getRoles().stream()
+                .map(
+                        role -> new RoleResponse(
+                                role.getId(),
+                                role.getName().toString())
+                )
+                .collect(Collectors.toList());
     }
 
 }

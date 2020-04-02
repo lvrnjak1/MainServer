@@ -3,7 +3,7 @@ package ba.unsa.etf.si.mainserver.services.business;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.models.business.Business;
-import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.repositories.business.BusinessRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;

@@ -6,7 +6,7 @@ import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.CashRegister;
-import ba.unsa.etf.si.mainserver.models.business.EmployeeProfile;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.repositories.business.BusinessRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
@@ -102,6 +102,10 @@ public class BusinessService {
             throw new AppException("Well congrats, you killed the server");
         }
         return optionalEmployeeProfile.get().getBusiness();
+    }
+
+    public Optional<Business> findByName(String businessName) {
+        return findByName(businessName);
     }
 
 //    public Optional<Business> getBusinessByProductId(Product product){

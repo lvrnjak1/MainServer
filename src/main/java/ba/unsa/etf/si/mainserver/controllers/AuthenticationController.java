@@ -1,5 +1,8 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
+import ba.unsa.etf.si.mainserver.exceptions.AppException;
+import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
+import ba.unsa.etf.si.mainserver.models.auth.OneTimePassword;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
@@ -13,6 +16,7 @@ import ba.unsa.etf.si.mainserver.responses.auth.RoleResponse;
 import ba.unsa.etf.si.mainserver.responses.business.EmployeeProfileResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
+import ba.unsa.etf.si.mainserver.services.OneTimePasswordService;
 import ba.unsa.etf.si.mainserver.services.UserService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
@@ -34,11 +38,13 @@ public class AuthenticationController {
     private final UserService userService;
     private final EmployeeProfileService employeeProfileService;
     private final BusinessService businessService;
+    private final OneTimePasswordService oneTimePasswordService;
 
-    public AuthenticationController(UserService userService, EmployeeProfileService employeeProfileService, BusinessService businessService) {
+    public AuthenticationController(UserService userService, EmployeeProfileService employeeProfileService, BusinessService businessService, OneTimePasswordService oneTimePasswordService) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.businessService = businessService;
+        this.oneTimePasswordService = oneTimePasswordService;
     }
 
     @PostMapping("/_register")
@@ -103,13 +109,28 @@ public class AuthenticationController {
         System.out.println(loginRequest);
         String jwt = userService.authenticateUser(loginRequest);
         UserResponse userResponse = userService.getUserResponseByUsername(loginRequest.getUsername());
-        return ResponseEntity.ok(new LoginResponse(jwt, "Bearer", userResponse));
+        //return ResponseEntity.ok(new LoginResponse(jwt, "Bearer", userResponse));
+        LoginResponse loginResponse = new LoginResponse(jwt, "Bearer", userResponse);
+        Optional<User> optionalUser = userService.findUserById(userResponse.getUserId());
+        if (!optionalUser.isPresent()) {
+            throw new ResourceNotFoundException("Error");
+        }
+        User user = optionalUser.get();
+        Optional<OneTimePassword> otpOptional = oneTimePasswordService.findByUser(user);
+        if(otpOptional.isPresent()){
+            //mora mijenjati sifru
+            oneTimePasswordService.delete(otpOptional.get());
+            throw new AppException("Password must be changed!");
+        }
+        return ResponseEntity.ok(loginResponse);
     }
 
     @PutMapping("/user/{userId}")
     @Secured("ROLE_ADMIN")
     public ResponseEntity<RegistrationResponse> changeUserPassword(@PathVariable Long userId, @RequestBody ChangePasswordRequest changePasswordRequest) {
         User user = userService.changeUserPassword(userId, changePasswordRequest.getPassword());
+        oneTimePasswordService.createOneTimePassword(user, changePasswordRequest.getPassword());
+
         Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(user);
         EmployeeProfile employeeProfile = null;
         employeeProfile = optionalEmployeeProfile.orElseGet(EmployeeProfile::new);

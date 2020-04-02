@@ -1,27 +1,26 @@
 package ba.unsa.etf.si.mainserver.services.products;
 
-import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
+import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.Office;
+import ba.unsa.etf.si.mainserver.models.products.InventoryLog;
 import ba.unsa.etf.si.mainserver.models.products.OfficeInventory;
 import ba.unsa.etf.si.mainserver.models.products.Product;
-import ba.unsa.etf.si.mainserver.models.transactions.ReceiptItem;
-import ba.unsa.etf.si.mainserver.repositories.business.OfficeRepository;
+import ba.unsa.etf.si.mainserver.repositories.products.InventoryLogRepostory;
 import ba.unsa.etf.si.mainserver.repositories.products.OfficeInventoryRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 public class OfficeInventoryService {
     private final OfficeInventoryRepository officeInventoryRepository;
-    private final OfficeRepository officeRepository;
+    private final InventoryLogRepostory inventoryLogRepostory;
 
     public OfficeInventoryService(OfficeInventoryRepository officeInventoryRepository,
-                                  OfficeRepository officeRepository){
+                                  InventoryLogRepostory inventoryLogRepostory){
         this.officeInventoryRepository = officeInventoryRepository;
-        this.officeRepository = officeRepository;
+        this.inventoryLogRepostory = inventoryLogRepostory;
     }
 
     public List<OfficeInventory> findAllProductsForOffice(Office office) {
@@ -44,23 +43,15 @@ public class OfficeInventoryService {
         officeInventoryRepository.delete(officeInventory);
     }
 
-    public void processTransaction(Long officeId, Set<ReceiptItem> receiptItems) {
-        Optional<Office> officeOptional = officeRepository.findById(officeId);
-        if(!officeOptional.isPresent()){
-            throw new ResourceNotFoundException("Office doesn't exist");
-        }
+    public void logDelivery(OfficeInventory officeInventory, double quantity) {
+        InventoryLog inventoryLog = new InventoryLog(officeInventory.getProduct(),
+                officeInventory.getOffice(),
+                quantity);
 
-        receiptItems.forEach(receiptItem -> {
-            Optional<OfficeInventory> officeInventoryOptional = officeInventoryRepository
-                    .findByProductAndOffice(receiptItem.getProduct(), officeOptional.get());
+        inventoryLogRepostory.save(inventoryLog);
+    }
 
-            if(!officeInventoryOptional.isPresent()){
-                throw new ResourceNotFoundException("This product doesn't exist in this office");
-            }
-
-            double quantity = officeInventoryOptional.get().getQuantity();
-            officeInventoryOptional.get().setQuantity(quantity - receiptItem.getQuantity());
-            save(officeInventoryOptional.get());
-        });
+    public List<InventoryLog> findAllByBusiness(Business business) {
+        return inventoryLogRepostory.findAllByProduct_Business(business);
     }
 }

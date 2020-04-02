@@ -220,6 +220,7 @@ public class ProductController {
             officeInventoryOptional.get().setProduct(product);
             double officeQuantity = officeInventoryOptional.get().getQuantity();
             officeInventoryOptional.get().setQuantity(inventoryRequest.getQuantity() + officeQuantity);
+            officeInventoryService.logDelivery(officeInventoryOptional.get(), inventoryRequest.getQuantity());
             return new OfficeInventoryResponse(
                     officeInventoryService.save(officeInventoryOptional.get()),
                     cashRegisterService.getAllCashRegisterResponsesByOfficeId(
@@ -229,6 +230,7 @@ public class ProductController {
         }
 
         OfficeInventory officeInventory = new OfficeInventory(office, product, inventoryRequest.getQuantity());
+        officeInventoryService.logDelivery(officeInventory, inventoryRequest.getQuantity());
         return new OfficeInventoryResponse(
                 officeInventoryService.save(officeInventory),
                 cashRegisterService.getAllCashRegisterResponsesByOfficeId(

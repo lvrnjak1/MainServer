@@ -8,5 +8,6 @@ public enum RoleName {
     ROLE_PRW,
     ROLE_OFFICEMAN,
     ROLE_CASHIER,
-    ROLE_BARTENDER
+    ROLE_BARTENDER,
+    ROLE_PRP
 }

@@ -86,7 +86,7 @@ public class QuestionController {
     }
 
     @PostMapping("/{questionId}/answer")
-    @Secured({"ROLE_PRW", "ROLE_ADMIN"})
+    @Secured({"ROLE_PRP", "ROLE_ADMIN"})
     public QuestionResponse saveAnswerToQuestion(@RequestBody AnswerRequest answerRequest,
                                                  @PathVariable("questionId") Long questionId,
                                                  @CurrentUser UserPrincipal userPrincipal){

@@ -19,13 +19,9 @@ public class EmploymentHistory {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "employee_id")
-    private EmployeeProfile employeeProfile;
+    private Long employeeProfileId;
 
-    @ManyToOne
-    @JoinColumn(name = "office_id")
-    private Office office;
+    private Long officeId;
 
     @Basic
     @Temporal(TemporalType.DATE)
@@ -37,9 +33,9 @@ public class EmploymentHistory {
     @NotNull
     private Date endDate;
 
-    public EmploymentHistory(EmployeeProfile employeeProfile, Office office, Date start, Date end) {
-        this.employeeProfile = employeeProfile;
-        this.office = office;
+    public EmploymentHistory(Long employeeProfileId, Long officeId, Date start, Date end) {
+        this.employeeProfileId = employeeProfileId;
+        this.officeId = officeId;
         this.startDate = start;
         this.endDate = end;
     }

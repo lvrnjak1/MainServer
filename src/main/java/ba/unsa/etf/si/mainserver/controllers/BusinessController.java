@@ -333,6 +333,7 @@ public class BusinessController {
             throw new BadParameterValueException("Employee with this id doesn't exist");
         }
 
+        EmployeeProfile employeeProfile = employeeProfileOptional.get();
         Long employeeId = employeeProfileOptional.get().getId();
 
         Optional<Office> officeOptional = officeService.findById(hiringRequest.getOfficeId());
@@ -344,26 +345,16 @@ public class BusinessController {
             throw new ResourceNotFoundException("This office doesn't exist");
         }
 
-        Optional<EmployeeProfile> employeeProfile  = employeeProfileService.findById(employeeId);
-        if(!employeeProfile.isPresent()){
-            throw new ResourceNotFoundException("This employee doesn't exist");
-        }
-
-        Optional<OfficeProfile> officeProfileOptional = officeProfileRepository
-                .findByEmployee_Id(employeeProfile.get().getId());
-
-        if(officeProfileOptional.isPresent()){  //mislim da se treba uporediti office
-            throw new BadParameterValueException("This employee is already hired at this office");
-        }
         //provjeri je li osoba OFFICEMAN
-        if (userPrincipal.getAuthorities().stream().anyMatch(auth -> auth.getAuthority().equals("ROLE_OFFICEMAN"))) {
+        if (employeeProfile.getAccount().getRoles().stream()
+                .anyMatch(role -> role.getName().toString().equals("ROLE_OFFICEMAN"))) {
             throw new BadParameterValueException("Officeman can only be office manager");
         }
 
-        OfficeProfile officeProfile = new OfficeProfile(officeOptional.get(), employeeProfile.get());
+        OfficeProfile officeProfile = new OfficeProfile(officeOptional.get(), employeeProfile);
         officeProfileRepository.save(officeProfile);
 
-        EmploymentHistory employmentHistory = new EmploymentHistory(employeeProfile.get(),officeOptional.get(),
+        EmploymentHistory employmentHistory = new EmploymentHistory(employeeProfile.getId(),officeOptional.get().getId(),
                                                 new Date(), null);
         employmentHistoryRepository.save(employmentHistory);
         return ResponseEntity.ok(new ApiResponse("Employee successfully hired at this office", 200));

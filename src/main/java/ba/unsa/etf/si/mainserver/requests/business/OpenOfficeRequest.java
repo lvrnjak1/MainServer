@@ -14,6 +14,8 @@ import java.util.Date;
 @AllArgsConstructor
 public class OpenOfficeRequest {
     @NotBlank
+    private Long officeId;
+    @NotBlank
     private String address;
     @NotBlank
     private String city;

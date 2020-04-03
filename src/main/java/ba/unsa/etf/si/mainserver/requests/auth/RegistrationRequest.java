@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -21,7 +22,7 @@ public class RegistrationRequest {
     private String password;
     @NotBlank
     private String email;
-    @NotBlank
+    @NotNull
     private List<RoleResponse> roles;
     @NotBlank
     private String name;

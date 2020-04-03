@@ -9,7 +9,9 @@ import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.business.OfficeProfile;
+import ba.unsa.etf.si.mainserver.models.employees.EmploymentHistory;
 import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
+import ba.unsa.etf.si.mainserver.repositories.business.EmploymentHistoryRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.business.EmployeeProfileRequest;
 import ba.unsa.etf.si.mainserver.requests.business.RoleChangeRequest;
@@ -29,6 +31,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,17 +46,20 @@ public class UserController {
     private final EmployeeActivityRepository employeeActivityRepository;
     private final BusinessService businessService;
     private final OfficeService officeService;
+    private final EmploymentHistoryRepository employmentHistoryRepository;
 
     public UserController(UserService userService, EmployeeProfileService employeeProfileService,
                           OfficeProfileRepository officeProfileRepository,
                           EmployeeActivityRepository employeeActivityRepository,
-                          BusinessService businessService, OfficeService officeService) {
+                          BusinessService businessService, OfficeService officeService,
+                          EmploymentHistoryRepository employmentHistoryRepository) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.officeProfileRepository = officeProfileRepository;
         this.employeeActivityRepository = employeeActivityRepository;
         this.businessService = businessService;
         this.officeService = officeService;
+        this.employmentHistoryRepository = employmentHistoryRepository;
     }
 
     @GetMapping("/users")
@@ -79,6 +85,7 @@ public class UserController {
                 .collect(Collectors.toList());
     }
 
+    //MORA BITI EMPLOYEE SAMO U JEDNOM OFISU ZA OVU RUTU, INACE PADA
     @GetMapping("/office-employees")
     @Secured("ROLE_OFFICEMAN")
     public List<RegistrationResponse> getOfficeEmployees(@CurrentUser UserPrincipal userPrincipal) {
@@ -175,6 +182,7 @@ public class UserController {
                 .collect(Collectors.toList());
     }
 
+    //VALJDA OK
     @DeleteMapping("/employees/{userId}")
     @Secured({"ROLE_MANAGER", "ROLE_MERCHANT"})
     public ResponseEntity<ApiResponse> fireEmployee(@CurrentUser UserPrincipal userPrincipal, @PathVariable Long userId) {
@@ -197,10 +205,22 @@ public class UserController {
             officeService.save(officeOptional.get());
         }
 
+
+
         Optional<EmployeeActivity> employeeActivityOptional = employeeActivityRepository.
                 findByEmployeeProfile(optionalEmployeeProfile.get());
         if(employeeActivityOptional.isPresent()){
             throw new ResourceNotFoundException("User is not an employee");
+        }
+
+        List<OfficeProfile> officeProfiles = officeProfileRepository.findAllByEmployeeId(optionalEmployeeProfile.get().getId());
+        for(OfficeProfile officeProfile : officeProfiles){
+            officeProfileRepository.delete(officeProfile);
+        }
+
+        List<EmploymentHistory> employmentHistoryList = employmentHistoryRepository.findAllByEmployeeProfileId(optionalEmployeeProfile.get().getId());
+        for(EmploymentHistory employmentHistory : employmentHistoryList){
+            employmentHistoryRepository.delete(employmentHistory);
         }
 
         EmployeeActivity employeeActivity = new EmployeeActivity();
@@ -300,6 +320,47 @@ public class UserController {
         return ResponseEntity.ok(new EmployeeProfileResponse(result));
     }
 
+    void fireEmployee(EmployeeProfile employeeProfile, String role){
+        List<OfficeProfile> officeProfiles = officeProfileRepository.findAllByEmployeeId(employeeProfile.getId());
+        if(!officeProfiles.isEmpty()){
+            for(OfficeProfile officeProfile : officeProfiles){
+                if(officeProfile.getOffice().getManager().getId().equals(employeeProfile.getId())){
+                    officeProfile.getOffice().setManager(null);
+                }
+                List<EmploymentHistory> employmentHistoryList =
+                        employmentHistoryRepository.findAllByEmployeeProfileIdAndOfficeIdAndRole
+                                (officeProfile.getEmployee().getId(), officeProfile.getOffice().getId(), role);
+
+                for(EmploymentHistory employmentHistory: employmentHistoryList){
+                    if(employmentHistory.getEndDate() == null){
+                        employmentHistory.setEndDate(new Date());
+                        employmentHistoryRepository.save(employmentHistory);
+                        break;
+                    }
+                }
+                officeProfileRepository.delete(officeProfile);
+            }
+        }
+    }
+
+    void setEndDateInEmployment(EmployeeProfile employeeProfile, String role){
+        List<EmploymentHistory> employmentHistoryList =
+                employmentHistoryRepository.findAllByEmployeeProfileIdAndRole(employeeProfile.getId(), role);
+        for(EmploymentHistory employmentHistory: employmentHistoryList){
+            if(employmentHistory.getEndDate() == null){
+                employmentHistory.setEndDate(new Date());
+                employmentHistoryRepository.save(employmentHistory);
+                break;
+            }
+        }
+    }
+
+    void makeNewEmloyment(EmployeeProfile employeeProfile, String role) {
+        EmploymentHistory employmentHistory = new EmploymentHistory(employeeProfile.getId(), null, new Date(), null, role);
+        employmentHistoryRepository.save(employmentHistory);
+    }
+
+    //NADAM SE OK
     @PutMapping("/users/roles/{userId}")
     @Secured({"ROLE_ADMIN", "ROLE_MANAGER"})
     public ResponseEntity<EmployeeProfileResponse> updateUserRoles(@RequestBody RoleChangeRequest roleChangeRequest,
@@ -326,6 +387,7 @@ public class UserController {
                 throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
             }
         }
+        EmployeeProfile employeeProfile = optionalEmployeeProfile.get();
         List<String> listOfNames = roleChangeRequest.getNewRoles()
                 .stream()
                 .map(
@@ -335,10 +397,34 @@ public class UserController {
         if(listOfNames.contains("ROLE_ADMIN")){
             throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
         }
-        userService.changeUserRoles(userId,listOfNames);
+        List<String> oldRoles = employeeProfile.getAccount().getRoles().stream()
+                .map(
+                        role -> role.getName().toString()
+                )
+                .collect(Collectors.toList());
 
+        for (String role : oldRoles) {
+            if (listOfNames.contains(role)) {
+                //sve ok :D ne diraj
+            } else if (role.equals("ROLE_PRW") || role.equals("ROLE_WAREMAN") || role.equals("ROLE_PRP") || role.equals("ROLE_MANAGER")) {
+                setEndDateInEmployment(employeeProfile, role);
+            } else if (role.equals("ROLE_CASHIER") || role.equals("ROLE_BARTENDER") || role.equals("ROLE_OFFICEMAN")) {
+                fireEmployee(employeeProfile, role);
+            }
+        }
+        for(String role : listOfNames) {
+            if (oldRoles.contains(role)) {
+                //sve ok :D ne diraj
+            } else if (role.equals("ROLE_PRW") || role.equals("ROLE_WAREMAN") || role.equals("ROLE_PRP") || role.equals("ROLE_MANAGER")) {
+                makeNewEmloyment(employeeProfile, role);
+            } else if (role.equals("ROLE_CASHIER") || role.equals("ROLE_BARTENDER") || role.equals("ROLE_OFFICEMAN")) {
+                //nemoj nista jer oni ostaju u ofisu nedodijeljeni
+            }
+        }
+        userService.changeUserRoles(userId,listOfNames);
         return ResponseEntity.ok(new EmployeeProfileResponse(optionalEmployeeProfile.get()));
     }
+
 
     @GetMapping("/users/{userId}")
     @Secured({"ROLE_ADMIN", "ROLE_MERCHANT", "ROLE_MANAGER"})

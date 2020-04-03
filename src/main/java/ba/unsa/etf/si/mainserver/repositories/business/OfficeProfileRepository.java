@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface OfficeProfileRepository extends JpaRepository<OfficeProfile, Long> {
     List<OfficeProfile> findAllByOfficeIdAndOffice_BusinessId(Long officeId, Long businessId);
-
+    List<OfficeProfile> findAllByEmployeeId(Long employeeId);
     Optional<OfficeProfile> findByEmployee_Id(Long employeeId);
     Optional<OfficeProfile> findByEmployeeIdAndOfficeId(Long employeeId, Long officeId);
 }

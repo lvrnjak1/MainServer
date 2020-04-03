@@ -34,11 +34,14 @@ public class EmploymentHistory {
     @Temporal(TemporalType.DATE)
     private Date endDate;
 
-    public EmploymentHistory(Long employeeProfileId, Long officeId, Date start, Date end) {
+    String role;
+
+    public EmploymentHistory(Long employeeProfileId, Long officeId, Date start, Date end, String role) {
         this.employeeProfileId = employeeProfileId;
         this.officeId = officeId;
         this.startDate = start;
         this.endDate = end;
+        this.role = role;
     }
 
     public String getStringStartDate(){

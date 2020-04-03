@@ -21,7 +21,7 @@ public class PayServerInfoResponse {
         this.totalPrice = receipt.getTotalPrice();
         this.service = receipt.getReceiptItems()
                 .stream()
-                .map(receiptItem -> receiptItem.getProduct().getName() + " (" + receiptItem.getQuantity() + ")")
+                .map(receiptItem -> receiptItem.getProductName() + " (" + receiptItem.getQuantity() + ")")
                 .collect(Collectors.joining(","));
     }
 }

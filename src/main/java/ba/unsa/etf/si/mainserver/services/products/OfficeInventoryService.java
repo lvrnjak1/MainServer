@@ -10,6 +10,7 @@ import ba.unsa.etf.si.mainserver.models.transactions.ReceiptItem;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeRepository;
 import ba.unsa.etf.si.mainserver.repositories.products.InventoryLogRepostory;
 import ba.unsa.etf.si.mainserver.repositories.products.OfficeInventoryRepository;
+import ba.unsa.etf.si.mainserver.repositories.products.ProductRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,13 +22,15 @@ public class OfficeInventoryService {
     private final OfficeInventoryRepository officeInventoryRepository;
     private final InventoryLogRepostory inventoryLogRepostory;
     private final OfficeRepository officeRepository;
+    private final ProductRepository productRepository;
 
     public OfficeInventoryService(OfficeInventoryRepository officeInventoryRepository,
                                   InventoryLogRepostory inventoryLogRepostory,
-                                  OfficeRepository officeRepository){
+                                  OfficeRepository officeRepository, ProductRepository productRepository){
         this.officeInventoryRepository = officeInventoryRepository;
         this.inventoryLogRepostory = inventoryLogRepostory;
         this.officeRepository = officeRepository;
+        this.productRepository = productRepository;
     }
 
     public List<OfficeInventory> findAllProductsForOffice(Office office) {
@@ -69,8 +72,14 @@ public class OfficeInventoryService {
         }
 
         receiptItems.forEach(receiptItem -> {
+            Optional<Product> productOptional = productRepository.findById(receiptItem.getProductId());
+            if(!productOptional.isPresent()){
+                throw new ResourceNotFoundException("Product doesn't exist");
+            }
             Optional<OfficeInventory> officeInventoryOptional = officeInventoryRepository
-                    .findByProductAndOffice(receiptItem.getProduct(), officeOptional.get());
+                    .findByProductAndOffice(
+                            productOptional.get(),
+                            officeOptional.get());
 
             if(!officeInventoryOptional.isPresent()){
                 throw new ResourceNotFoundException("This product doesn't exist in this office");

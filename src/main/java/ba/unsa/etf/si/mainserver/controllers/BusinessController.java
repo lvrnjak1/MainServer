@@ -3,9 +3,9 @@ package ba.unsa.etf.si.mainserver.controllers;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
-import ba.unsa.etf.si.mainserver.models.employees.EmployeeActivity;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.*;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeActivity;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
@@ -13,6 +13,7 @@ import ba.unsa.etf.si.mainserver.repositories.business.EmployeeProfileRepository
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.business.*;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
+import ba.unsa.etf.si.mainserver.responses.CashServerConfigResponse;
 import ba.unsa.etf.si.mainserver.responses.business.BusinessResponse;
 import ba.unsa.etf.si.mainserver.responses.business.CashRegisterResponse;
 import ba.unsa.etf.si.mainserver.responses.business.OfficeResponse;
@@ -351,4 +352,29 @@ public class BusinessController {
 //        officeProfileRepository.delete(officeProfile.get());
 //        return ResponseEntity.ok(new ApiResponse("Employee successfully fired from this office", 200));
 //    }
+
+    @GetMapping("/{businessId}/office-details/{officeId}")
+    @Secured("ROLE_OFFICEMAN")
+    public CashServerConfigResponse getCashServerConfig(@PathVariable Long businessId,
+                                                        @PathVariable Long officeId){
+        Optional<Business> businessOptional = businessService.findById(businessId);
+        if(!businessOptional.isPresent()){
+            throw new ResourceNotFoundException("Business doesn't exist");
+        }
+
+        Optional<Office> officeOptional = officeService.findById(officeId);
+        if(!officeOptional.isPresent()){
+            throw new ResourceNotFoundException("Office doesn't exist");
+        }
+
+        if(!officeOptional.get().getBusiness().getId().equals(businessOptional.get().getId())){
+            throw new AppException("This office is not is this business");
+        }
+
+        List<CashRegister> cashRegisters = cashRegisterRepository
+                .findAllByOfficeId(officeOptional.get().getId());
+
+        return new CashServerConfigResponse(businessOptional.get().getName(),
+                cashRegisters.stream().map(CashRegisterResponse::new).collect(Collectors.toList()));
+    }
 }

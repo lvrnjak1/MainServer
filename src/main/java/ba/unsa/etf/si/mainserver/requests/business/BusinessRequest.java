@@ -4,11 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class BusinessRequest {
+    @NotBlank
     private String name;
-    private boolean restaurantFeature;
+    @NotBlank
+    private boolean restaurantFeature = false;
     private Long merchantId;
 }

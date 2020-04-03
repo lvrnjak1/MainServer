@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -12,10 +13,15 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class QuestionRequest {
+    @NotBlank
     private String text;
+    @NotBlank
     private String nameSurname;
+    @NotBlank
     private String email;
+    @NotBlank
     private String date;
+    @NotBlank
     private String time;
 
 

@@ -27,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -152,14 +153,15 @@ public class BusinessController {
     @PostMapping("/{id}/offices")
     @Secured("ROLE_ADMIN")
     public OfficeResponse addOffice(@PathVariable("id") Long businessId,
-                                      @RequestBody OfficeRequest officeRequest){
+                                      @RequestBody OfficeRequest officeRequest) throws ParseException {
         Optional<Business> businessOptional = businessService.findById(businessId);
         if(businessOptional.isPresent()){
             Business business = businessOptional.get();
             ContactInformation contactInformation = new ContactInformation(officeRequest.getAddress(),
                     officeRequest.getCity(),officeRequest.getCountry(),officeRequest.getEmail(),
                     officeRequest.getPhoneNumber());
-            Office office = new Office(contactInformation, business);
+            Office office = new Office(contactInformation, business, officeRequest.getWorkDayStartDateFromString(),
+                    officeRequest.getWorkDayEndDateFromString());
             return new OfficeResponse(officeService.save(office), new ArrayList<>());
         }
 

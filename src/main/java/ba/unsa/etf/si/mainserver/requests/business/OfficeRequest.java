@@ -1,5 +1,6 @@
 package ba.unsa.etf.si.mainserver.requests.business;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,11 +30,11 @@ public class OfficeRequest {
     private String workDayEnd;
 
 
-
+    @JsonIgnore
     public Date getWorkDayStartDateFromString() throws ParseException {
         return workDayStart == null ? null : new SimpleDateFormat("HH:mm").parse(workDayStart);
     }
-
+    @JsonIgnore
     public Date getWorkDayEndDateFromString() throws ParseException {
         return workDayEnd == null ? null : new SimpleDateFormat("HH:mm").parse(workDayEnd);
     }

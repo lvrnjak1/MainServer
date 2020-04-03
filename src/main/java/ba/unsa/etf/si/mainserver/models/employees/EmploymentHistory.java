@@ -32,7 +32,6 @@ public class EmploymentHistory {
 
     @Basic
     @Temporal(TemporalType.DATE)
-    @NotNull
     private Date endDate;
 
     public EmploymentHistory(Long employeeProfileId, Long officeId, Date start, Date end) {

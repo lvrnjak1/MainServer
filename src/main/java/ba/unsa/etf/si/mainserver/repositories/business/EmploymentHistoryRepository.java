@@ -9,7 +9,7 @@ import java.util.Optional;
 
 
 public interface EmploymentHistoryRepository extends JpaRepository<EmploymentHistory, Long> {
-    Optional<EmploymentHistory> findByEmployeeId(Long employeeId);
+    List<EmploymentHistory> findAllByEmployeeProfileIdAndOfficeId(Long employeeProfileId, Long officeId);
 
-    List<EmploymentHistory> findAllByEmployeeId(Long employeeId);
+    List<EmploymentHistory> findAllByEmployeeProfileId(Long employeeProfileId);
 }

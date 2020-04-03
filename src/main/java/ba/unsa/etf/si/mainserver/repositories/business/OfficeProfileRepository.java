@@ -10,4 +10,5 @@ public interface OfficeProfileRepository extends JpaRepository<OfficeProfile, Lo
     List<OfficeProfile> findAllByOfficeIdAndOffice_BusinessId(Long officeId, Long businessId);
 
     Optional<OfficeProfile> findByEmployee_Id(Long employeeId);
+    Optional<OfficeProfile> findByEmployeeIdAndOfficeId(Long employeeId, Long officeId);
 }

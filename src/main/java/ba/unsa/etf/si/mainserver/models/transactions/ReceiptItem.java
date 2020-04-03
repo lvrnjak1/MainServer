@@ -19,6 +19,7 @@ public class ReceiptItem extends AuditModel {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    private Long productId;
     private String productName;
     private String barcode;
     private BigDecimal price;
@@ -28,10 +29,14 @@ public class ReceiptItem extends AuditModel {
     private double quantity;
 
     public ReceiptItem(Product product, double quantity){
+        this.productId = product.getId();
         this.productName = product.getName();
         this.barcode = product.getBarcode();
         this.price = product.getPrice();
-        this.discountPercentage = product.getDiscount().getPercentage();
+        if(product.getDiscount() == null){
+            this.discountPercentage = 0;
+        }
+        else this.discountPercentage = product.getDiscount().getPercentage();
         this.quantity = quantity;
         this.unit = product.getUnit();
     }

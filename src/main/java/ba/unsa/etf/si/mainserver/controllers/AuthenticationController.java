@@ -47,9 +47,6 @@ public class AuthenticationController {
     public ResponseEntity<RegistrationResponse> registerUser(
             @Valid @RequestBody RegistrationRequest registrationRequest,
             @CurrentUser UserPrincipal userPrincipal) throws ParseException {
-        if(registrationRequest.getBusinessId() == null){
-            throw new AppException("You need to provide businessId");
-        }
         userService.checkPermissions(registrationRequest, userPrincipal);
         userService.checkAvailability(registrationRequest);
         return evaluateRegistrationAndGetEmployeeProfile(registrationRequest);

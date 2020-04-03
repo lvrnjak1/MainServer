@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OpenOfficeResponse extends MANotificationResponse{
-    private Long officeId;
     private OfficeRequest office;
 
     public OpenOfficeResponse(AdminMerchantNotification adminMerchantNotification){
@@ -23,6 +22,5 @@ public class OpenOfficeResponse extends MANotificationResponse{
                 adminMerchantNotification.getStringStart(),
                 adminMerchantNotification.getStringEnd()
         );
-        this.officeId = adminMerchantNotification.getOfficeId();
     }
 }

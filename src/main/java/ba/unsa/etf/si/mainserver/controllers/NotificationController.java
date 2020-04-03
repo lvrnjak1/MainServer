@@ -107,6 +107,11 @@ public class NotificationController {
     public ResponseEntity<ApiResponse> notifyAdminToOpen(@CurrentUser UserPrincipal userPrincipal,
                                                          @RequestBody OpenOfficeRequest notificationRequest) throws ParseException {
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Optional<Office> officeOptional = officeService.findById(notificationRequest.getOfficeId());
+        if(!officeOptional.isPresent()){
+            throw new ResourceNotFoundException("Office with this id doesn't exist");
+        }
+
         AdminMerchantNotification adminMerchantNotification = new AdminMerchantNotification(
                 business,
                 notificationRequest.getAddress(),
@@ -118,6 +123,7 @@ public class NotificationController {
                 notificationRequest.getWorkDayEndDateFromString(),
                 true
         );
+        adminMerchantNotification.setOfficeId(officeOptional.get().getId());
         adminMerchantNotificationRepository.save(adminMerchantNotification);
         return ResponseEntity.ok(new ApiResponse("Notification successfully sent", 200));
     }

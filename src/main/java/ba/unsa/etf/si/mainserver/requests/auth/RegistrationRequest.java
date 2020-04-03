@@ -39,7 +39,6 @@ public class RegistrationRequest {
     private String country;
     @NotBlank
     private String phoneNumber;
-    @NotBlank
     private Long businessId;
 
     public Date getDateFromString() throws ParseException {

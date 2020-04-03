@@ -1,5 +1,6 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
+import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
@@ -46,13 +47,16 @@ public class AuthenticationController {
     public ResponseEntity<RegistrationResponse> registerUser(
             @Valid @RequestBody RegistrationRequest registrationRequest,
             @CurrentUser UserPrincipal userPrincipal) throws ParseException {
+        if(registrationRequest.getBusinessId() == null){
+            throw new AppException("You need to provide businessId");
+        }
         userService.checkPermissions(registrationRequest, userPrincipal);
         userService.checkAvailability(registrationRequest);
         return evaluateRegistrationAndGetEmployeeProfile(registrationRequest);
     }
 
     @PostMapping("/register")
-    @Secured({"ROLE_ADMIN", "ROLE_MERCHANT", "ROLE_MANAGER"})
+    @Secured({"ROLE_MERCHANT", "ROLE_MANAGER"})
     public ResponseEntity<RegistrationResponse> registerEmployee(
             @Valid @RequestBody RegistrationRequest registrationRequest,
             @CurrentUser UserPrincipal userPrincipal) throws ParseException {

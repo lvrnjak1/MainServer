@@ -407,29 +407,5 @@ public class BusinessController {
                             cashRegister.getName(), dailyProfit, totalProfit);
                 })
                 .collect(Collectors.toList());
-
-        //return cashRegisters.stream().map(CashRegisterResponse::new).collect(Collectors.toList());
     }
-
-//    @GetMapping("/offices/{officeId}/cashRegisters/getProfit")
-//    @Secured({"ROLE_MERCHANT", "ROLE_MANAGER"})
-//    public List<CashRegisterResponse> getProfitForOffice(@PathVariable Long officeId,
-//                                                                @CurrentUser UserPrincipal userPrincipal){
-//        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-//        Optional<Office> officeOptional = officeService.findById(officeId);
-//        if(!officeOptional.isPresent()){
-//            throw new ResourceNotFoundException("Office doesn't exist");
-//        }
-//
-//        if(!officeOptional.get().getBusiness().getId().equals(business.getId())){
-//            throw new UnauthorizedException("Not your office");
-//        }
-//
-//        List<CashRegister> cashRegisters = cashRegisterRepository
-//                .findAllByOfficeId(officeOptional.get().getId());
-//
-//        //vratiti zaradu ukupnu po kasama i zaradu za danasnji dan
-//
-//        //return cashRegisters.stream().map(CashRegisterResponse::new).collect(Collectors.toList());
-//    }
 }

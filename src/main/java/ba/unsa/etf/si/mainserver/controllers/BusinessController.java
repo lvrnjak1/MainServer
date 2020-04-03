@@ -6,6 +6,7 @@ import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeActivity;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.*;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeActivity;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.models.employees.EmploymentHistory;
 import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
@@ -15,6 +16,7 @@ import ba.unsa.etf.si.mainserver.repositories.business.EmploymentHistoryReposito
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.business.*;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
+import ba.unsa.etf.si.mainserver.responses.CashServerConfigResponse;
 import ba.unsa.etf.si.mainserver.responses.business.BusinessResponse;
 import ba.unsa.etf.si.mainserver.responses.business.CashRegisterResponse;
 import ba.unsa.etf.si.mainserver.responses.business.OfficeResponse;
@@ -241,49 +243,12 @@ public class BusinessController {
             Optional<Office> optionalOffice = officeService.findById(officeId);
             if (optionalOffice.isPresent() && optionalOffice.get().getBusiness().getId().equals(businessId)) {
                 Office office = optionalOffice.get();
-                EmployeeProfile oldManager = office.getManager();
-
-                if(oldManager != null && optionalEmployeeProfile.get().getId().equals(oldManager.getId())){ // ista osoba
-                    return ResponseEntity.ok(new ApiResponse(
-                            "Employee with id " +
-                                    optionalEmployeeProfile.get().getId() +
-                                    " set as manager for office with id " +
-                                    office.getId(),200));
-                }
-                if(oldManager != null){ //mora mu se dati otkaz
-                    Optional<EmploymentHistory> employmentHistory = employmentHistoryRepository
-                            .findByEmployeeId(oldManager.getId());
-                    employmentHistory.get().setEndDate(new Date());
-                    employmentHistoryRepository.save(employmentHistory.get());
-                    Optional<OfficeProfile> optionalOfficeProfile = officeProfileRepository
-                            .findByEmployee_Id(oldManager.getId());
-                    officeProfileRepository.delete(optionalOfficeProfile.get());
-                }
-
                 office.setManager(optionalEmployeeProfile.get());
+                officeService.save(office);
                 User user = userService.changeUserRoles(optionalEmployeeProfile.get().getAccount().getId(),
                         new ArrayList<>(Collections.singletonList("ROLE_OFFICEMAN")));
-                officeService.save(office);
-
-                Optional<OfficeProfile> optionalOfficeProfile = officeProfileRepository
-                                        .findByEmployee_Id(optionalEmployeeProfile.get().getId());
-
-                if(!optionalOfficeProfile.isPresent()){ //nije zaposlen u nekoj drugoj poslodavnici
-                    EmploymentHistory employmentHistory = new EmploymentHistory(optionalEmployeeProfile.get().getId(),office.getId(),
-                            new Date(), null);
-                    employmentHistoryRepository.save(employmentHistory);
-                    officeProfileRepository.save(new OfficeProfile(null, office, optionalEmployeeProfile.get()));
-                }
-                else if(!optionalOfficeProfile.get().getOffice().getId().equals(officeId)){ //zaposlen je u nekom drugom
-
-                    EmploymentHistory newEmploymentHistory = new EmploymentHistory(optionalEmployeeProfile.get().getId(),office.getId(),
-                            new Date(), null);
-                    employmentHistoryRepository.save(newEmploymentHistory);
-                    officeProfileRepository.save(new OfficeProfile(null, office, optionalEmployeeProfile.get()));
-                }
-                else{ //vec radi tu
-                }
-
+                System.out.println(user.getRoles());
+                officeProfileRepository.save(new OfficeProfile(null, office, optionalEmployeeProfile.get()));
                 return ResponseEntity.ok(new ApiResponse(
                         "Employee with id " +
                                 optionalEmployeeProfile.get().getId() +
@@ -295,14 +260,14 @@ public class BusinessController {
     }
 
     @GetMapping("/employees/{userId}/office")
-        @Secured("ROLE_MANAGER")
-        public OfficeResponse getOfficeForEmployee(@PathVariable Long userId,
-                @CurrentUser UserPrincipal userPrincipal){
-            Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-            Optional<EmployeeProfile> employeeProfileOptional = employeeProfileRepository.findByAccount_Id(userId);
-            if(!employeeProfileOptional.isPresent()){
-                throw new BadParameterValueException("Employee with this id doesn't exist");
-            }
+    @Secured("ROLE_MANAGER")
+    public OfficeResponse getOfficeForEmployee(@PathVariable Long userId,
+                                               @CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Optional<EmployeeProfile> employeeProfileOptional = employeeProfileRepository.findByAccount_Id(userId);
+        if(!employeeProfileOptional.isPresent()){
+            throw new BadParameterValueException("Employee with this id doesn't exist");
+        }
 
         Long employeeId = employeeProfileOptional.get().getId();
 
@@ -362,7 +327,6 @@ public class BusinessController {
             throw new BadParameterValueException("Employee with this id doesn't exist");
         }
 
-        EmployeeProfile employeeProfile = employeeProfileOptional.get();
         Long employeeId = employeeProfileOptional.get().getId();
 
         Optional<Office> officeOptional = officeService.findById(hiringRequest.getOfficeId());

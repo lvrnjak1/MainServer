@@ -107,6 +107,7 @@ public class NotificationController {
     public ResponseEntity<ApiResponse> notifyAdminToOpen(@CurrentUser UserPrincipal userPrincipal,
                                                          @RequestBody OpenOfficeRequest notificationRequest) throws ParseException {
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+
         AdminMerchantNotification adminMerchantNotification = new AdminMerchantNotification(
                 business,
                 notificationRequest.getAddress(),

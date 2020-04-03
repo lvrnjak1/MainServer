@@ -105,7 +105,7 @@ public class NotificationController {
     @PostMapping("/office/open")
     @Secured("ROLE_MERCHANT")
     public ResponseEntity<ApiResponse> notifyAdminToOpen(@CurrentUser UserPrincipal userPrincipal,
-                                                         @RequestBody OpenOfficeRequest notificationRequest){
+                                                         @RequestBody OpenOfficeRequest notificationRequest) throws ParseException {
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
         AdminMerchantNotification adminMerchantNotification = new AdminMerchantNotification(
                 business,
@@ -114,6 +114,8 @@ public class NotificationController {
                 notificationRequest.getCountry(),
                 notificationRequest.getEmail(),
                 notificationRequest.getPhoneNumber(),
+                notificationRequest.getWorkDayStartDateFromString(),
+                notificationRequest.getWorkDayEndDateFromString(),
                 true
         );
         adminMerchantNotificationRepository.save(adminMerchantNotification);
@@ -137,6 +139,8 @@ public class NotificationController {
                 officeOptional.get().getContactInformation().getCountry(),
                 officeOptional.get().getContactInformation().getEmail(),
                 officeOptional.get().getContactInformation().getPhoneNumber(),
+                officeOptional.get().getWorkDayStart(),
+                officeOptional.get().getWorkDayEnd(),
                 false
         );
         adminMerchantNotification.setOfficeId(officeOptional.get().getId());

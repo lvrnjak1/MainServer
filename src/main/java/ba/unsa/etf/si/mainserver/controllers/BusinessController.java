@@ -29,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -151,18 +152,18 @@ public class BusinessController {
         throw new AppException("Business with id " + businessId + " doesn't exist");
     }
 
-
     @PostMapping("/{id}/offices")
     @Secured("ROLE_ADMIN")
     public OfficeResponse addOffice(@PathVariable("id") Long businessId,
-                                      @RequestBody OfficeRequest officeRequest){
+                                      @RequestBody OfficeRequest officeRequest) throws ParseException {
         Optional<Business> businessOptional = businessService.findById(businessId);
         if(businessOptional.isPresent()){
             Business business = businessOptional.get();
             ContactInformation contactInformation = new ContactInformation(officeRequest.getAddress(),
                     officeRequest.getCity(),officeRequest.getCountry(),officeRequest.getEmail(),
                     officeRequest.getPhoneNumber());
-            Office office = new Office(contactInformation, business);
+            Office office = new Office(contactInformation, business, officeRequest.getWorkDayStartDateFromString(),
+                    officeRequest.getWorkDayEndDateFromString());
             return new OfficeResponse(officeService.save(office), new ArrayList<>());
         }
 
@@ -251,7 +252,7 @@ public class BusinessController {
                 }
                 if(oldManager != null){ //mora mu se dati otkaz
                     Optional<EmploymentHistory> employmentHistory = employmentHistoryRepository
-                            .findByEmployeeProfileId(oldManager.getId());
+                            .findByEmployeeId(oldManager.getId());
                     employmentHistory.get().setEndDate(new Date());
                     employmentHistoryRepository.save(employmentHistory.get());
                     Optional<OfficeProfile> optionalOfficeProfile = officeProfileRepository
@@ -260,28 +261,27 @@ public class BusinessController {
                 }
 
                 office.setManager(optionalEmployeeProfile.get());
-                officeService.save(office);
                 User user = userService.changeUserRoles(optionalEmployeeProfile.get().getAccount().getId(),
                         new ArrayList<>(Collections.singletonList("ROLE_OFFICEMAN")));
+                officeService.save(office);
+
                 Optional<OfficeProfile> optionalOfficeProfile = officeProfileRepository
                                         .findByEmployee_Id(optionalEmployeeProfile.get().getId());
 
                 if(!optionalOfficeProfile.isPresent()){ //nije zaposlen u nekoj drugoj poslodavnici
-                    EmploymentHistory employmentHistory = new EmploymentHistory(optionalEmployeeProfile.get(),office,
+                    EmploymentHistory employmentHistory = new EmploymentHistory(optionalEmployeeProfile.get().getId(),office.getId(),
                             new Date(), null);
                     employmentHistoryRepository.save(employmentHistory);
                     officeProfileRepository.save(new OfficeProfile(null, office, optionalEmployeeProfile.get()));
                 }
                 else if(!optionalOfficeProfile.get().getOffice().getId().equals(officeId)){ //zaposlen je u nekom drugom
-                    Optional<EmploymentHistory> employmentHistory = employmentHistoryRepository.
-                            findByEmployeeProfileId(optionalEmployeeProfile.get().getId());
-                    employmentHistory.get().setEndDate(new Date());
-                    employmentHistoryRepository.save(employmentHistory.get());
-                    EmploymentHistory newEmploymentHistory = new EmploymentHistory(optionalEmployeeProfile.get(),office,
+
+                    EmploymentHistory newEmploymentHistory = new EmploymentHistory(optionalEmployeeProfile.get().getId(),office.getId(),
                             new Date(), null);
                     employmentHistoryRepository.save(newEmploymentHistory);
-                    officeProfileRepository.delete(optionalOfficeProfile.get());
                     officeProfileRepository.save(new OfficeProfile(null, office, optionalEmployeeProfile.get()));
+                }
+                else{ //vec radi tu
                 }
 
                 return ResponseEntity.ok(new ApiResponse(
@@ -295,14 +295,14 @@ public class BusinessController {
     }
 
     @GetMapping("/employees/{userId}/office")
-    @Secured("ROLE_MANAGER")
-    public OfficeResponse getOfficeForEmployee(@PathVariable Long userId,
-                                               @CurrentUser UserPrincipal userPrincipal){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        Optional<EmployeeProfile> employeeProfileOptional = employeeProfileRepository.findByAccount_Id(userId);
-        if(!employeeProfileOptional.isPresent()){
-            throw new BadParameterValueException("Employee with this id doesn't exist");
-        }
+        @Secured("ROLE_MANAGER")
+        public OfficeResponse getOfficeForEmployee(@PathVariable Long userId,
+                @CurrentUser UserPrincipal userPrincipal){
+            Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+            Optional<EmployeeProfile> employeeProfileOptional = employeeProfileRepository.findByAccount_Id(userId);
+            if(!employeeProfileOptional.isPresent()){
+                throw new BadParameterValueException("Employee with this id doesn't exist");
+            }
 
         Long employeeId = employeeProfileOptional.get().getId();
 
@@ -317,6 +317,35 @@ public class BusinessController {
 
         Office office = officeProfileOptional.get().getOffice();
         return new OfficeResponse(office, cashRegisterService.getAllCashRegisterResponsesByOfficeId(office.getId()));
+    }
+
+    @GetMapping("/employees/{userId}/office/history")
+    @Secured("ROLE_MANAGER")
+    public OfficeResponse getEmployeeHistory(@PathVariable Long userId,
+                                               @CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Optional<EmployeeProfile> employeeProfileOptional = employeeProfileRepository.findByAccount_Id(userId);
+        if(!employeeProfileOptional.isPresent()){
+            throw new BadParameterValueException("Employee with this id doesn't exist");
+        }
+
+        Long employeeId = employeeProfileOptional.get().getId();
+
+        if(!employeeProfileOptional.get().getBusiness().getId().equals(business.getId())){
+            throw new BadParameterValueException("Employee with this id doesn't exist");
+        }
+
+        List<EmploymentHistory> employmentHistoryList = employmentHistoryRepository.findAllByEmployeeId(employeeId);
+        if(employmentHistoryList.isEmpty()){
+            throw new BadParameterValueException("Employee does'n have employment history!");
+        }
+
+        /*List<OfficeResponse> officeResponseList = employmentHistoryList.stream()
+                .map(employmentHistory -> )*/
+
+       // Office office = officeProfileOptional.get().getOffice();
+        //return new OfficeResponse(office, cashRegisterService.getAllCashRegisterResponsesByOfficeId(office.getId()));
+        return null;
     }
 
 //TODO fire employees
@@ -361,7 +390,7 @@ public class BusinessController {
     }
 
 
-    @DeleteMapping("/employees") //upitno
+    @DeleteMapping("/employees")
     @Secured("ROLE_MANAGER")
     public ResponseEntity<ApiResponse> fireEmployeeFromOffice(@CurrentUser UserPrincipal userPrincipal,
                                                              @RequestBody HiringRequest hiringRequest){
@@ -387,7 +416,7 @@ public class BusinessController {
 
         officeProfileRepository.delete(officeProfile.get());
         Optional<EmploymentHistory> employmentHistory = employmentHistoryRepository.
-                findByEmployeeProfileId(employeeProfile.get().getId());
+                findByEmployeeId(employeeProfile.get().getId());
         employmentHistory.get().setEndDate(new Date());
         employmentHistoryRepository.save(employmentHistory.get());
         return ResponseEntity.ok(new ApiResponse("Employee successfully fired from this office", 200));

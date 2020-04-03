@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @Entity
@@ -38,5 +40,15 @@ public class EmploymentHistory {
         this.officeId = officeId;
         this.startDate = start;
         this.endDate = end;
+    }
+
+    public String getStringStartDate(){
+        DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+        return dateFormat.format(getStartDate());
+    }
+
+    public String getStringEndTime(){
+        DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+        return dateFormat.format(getEndDate());
     }
 }

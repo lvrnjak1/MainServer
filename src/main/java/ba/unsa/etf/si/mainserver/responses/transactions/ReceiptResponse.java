@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -19,6 +20,7 @@ public class ReceiptResponse {
     private BigDecimal totalPrice;
     private Long timestamp;
     private String status;
+    private String paymentMethod;
     private List<ReceiptItemResponse> receiptItems;
 
     public ReceiptResponse(Receipt receipt){
@@ -29,6 +31,10 @@ public class ReceiptResponse {
         this.totalPrice = receipt.getTotalPrice();
         this.timestamp = receipt.getTimestamp().getTime();
         this.status = receipt.getStatus().getStatusName().toString();
-        //this.receiptItems = receipt.getReceiptItems().stream().map(ReceiptItemResponse::new).collect(Collectors.toList());
+        this.paymentMethod = receipt.getPaymentMethod().getMethodName().toString();
+        this.receiptItems = receipt.getReceiptItems()
+                .stream()
+                .map(ReceiptItemResponse::new)
+                .collect(Collectors.toList());
     }
 }

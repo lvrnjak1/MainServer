@@ -1,16 +1,17 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
+<<<<<<<<< Temporary merge branch 1
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
-import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
 import ba.unsa.etf.si.mainserver.models.auth.OneTimePassword;
+=========
+>>>>>>>>> Temporary merge branch 2
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.requests.auth.ChangePasswordRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.LoginRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.RegistrationRequest;
-import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.UserResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.LoginResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.RegistrationResponse;
@@ -24,7 +25,6 @@ import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -32,7 +32,6 @@ import javax.validation.Valid;
 import java.net.URI;
 import java.text.ParseException;
 import java.util.Optional;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 @RestController
@@ -42,17 +41,20 @@ public class AuthenticationController {
     private final UserService userService;
     private final EmployeeProfileService employeeProfileService;
     private final BusinessService businessService;
+    private final EmploymentHistoryRepository employmentHistoryRepository;
     private final OneTimePasswordService oneTimePasswordService;
     private final PasswordEncoder passwordEncoder;
 
     public AuthenticationController(UserService userService, EmployeeProfileService employeeProfileService,
                                     BusinessService businessService, OneTimePasswordService oneTimePasswordService,
                                     PasswordEncoder passwordEncoder) {
+    public AuthenticationController(UserService userService, EmployeeProfileService employeeProfileService, BusinessService businessService, EmploymentHistoryRepository employmentHistoryRepository) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.businessService = businessService;
         this.oneTimePasswordService = oneTimePasswordService;
         this.passwordEncoder = passwordEncoder;
+        this.employmentHistoryRepository = employmentHistoryRepository;
     }
 
     @PostMapping("/_register")
@@ -82,6 +84,13 @@ public class AuthenticationController {
             @RequestBody @Valid RegistrationRequest registrationRequest) throws ParseException {
         User result = userService.createUserAccount(registrationRequest);
         EmployeeProfile employeeProfile = employeeProfileService.createEmployeeProfile(registrationRequest, result);
+        List<String> roles = registrationRequest.getRoles().stream()
+                .map(roleResponse -> roleResponse.getRolename()).collect(Collectors.toList());
+        for(String role : roles){
+            if(role.equals("ROLE_PRW") || role.equals("ROLE_MANAGER") || role.equals("ROLE_WAREMAN") || role.equals("ROLE_PRP")){
+                employmentHistoryRepository.save(new EmploymentHistory(employeeProfile.getId(),null,new Date(),null,role));
+            }
+        }
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath().path("/api/users/{username}")
@@ -174,11 +183,11 @@ public class AuthenticationController {
                         employeeProfile.getSurname(),
                         employeeProfile.getDateOfBirth(),
                         employeeProfile.getJmbg(),
-                        employeeProfile.getContactInformation() != null ? employeeProfile.getContactInformation().getAddress() : null,
-                        employeeProfile.getContactInformation() != null ? employeeProfile.getContactInformation().getCity() : null,
-                        employeeProfile.getContactInformation() != null ? employeeProfile.getContactInformation().getCountry() : null,
-                        employeeProfile.getContactInformation() != null ? employeeProfile.getContactInformation().getEmail() : null,
-                        employeeProfile.getContactInformation() != null ? employeeProfile.getContactInformation().getPhoneNumber() : null,
+                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getAddress():null,
+                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getCity():null,
+                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getCountry():null,
+                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getEmail():null,
+                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getPhoneNumber():null,
                         employeeProfile.getAccount()
                 )));
     }

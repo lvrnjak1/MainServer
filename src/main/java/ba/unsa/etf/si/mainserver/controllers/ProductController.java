@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -240,7 +241,7 @@ public class ProductController {
                 .collect(Collectors.toList());
     }
 
-    @PostMapping("products/{productId}/comment")
+    @PostMapping("/products/{productId}/comment")
     public CommentResponse addCommentForProduct(@PathVariable("productId") Long productId,
                                                 @RequestBody CommentRequest commentRequest) {
         Optional<Product> optionalProduct = productService.findById(productId);
@@ -250,6 +251,32 @@ public class ProductController {
         Product product = optionalProduct.get();
         Comment comment = new Comment(product, commentRequest.getFirstName(), commentRequest.getLastName(), commentRequest.getEmail(), commentRequest.getText());
         return new CommentResponse(commentService.save(comment));
+    }
+
+    @GetMapping("/products/{productId}/comments")
+    public List<CommentResponse> getCommentsForProduct(@PathVariable("productId") Long productId) {
+
+        return commentService.findByProductId(productId)
+                .stream()
+                .map(CommentResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    @DeleteMapping("/products/{productId}/comments/{commentId}")
+    @Secured({"ROLE_PRW", "ROLE_PRP"})
+    public ResponseEntity<?> deleteCommentForProduct(@PathVariable("productId") Long productId,
+                                                     @PathVariable("commentId") Long commentId) {
+        Optional<Product> optionalProduct = productService.findById(productId);
+        if (!optionalProduct.isPresent()) {
+            throw new ResourceNotFoundException("Product does not exist");
+        }
+        Optional<Comment> optionalComment = commentService.findById(commentId);
+        if(!optionalComment.isPresent()) {
+            throw new ResourceNotFoundException("Comment does not exist");
+        }
+        Comment comment = optionalComment.get();
+        commentService.delete(comment);
+        return ResponseEntity.ok(new ApiResponse("Comment successfully deleted", 200));
     }
 
     @PutMapping("/products/{productId}/discount")

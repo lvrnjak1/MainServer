@@ -20,12 +20,14 @@ import ba.unsa.etf.si.mainserver.responses.UserResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.RegistrationResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.RoleResponse;
 import ba.unsa.etf.si.mainserver.responses.business.EmployeeProfileResponse;
+import ba.unsa.etf.si.mainserver.responses.transactions.ReceiptResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
 import ba.unsa.etf.si.mainserver.services.business.OfficeService;
+import ba.unsa.etf.si.mainserver.services.transactions.ReceiptService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
@@ -47,12 +49,13 @@ public class UserController {
     private final BusinessService businessService;
     private final OfficeService officeService;
     private final EmploymentHistoryRepository employmentHistoryRepository;
+    private final ReceiptService receiptService;
 
     public UserController(UserService userService, EmployeeProfileService employeeProfileService,
                           OfficeProfileRepository officeProfileRepository,
                           EmployeeActivityRepository employeeActivityRepository,
                           BusinessService businessService, OfficeService officeService,
-                          EmploymentHistoryRepository employmentHistoryRepository) {
+                          EmploymentHistoryRepository employmentHistoryRepository, ReceiptService receiptService) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.officeProfileRepository = officeProfileRepository;
@@ -60,6 +63,7 @@ public class UserController {
         this.businessService = businessService;
         this.officeService = officeService;
         this.employmentHistoryRepository = employmentHistoryRepository;
+        this.receiptService = receiptService;
     }
 
     @GetMapping("/users")
@@ -456,5 +460,30 @@ public class UserController {
             throw new ResourceNotFoundException("This user is not an employee");
         }
         return ResponseEntity.ok(new EmployeeProfileResponse(result.get()));
+    }
+
+    @GetMapping("/users/{username}/receipts")
+    @Secured("ROLE_MANAGER")
+    public List<ReceiptResponse> getReceiptsForUsername(@CurrentUser UserPrincipal userPrincipal,
+                                                        @PathVariable String username){
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Optional<User> optionalUser = userService.findByUsername(username);
+        if(!optionalUser.isPresent()){
+            throw new ResourceNotFoundException("Username doesn't belong to any user");
+        }
+
+        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(optionalUser.get());
+        if(!optionalEmployeeProfile.isPresent()){
+            throw new ResourceNotFoundException("Username doesn't belong to any employee");
+        }
+
+        if(!optionalEmployeeProfile.get().getBusiness().getId().equals(business.getId())){
+            throw new ResourceNotFoundException("Username doesn't belong to any employee of your business");
+        }
+
+        return receiptService.findAllByUsername(username)
+                .stream()
+                .map(ReceiptResponse::new)
+                .collect(Collectors.toList());
     }
 }

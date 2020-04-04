@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,7 +17,7 @@ public class EmployeeProfileResponse {
     private Long id;
     private String name;
     private String surname;
-    private Date dateOfBirth;
+    private String dateOfBirth;
     private String jmbg;
     private String address;
     private String city;
@@ -36,13 +35,13 @@ public class EmployeeProfileResponse {
         this.country = employeeProfile.getContactInformation().getCountry();
         this.email = employeeProfile.getContactInformation().getEmail();
         this.phoneNumber = employeeProfile.getContactInformation().getPhoneNumber();
-        this.dateOfBirth = employeeProfile.getDateOfBirth();
+        this.dateOfBirth = employeeProfile.getStringDate();
         this.jmbg = employeeProfile.getJmbg();
 
         setRoles(employeeProfile.getAccount());
     }
 
-    public EmployeeProfileResponse(Long id, String name, String surname, Date dateOfBirth, String jmbg, String address,
+    public EmployeeProfileResponse(Long id, String name, String surname, String dateOfBirth, String jmbg, String address,
                                    String city, String country, String email, String phoneNumber, User account) {
         this.id = id;
         this.name = name;

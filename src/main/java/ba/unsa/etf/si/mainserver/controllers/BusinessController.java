@@ -17,6 +17,7 @@ import ba.unsa.etf.si.mainserver.requests.business.*;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.CashServerConfigResponse;
 import ba.unsa.etf.si.mainserver.responses.business.*;
+import ba.unsa.etf.si.mainserver.responses.pr.OfficeResponseLite;
 import ba.unsa.etf.si.mainserver.responses.transactions.CashRegisterProfitResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
@@ -127,7 +128,7 @@ public class BusinessController {
     }
 
     @GetMapping("/offices")
-    @Secured({"ROLE_MERCHANT","ROLE_MANAGER", "ROLE_WAREMAN", "ROLE_PRW"})
+    @Secured({"ROLE_MERCHANT","ROLE_MANAGER", "ROLE_WAREMAN", "ROLE_PRW", "ROLE_PRP"})
     public List<OfficeResponse> getAllOfficesForMyBusiness(@CurrentUser UserPrincipal userPrincipal) {
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
         return officeService
@@ -544,5 +545,14 @@ public class BusinessController {
         List<CashRegister> cashRegisters = cashRegisterRepository.findAllByOfficeId(officeId);
         return new CashServerConfigResponse(business.getName(),
                 cashRegisters.stream().map(CashRegisterResponse::new).collect(Collectors.toList()));
+    }
+
+    //ruta za PR app da vide informacije o svim offices u svim businesses
+    @GetMapping("/allOffices")
+    public List<OfficeResponseLite> getAllOfficesForAllBusinesses(){
+        return officeService.findAll()
+                .stream()
+                .map(OfficeResponseLite::new)
+                .collect(Collectors.toList());
     }
 }

@@ -84,7 +84,10 @@ public class BusinessController {
             Business business = new Business(businessRequest.getName(),
                     businessRequest.isRestaurantFeature(),
                     employeeProfileOptional.get());
-            return new BusinessResponse(businessService.save(business),new ArrayList<>());
+            businessService.save(business);
+            employeeProfileOptional.get().setBusiness(business);
+            employeeProfileService.save(employeeProfileOptional.get());
+            return new BusinessResponse(business,new ArrayList<>());
         }
 
         throw new AppException("Employee with id " + businessRequest.getMerchantId() + " doesn't exist");

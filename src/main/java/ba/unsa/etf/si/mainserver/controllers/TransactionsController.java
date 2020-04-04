@@ -8,11 +8,9 @@ import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.CashRegister;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.products.Product;
-import ba.unsa.etf.si.mainserver.models.transactions.Receipt;
-import ba.unsa.etf.si.mainserver.models.transactions.ReceiptItem;
-import ba.unsa.etf.si.mainserver.models.transactions.ReceiptStatus;
-import ba.unsa.etf.si.mainserver.models.transactions.ReceiptStatusName;
+import ba.unsa.etf.si.mainserver.models.transactions.*;
 import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
+import ba.unsa.etf.si.mainserver.repositories.business.PaymentMethodRepository;
 import ba.unsa.etf.si.mainserver.repositories.transactions.ReceiptItemRepository;
 import ba.unsa.etf.si.mainserver.repositories.transactions.ReceiptRepository;
 import ba.unsa.etf.si.mainserver.repositories.transactions.ReceiptStatusRepository;
@@ -26,7 +24,9 @@ import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.OfficeService;
+import ba.unsa.etf.si.mainserver.services.products.OfficeInventoryService;
 import ba.unsa.etf.si.mainserver.services.products.ProductService;
+import ba.unsa.etf.si.mainserver.services.transactions.ReceiptService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
@@ -45,12 +45,19 @@ public class TransactionsController {
     private final OfficeService officeService;
     private final ReceiptStatusRepository receiptStatusRepository;
     private final CashRegisterRepository cashRegisterRepository;
+    private final PaymentMethodRepository paymentMethodRepository;
+    private final ReceiptService receiptService;
+    private final OfficeInventoryService officeInventoryService;
 
     public TransactionsController(ReceiptRepository receiptRepository,
                                   ReceiptItemRepository receiptItemRepository,
                                   ProductService productService,
                                   BusinessService businessService, OfficeService officeService,
-                                  ReceiptStatusRepository receiptStatusRepository, CashRegisterRepository cashRegisterRepository) {
+                                  ReceiptStatusRepository receiptStatusRepository,
+                                  CashRegisterRepository cashRegisterRepository,
+                                  PaymentMethodRepository paymentMethodRepository,
+                                  ReceiptService receiptService,
+                                  OfficeInventoryService officeInventoryService) {
         this.receiptRepository = receiptRepository;
         this.receiptItemRepository = receiptItemRepository;
         this.productService = productService;
@@ -58,6 +65,9 @@ public class TransactionsController {
         this.officeService = officeService;
         this.receiptStatusRepository = receiptStatusRepository;
         this.cashRegisterRepository = cashRegisterRepository;
+        this.paymentMethodRepository = paymentMethodRepository;
+        this.receiptService = receiptService;
+        this.officeInventoryService = officeInventoryService;
     }
 
 
@@ -99,6 +109,20 @@ public class TransactionsController {
             throw new ResourceNotFoundException("Invalid status");
         }
 
+        if(receiptStatus.get().getStatusName().toString().equals("DELETED")){
+            //u pitanju je storniranje računa
+            //samo oznaciti pozitivni pandan sa deleted
+            receiptService.markPositiveDeleted(receiptRequest.getReceiptId());
+        }
+
+        Optional<PaymentMethod> paymentMethod = paymentMethodRepository.findByMethodName(
+                Enum.valueOf(PaymentMethodName.class, receiptRequest.getPaymentMethod())
+        );
+
+        if(!paymentMethod.isPresent()){
+            throw new ResourceNotFoundException("Invalid payment method");
+        }
+
         Receipt receipt = new Receipt(receiptRequest.getReceiptId(),
                 receiptRequest.getCashRegisterId(),
                 receiptRequest.getOfficeId(),
@@ -106,6 +130,7 @@ public class TransactionsController {
                 receiptRequest.getUsername(),
                 receiptRequest.getTotalPrice(),
                 receiptStatus.get(),
+                paymentMethod.get(),
                 new Date(receiptRequest.getTimestamp()),
                 receiptRequest.getReceiptItems().stream().map(
                         receiptItemRequest -> {
@@ -119,6 +144,12 @@ public class TransactionsController {
                            return receiptItem;
                         }
                 ).collect(Collectors.toSet()));
+
+        //update zaliha samo kad nije pending i canceled i insuff
+        if(receiptStatus.get().getStatusName().toString().equals("DELETED") ||
+                receiptStatus.get().getStatusName().toString().equals("PAID") ) {
+            officeInventoryService.processTransaction(officeOptional.get().getId(), receipt.getReceiptItems());
+        }
         receiptRepository.save(receipt);
         return ResponseEntity.ok(new ApiResponse("Receipt successfully sent", 200));
     }
@@ -151,13 +182,26 @@ public class TransactionsController {
             throw new BadParameterValueException("Business doesn't exist");
         }
 
-        Optional<Receipt> receiptOptional = receiptRepository.findByBusinessIdAndCashRegisterIdAndOfficeId(
+        Optional<ReceiptStatus> receiptStatus = receiptStatusRepository.findByStatusName(
+                Enum.valueOf(ReceiptStatusName.class, "PENDING")
+        );
+
+        if(!receiptStatus.isPresent()){
+            throw new AppException("Invalid status");
+        }
+
+        Optional<Receipt> receiptOptional = receiptRepository.findByBusinessIdAndCashRegisterIdAndOfficeIdAndStatus_StatusName(
                 businessOptional.get().getId(),
-                payServerInfoRequest.getCashServerId(),
-                payServerInfoRequest.getOfficeId());
+                payServerInfoRequest.getCashRegisterId(),
+                payServerInfoRequest.getOfficeId(),
+                receiptStatus.get().getStatusName());
 
         if(!receiptOptional.isPresent()){
             throw new AppException("Receipt doesn't exist");
+        }
+
+        if(!receiptOptional.get().getStatus().getStatusName().toString().equals("PENDING")){
+            throw new BadParameterValueException("This receipt is not pending payment");
         }
 
         return new PayServerInfoResponse(receiptOptional.get());
@@ -182,7 +226,14 @@ public class TransactionsController {
 
         receiptOptional.get().setStatus(receiptStatus.get());
         receiptRepository.save(receiptOptional.get());
+
+        if(receiptStatus.get().getStatusName().toString().equals("PAID")){
+            officeInventoryService.processTransaction(receiptOptional.get().getOfficeId(),
+                    receiptOptional.get().getReceiptItems());
+        }
         return ResponseEntity.ok(new ApiResponse("Status successfully changed", 200));
     }
+
+
 
 }

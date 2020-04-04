@@ -1,16 +1,11 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
-import ba.unsa.etf.si.mainserver.exceptions.AppException;
-import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
-import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
-import ba.unsa.etf.si.mainserver.models.auth.OneTimePassword;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.requests.auth.ChangePasswordRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.LoginRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.RegistrationRequest;
-import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.UserResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.LoginResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.RegistrationResponse;
@@ -18,13 +13,11 @@ import ba.unsa.etf.si.mainserver.responses.auth.RoleResponse;
 import ba.unsa.etf.si.mainserver.responses.business.EmployeeProfileResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
-import ba.unsa.etf.si.mainserver.services.OneTimePasswordService;
 import ba.unsa.etf.si.mainserver.services.UserService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -66,7 +59,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    @Secured({"ROLE_ADMIN", "ROLE_MERCHANT", "ROLE_MANAGER"})
+    @Secured({"ROLE_MERCHANT", "ROLE_MANAGER"})
     public ResponseEntity<RegistrationResponse> registerEmployee(
             @Valid @RequestBody RegistrationRequest registrationRequest,
             @CurrentUser UserPrincipal userPrincipal) throws ParseException {

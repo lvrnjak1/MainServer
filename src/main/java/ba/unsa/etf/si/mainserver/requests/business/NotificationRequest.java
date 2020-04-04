@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -13,9 +14,13 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NotificationRequest {
+    @NotBlank
     private Long employeeId;
+    @NotBlank
     private boolean hired;
+    @NotBlank
     private String date;
+    @NotBlank
     private String time;
 
     public Date getDateFromString() throws ParseException {

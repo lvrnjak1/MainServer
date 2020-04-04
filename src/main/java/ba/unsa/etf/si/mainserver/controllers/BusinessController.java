@@ -3,9 +3,10 @@ package ba.unsa.etf.si.mainserver.controllers;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
-import ba.unsa.etf.si.mainserver.models.employees.EmployeeActivity;
+import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.*;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeActivity;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
@@ -13,9 +14,11 @@ import ba.unsa.etf.si.mainserver.repositories.business.EmployeeProfileRepository
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.business.*;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
+import ba.unsa.etf.si.mainserver.responses.CashServerConfigResponse;
 import ba.unsa.etf.si.mainserver.responses.business.BusinessResponse;
 import ba.unsa.etf.si.mainserver.responses.business.CashRegisterResponse;
 import ba.unsa.etf.si.mainserver.responses.business.OfficeResponse;
+import ba.unsa.etf.si.mainserver.responses.transactions.CashRegisterProfitResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
@@ -23,14 +26,14 @@ import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.CashRegisterService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
 import ba.unsa.etf.si.mainserver.services.business.OfficeService;
+import ba.unsa.etf.si.mainserver.services.transactions.ReceiptService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -47,6 +50,7 @@ public class BusinessController {
     private final UserService userService;
     private final OfficeProfileRepository officeProfileRepository;
     private final EmployeeActivityRepository employeeActivityRepository;
+    private final ReceiptService receiptService;
 
 
     public BusinessController(BusinessService businessService, EmployeeProfileService employeeProfileService,
@@ -54,7 +58,8 @@ public class BusinessController {
                               CashRegisterRepository cashRegisterRepository,
                               EmployeeProfileRepository employeeProfileRepository,
                               UserService userService, OfficeProfileRepository officeProfileRepository,
-                              EmployeeActivityRepository employeeActivityRepository) {
+                              EmployeeActivityRepository employeeActivityRepository,
+                              ReceiptService receiptService) {
         this.businessService = businessService;
         this.employeeProfileService = employeeProfileService;
         this.officeService = officeService;
@@ -64,6 +69,7 @@ public class BusinessController {
         this.userService = userService;
         this.officeProfileRepository = officeProfileRepository;
         this.employeeActivityRepository = employeeActivityRepository;
+        this.receiptService = receiptService;
     }
 
     @PostMapping
@@ -152,14 +158,15 @@ public class BusinessController {
     @PostMapping("/{id}/offices")
     @Secured("ROLE_ADMIN")
     public OfficeResponse addOffice(@PathVariable("id") Long businessId,
-                                      @RequestBody OfficeRequest officeRequest){
+                                      @RequestBody OfficeRequest officeRequest) throws ParseException {
         Optional<Business> businessOptional = businessService.findById(businessId);
         if(businessOptional.isPresent()){
             Business business = businessOptional.get();
             ContactInformation contactInformation = new ContactInformation(officeRequest.getAddress(),
                     officeRequest.getCity(),officeRequest.getCountry(),officeRequest.getEmail(),
                     officeRequest.getPhoneNumber());
-            Office office = new Office(contactInformation, business);
+            Office office = new Office(contactInformation, business, officeRequest.getWorkDayStartDateFromString(),
+                    officeRequest.getWorkDayEndDateFromString());
             return new OfficeResponse(officeService.save(office), new ArrayList<>());
         }
 
@@ -349,4 +356,56 @@ public class BusinessController {
 //        officeProfileRepository.delete(officeProfile.get());
 //        return ResponseEntity.ok(new ApiResponse("Employee successfully fired from this office", 200));
 //    }
+
+    @GetMapping("/{businessId}/office-details/{officeId}")
+    @Secured("ROLE_OFFICEMAN")
+    public CashServerConfigResponse getCashServerConfig(@PathVariable Long businessId,
+                                                        @PathVariable Long officeId){
+        Optional<Business> businessOptional = businessService.findById(businessId);
+        if(!businessOptional.isPresent()){
+            throw new ResourceNotFoundException("Business doesn't exist");
+        }
+
+        Optional<Office> officeOptional = officeService.findById(officeId);
+        if(!officeOptional.isPresent()){
+            throw new ResourceNotFoundException("Office doesn't exist");
+        }
+
+        if(!officeOptional.get().getBusiness().getId().equals(businessOptional.get().getId())){
+            throw new AppException("This office is not is this business");
+        }
+
+        List<CashRegister> cashRegisters = cashRegisterRepository
+                .findAllByOfficeId(officeOptional.get().getId());
+
+        return new CashServerConfigResponse(businessOptional.get().getName(),
+                cashRegisters.stream().map(CashRegisterResponse::new).collect(Collectors.toList()));
+    }
+
+    @GetMapping("/offices/{officeId}/cashRegisters")
+    @Secured({"ROLE_MERCHANT", "ROLE_MANAGER"})
+    public List<CashRegisterProfitResponse> getCashRegistersForOffice(@PathVariable Long officeId,
+                                                                @CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Optional<Office> officeOptional = officeService.findById(officeId);
+        if(!officeOptional.isPresent()){
+            throw new ResourceNotFoundException("Office doesn't exist");
+        }
+
+        if(!officeOptional.get().getBusiness().getId().equals(business.getId())){
+            throw new UnauthorizedException("Not your office");
+        }
+
+        return cashRegisterRepository
+                .findAllByOfficeId(officeOptional.get().getId())
+                .stream()
+                .map(cashRegister -> {
+                    BigDecimal dailyProfit = receiptService.findDailyProfitForCashRegister(cashRegister,
+                            new Date());
+                    BigDecimal totalProfit = receiptService.findTotalProfitForCashRegister(cashRegister);
+                    return new CashRegisterProfitResponse(cashRegister.getId(),
+                            cashRegister.getName(), dailyProfit, totalProfit);
+                })
+                .collect(Collectors.toList());
+    }
 }

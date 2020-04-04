@@ -264,6 +264,23 @@ public class ProductController {
         return commentResponseList;
     }
 
+    @DeleteMapping("/products/{productId}/comments/{commentId}")
+    @Secured("ROLE_ADMIN")
+    public ResponseEntity<?> deleteCommentForProduct(@PathVariable("productId") Long productId,
+                                                     @PathVariable("commentId") Long commentId) {
+        Optional<Product> optionalProduct = productService.findById(productId);
+        if (!optionalProduct.isPresent()) {
+            throw new ResourceNotFoundException("Product does not exist");
+        }
+        Optional<Comment> optionalComment = commentService.findById(commentId);
+        if(!optionalComment.isPresent()) {
+            throw new ResourceNotFoundException("Comment does not exist");
+        }
+        Comment comment = optionalComment.get();
+        commentService.delete(comment);
+        return ResponseEntity.ok(new ApiResponse("Comment successfully deleted", 200));
+    }
+
     @PutMapping("/products/{productId}/discount")
     @Secured("ROLE_MERCHANT")
     public ProductResponse updateDiscount(@PathVariable("productId") Long productId,

@@ -79,4 +79,8 @@ public class OfficeService {
     public Optional<Office> findByManager(EmployeeProfile employeeProfile) {
         return officeRepository.findByManager(employeeProfile);
     }
+
+    public List<Office> findAll() {
+        return officeRepository.findAll();
+    }
 }

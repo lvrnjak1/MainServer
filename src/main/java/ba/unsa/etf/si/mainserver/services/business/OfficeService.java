@@ -60,7 +60,7 @@ public class OfficeService {
         if (!optionalOffice.get().getBusiness().getId().equals(optionalBusiness.get().getId())) {
             throw new BadParameterValueException("Office with id " + officeId + " does not belong to business with id " + businessId);
         }
-        cashRegisterRepository.deleteCashRegisterByOfficeId(officeId);
+        //cashRegisterRepository.deleteCashRegisterByOfficeId(officeId);
         officeRepository.deleteById(officeId);
 
         return new ApiResponse("Office successfully deleted!", 200);

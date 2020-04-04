@@ -14,4 +14,6 @@ public class HiringRequest {
     private Long employeeId;
     @NotBlank
     private Long officeId;
+    @NotBlank
+    private boolean cashier;
 }

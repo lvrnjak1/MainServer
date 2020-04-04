@@ -1,12 +1,18 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
+import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
+import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
+import ba.unsa.etf.si.mainserver.models.auth.OneTimePassword;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
+import ba.unsa.etf.si.mainserver.models.employees.EmploymentHistory;
+import ba.unsa.etf.si.mainserver.repositories.business.EmploymentHistoryRepository;
 import ba.unsa.etf.si.mainserver.requests.auth.ChangePasswordRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.LoginRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.RegistrationRequest;
+import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.UserResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.LoginResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.RegistrationResponse;
@@ -14,18 +20,23 @@ import ba.unsa.etf.si.mainserver.responses.auth.RoleResponse;
 import ba.unsa.etf.si.mainserver.responses.business.EmployeeProfileResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
+import ba.unsa.etf.si.mainserver.services.OneTimePasswordService;
 import ba.unsa.etf.si.mainserver.services.UserService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
 import java.net.URI;
 import java.text.ParseException;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @RestController
@@ -35,11 +46,19 @@ public class AuthenticationController {
     private final UserService userService;
     private final EmployeeProfileService employeeProfileService;
     private final BusinessService businessService;
+    private final EmploymentHistoryRepository employmentHistoryRepository;
+    private final OneTimePasswordService oneTimePasswordService;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthenticationController(UserService userService, EmployeeProfileService employeeProfileService, BusinessService businessService) {
+    public AuthenticationController(UserService userService, EmployeeProfileService employeeProfileService,
+                                    BusinessService businessService, OneTimePasswordService oneTimePasswordService,
+                                    PasswordEncoder passwordEncoder,EmploymentHistoryRepository employmentHistoryRepository) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.businessService = businessService;
+        this.oneTimePasswordService = oneTimePasswordService;
+        this.passwordEncoder = passwordEncoder;
+        this.employmentHistoryRepository = employmentHistoryRepository;
     }
 
     @PostMapping("/_register")
@@ -69,6 +88,13 @@ public class AuthenticationController {
             @RequestBody @Valid RegistrationRequest registrationRequest) throws ParseException {
         User result = userService.createUserAccount(registrationRequest);
         EmployeeProfile employeeProfile = employeeProfileService.createEmployeeProfile(registrationRequest, result);
+        List<String> roles = registrationRequest.getRoles().stream()
+                .map(roleResponse -> roleResponse.getRolename()).collect(Collectors.toList());
+        for(String role : roles){
+            if(role.equals("ROLE_PRW") || role.equals("ROLE_MANAGER") || role.equals("ROLE_WAREMAN") || role.equals("ROLE_PRP")){
+                employmentHistoryRepository.save(new EmploymentHistory(employeeProfile.getId(),null,new Date(),null,role));
+            }
+        }
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath().path("/api/users/{username}")
@@ -107,10 +133,43 @@ public class AuthenticationController {
         return ResponseEntity.ok(new LoginResponse(jwt, "Bearer", userResponse));
     }
 
+    @GetMapping("/v2/login")
+    @Secured({"ROLE_MERCHANT", "ROLE_MANAGER","ROLE_PRW","ROLE_PRP","ROLE_WAREMAN","ROLE_CASHIER","ROLE_BARTENDER","ROLE_OFFICEMAN"})
+    public ApiResponse checkOTP(@CurrentUser UserPrincipal userPrincipal) {
+        Optional<User> userOptional = userService.findByUsername(userPrincipal.getUsername());
+        if (!userOptional.isPresent()) {
+            throw new ResourceNotFoundException("There is no user");
+        }
+        User user = userOptional.get();
+        Optional<OneTimePassword> otpOptional = oneTimePasswordService.findByUser(user);
+        if (otpOptional.isPresent()) {
+            //mora mijenjati sifru
+            //da se slucajno ne moze logovati sa starom
+            Random random = new Random();
+            String generatedString = random.ints(48, 122 + 1)
+                    .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
+                    .limit(10)
+                    .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                    .toString();
+            userService.changeUserPassword(user.getId(), generatedString);
+            throw new AppException("Password must be changed!");
+
+        }
+        return new ApiResponse("OK", 200);
+    }
+
     @PutMapping("/user/{userId}")
     @Secured("ROLE_ADMIN")
     public ResponseEntity<RegistrationResponse> changeUserPassword(@PathVariable Long userId, @RequestBody ChangePasswordRequest changePasswordRequest) {
         User user = userService.changeUserPassword(userId, changePasswordRequest.getPassword());
+        Optional<OneTimePassword> otpOptional = oneTimePasswordService.findByUser(user);
+        if (otpOptional.isPresent()) {
+            otpOptional.get().setOneTimePassword(passwordEncoder.encode(changePasswordRequest.getPassword()));
+            oneTimePasswordService.save(otpOptional.get());
+        } else {
+            oneTimePasswordService.createOneTimePassword(user, passwordEncoder.encode(changePasswordRequest.getPassword()));
+        }
+
         Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(user);
         EmployeeProfile employeeProfile = null;
         employeeProfile = optionalEmployeeProfile.orElseGet(EmployeeProfile::new);
@@ -137,5 +196,25 @@ public class AuthenticationController {
                 )));
     }
 
-
+    @PutMapping("/changePassword")
+    @Secured({"ROLE_ADMIN","ROLE_MERCHANT", "ROLE_MANAGER","ROLE_PRW","ROLE_PRP","ROLE_WAREMAN","ROLE_CASHIER","ROLE_BARTENDER","ROLE_OFFICEMAN"})
+    public ApiResponse changePassword(@CurrentUser UserPrincipal userPrincipal, @RequestBody ChangePasswordRequest changePasswordRequest) {
+        Optional<User> userOptional = userService.findByUsername(userPrincipal.getUsername());
+        if (!userOptional.isPresent()) {
+            throw new ResourceNotFoundException("Error");
+        }
+        User user = userOptional.get();
+        if (userPrincipal.getAuthorities().stream().noneMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
+        //ako nije admin, onda mora biti upisan u otp tabelu da bi ovo uradio
+            Optional<OneTimePassword> otpOptional = oneTimePasswordService.findByUser(user);
+            if (otpOptional.isPresent()) {
+                oneTimePasswordService.delete(otpOptional.get());
+            }
+            else{
+                throw new UnauthorizedException();
+            }
+        }
+        userService.changeUserPassword(user.getId(),changePasswordRequest.getPassword());
+        return new ApiResponse("Password changed!", 200);
+    }
 }

@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -240,7 +241,7 @@ public class ProductController {
                 .collect(Collectors.toList());
     }
 
-    @PostMapping("products/{productId}/comment")
+    @PostMapping("/products/{productId}/comment")
     public CommentResponse addCommentForProduct(@PathVariable("productId") Long productId,
                                                 @RequestBody CommentRequest commentRequest) {
         Optional<Product> optionalProduct = productService.findById(productId);
@@ -250,6 +251,17 @@ public class ProductController {
         Product product = optionalProduct.get();
         Comment comment = new Comment(product, commentRequest.getFirstName(), commentRequest.getLastName(), commentRequest.getEmail(), commentRequest.getText());
         return new CommentResponse(commentService.save(comment));
+    }
+
+    @GetMapping("/products/{productId}/comments")
+    public List<CommentResponse> getCommentsForProduct(@PathVariable("productId") Long productId) {
+        List<Comment> commentList = commentService.findByProductId(productId);
+        //ovo bi se moglo ljepse napisati
+        ArrayList<CommentResponse> commentResponseList = new ArrayList<CommentResponse>();
+        for (Comment comment : commentList) {
+            commentResponseList.add(new CommentResponse(comment));
+        }
+        return commentResponseList;
     }
 
     @PutMapping("/products/{productId}/discount")

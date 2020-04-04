@@ -15,6 +15,7 @@ import ba.unsa.etf.si.mainserver.repositories.business.EmploymentHistoryReposito
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.business.*;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
+import ba.unsa.etf.si.mainserver.responses.CashServerConfigResponse;
 import ba.unsa.etf.si.mainserver.responses.business.*;
 import ba.unsa.etf.si.mainserver.responses.transactions.CashRegisterProfitResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
@@ -519,5 +520,29 @@ public class BusinessController {
                             cashRegister.getName(), dailyProfit, totalProfit);
                 })
                 .collect(Collectors.toList());
+    }
+
+    @GetMapping("/{businessId}/office-details/{officeId}")
+    @Secured("ROLE_OFFICEMAN")
+    public CashServerConfigResponse getServerConfig(@PathVariable Long businessId,
+                                                    @PathVariable Long officeId,
+                                                    @CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        if(!business.getId().equals(businessId)){
+            throw new UnauthorizedException("Not your business");
+        }
+
+        Optional<Office> officeOptional = officeService.findById(officeId);
+        if(!officeOptional.isPresent()){
+            throw new BadParameterValueException("Office doesn't exist");
+        }
+
+        if(!officeOptional.get().getBusiness().getId().equals(businessId)){
+            throw new BadParameterValueException("This office doesn't belong to this business");
+        }
+
+        List<CashRegister> cashRegisters = cashRegisterRepository.findAllByOfficeId(officeId);
+        return new CashServerConfigResponse(business.getName(),
+                cashRegisters.stream().map(CashRegisterResponse::new).collect(Collectors.toList()));
     }
 }

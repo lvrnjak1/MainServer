@@ -6,11 +6,9 @@ import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.Office;
-import ba.unsa.etf.si.mainserver.models.products.Discount;
-import ba.unsa.etf.si.mainserver.models.products.OfficeInventory;
-import ba.unsa.etf.si.mainserver.models.products.Product;
-import ba.unsa.etf.si.mainserver.models.products.Warehouse;
+import ba.unsa.etf.si.mainserver.models.products.*;
 import ba.unsa.etf.si.mainserver.repositories.products.WarehouseRepository;
+import ba.unsa.etf.si.mainserver.requests.products.CommentRequest;
 import ba.unsa.etf.si.mainserver.requests.products.DiscountRequest;
 import ba.unsa.etf.si.mainserver.requests.products.InventoryRequest;
 import ba.unsa.etf.si.mainserver.requests.products.ProductRequest;
@@ -21,6 +19,7 @@ import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.CashRegisterService;
 import ba.unsa.etf.si.mainserver.services.business.OfficeService;
+import ba.unsa.etf.si.mainserver.services.products.CommentService;
 import ba.unsa.etf.si.mainserver.services.products.OfficeInventoryService;
 import ba.unsa.etf.si.mainserver.services.products.ProductService;
 import org.springframework.http.ResponseEntity;
@@ -43,19 +42,22 @@ public class ProductController {
     private final OfficeInventoryService officeInventoryService;
     private final CashRegisterService cashRegisterService;
     private final WarehouseRepository warehouseRepository;
+    private CommentService commentService;
 
     public ProductController(ProductService productService,
                              BusinessService businessService,
                              OfficeService officeService,
                              OfficeInventoryService officeInventoryService,
                              CashRegisterService cashRegisterService,
-                             WarehouseRepository warehouseRepository) {
+                             WarehouseRepository warehouseRepository,
+                             CommentService commentService) {
         this.productService = productService;
         this.businessService = businessService;
         this.officeService = officeService;
         this.officeInventoryService = officeInventoryService;
         this.warehouseRepository = warehouseRepository;
         this.cashRegisterService = cashRegisterService;
+        this.commentService = commentService;
     }
 
     @GetMapping("/products")
@@ -94,7 +96,7 @@ public class ProductController {
     @PostMapping("/products")
     @Secured({"ROLE_WAREMAN","ROLE_MERCHANT"})
     public ProductResponse addProductFroBusiness(@CurrentUser UserPrincipal userPrincipal,
-                                                       @RequestBody ProductRequest productRequest){
+                                                 @RequestBody ProductRequest productRequest){
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
         Long businessId = business.getId();
         Optional<Business> businessOptional = businessService.findById(businessId);
@@ -137,7 +139,7 @@ public class ProductController {
     @PutMapping("/products/{productId}")
     @Secured({"ROLE_WAREMAN", "ROLE_MERCHANT"})
     public ProductResponse updateProductForBusiness(@PathVariable("productId") Long productId,
-                                                 @RequestBody ProductRequest productRequest,
+                                                    @RequestBody ProductRequest productRequest,
                                                     @CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
         Optional<Product> optionalProduct = productService.findById(productId);
@@ -178,7 +180,7 @@ public class ProductController {
     @PostMapping("/inventory")
     @Secured("ROLE_WAREMAN")
     public OfficeInventoryResponse addInventoryForOffice(@RequestBody InventoryRequest inventoryRequest,
-                                                           @CurrentUser UserPrincipal userPrincipal){
+                                                         @CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
         Optional<Product> optionalProduct = productService.findById(inventoryRequest.getProductId());
         if (!optionalProduct.isPresent()) {
@@ -238,10 +240,22 @@ public class ProductController {
                 .collect(Collectors.toList());
     }
 
+    @PostMapping("products/{productId}/comment")
+    public CommentResponse addCommentForProduct(@PathVariable("productId") Long productId,
+                                                @RequestBody CommentRequest commentRequest) {
+        Optional<Product> optionalProduct = productService.findById(productId);
+        if (!optionalProduct.isPresent()) {
+            throw new ResourceNotFoundException("Product does not exist");
+        }
+        Product product = optionalProduct.get();
+        Comment comment = new Comment(product, commentRequest.getFirstName(), commentRequest.getLastName(), commentRequest.getEmail(), commentRequest.getText());
+        return new CommentResponse(commentService.save(comment));
+    }
+
     @PutMapping("/products/{productId}/discount")
     @Secured("ROLE_MERCHANT")
     public ProductResponse updateDiscount(@PathVariable("productId") Long productId,
-                                        @RequestBody DiscountRequest discountRequest,
+                                          @RequestBody DiscountRequest discountRequest,
                                           @CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
         Optional<Product> optionalProduct = productService.findById(productId);
@@ -257,5 +271,4 @@ public class ProductController {
         product.setDiscount(discount);
         return new ProductResponse(productService.save(product));
     }
-
 }

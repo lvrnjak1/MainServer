@@ -1,7 +1,6 @@
 package ba.unsa.etf.si.mainserver.services.products;
 
 import ba.unsa.etf.si.mainserver.models.products.Comment;
-import ba.unsa.etf.si.mainserver.models.products.Product;
 import ba.unsa.etf.si.mainserver.repositories.products.CommentRepository;
 import org.springframework.stereotype.Service;
 
@@ -28,4 +27,7 @@ public class CommentService {
 
     public List<Comment> findByProductId(Long productId) { return commentRepository.findByProductId(productId); }
 
+    public List<Comment> findAll() {
+        return commentRepository.findAll();
+    }
 }

@@ -464,6 +464,21 @@ public class UserController {
         return ResponseEntity.ok(new EmployeeProfileResponse(result.get()));
     }
 
+    @GetMapping("/users/{userId}/username")
+    @Secured({"ROLE_MANAGER"})
+    public ApiResponse getUsernameForId(@PathVariable Long userId,
+                                                                  @CurrentUser UserPrincipal userPrincipal) {
+        Optional<User> optionalUser = userService.findUserById(userId);
+        if (!optionalUser.isPresent()) {
+            throw new ResourceNotFoundException("User with id " + userId + " does not exist");
+        }
+        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(optionalUser.get());
+        if (!optionalEmployeeProfile.isPresent()) {
+            throw new ResourceNotFoundException("User is not an employee");
+        }
+        return new ApiResponse(optionalUser.get().getUsername(), 200);
+    }
+
     @GetMapping("/users/{username}/receipts")
     @Secured("ROLE_MANAGER")
     public List<ReceiptResponse> getReceiptsForUsername(@CurrentUser UserPrincipal userPrincipal,

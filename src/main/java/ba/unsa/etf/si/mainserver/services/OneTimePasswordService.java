@@ -28,4 +28,6 @@ public class OneTimePasswordService {
     public void delete(OneTimePassword otp){
         oneTimePasswordRepository.delete(otp);
     }
+
+    public void save(OneTimePassword otp){oneTimePasswordRepository.save(otp);}
 }

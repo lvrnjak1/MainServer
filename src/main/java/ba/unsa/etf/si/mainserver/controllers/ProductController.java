@@ -255,17 +255,15 @@ public class ProductController {
 
     @GetMapping("/products/{productId}/comments")
     public List<CommentResponse> getCommentsForProduct(@PathVariable("productId") Long productId) {
-        List<Comment> commentList = commentService.findByProductId(productId);
-        //ovo bi se moglo ljepse napisati
-        ArrayList<CommentResponse> commentResponseList = new ArrayList<CommentResponse>();
-        for (Comment comment : commentList) {
-            commentResponseList.add(new CommentResponse(comment));
-        }
-        return commentResponseList;
+
+        return commentService.findByProductId(productId)
+                .stream()
+                .map(CommentResponse::new)
+                .collect(Collectors.toList());
     }
 
     @DeleteMapping("/products/{productId}/comments/{commentId}")
-    @Secured("ROLE_ADMIN")
+    @Secured({"ROLE_PRW", "ROLE_PRP"})
     public ResponseEntity<?> deleteCommentForProduct(@PathVariable("productId") Long productId,
                                                      @PathVariable("commentId") Long commentId) {
         Optional<Product> optionalProduct = productService.findById(productId);

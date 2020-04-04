@@ -50,6 +50,7 @@ public class EmploymentHistory {
     }
 
     public String getStringEndTime(){
+        if(getEndDate() == null) return null;
         DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
         return dateFormat.format(getEndDate());
     }

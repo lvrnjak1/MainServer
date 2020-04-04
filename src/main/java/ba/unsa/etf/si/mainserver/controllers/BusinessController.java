@@ -3,20 +3,20 @@ package ba.unsa.etf.si.mainserver.controllers;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
-import ba.unsa.etf.si.mainserver.models.auth.User;
+import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
 import ba.unsa.etf.si.mainserver.models.business.*;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeActivity;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
+import ba.unsa.etf.si.mainserver.models.employees.EmploymentHistory;
 import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.EmployeeProfileRepository;
+import ba.unsa.etf.si.mainserver.repositories.business.EmploymentHistoryRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.business.*;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
-import ba.unsa.etf.si.mainserver.responses.CashServerConfigResponse;
-import ba.unsa.etf.si.mainserver.responses.business.BusinessResponse;
-import ba.unsa.etf.si.mainserver.responses.business.CashRegisterResponse;
-import ba.unsa.etf.si.mainserver.responses.business.OfficeResponse;
+import ba.unsa.etf.si.mainserver.responses.business.*;
+import ba.unsa.etf.si.mainserver.responses.transactions.CashRegisterProfitResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
@@ -24,15 +24,14 @@ import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.CashRegisterService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
 import ba.unsa.etf.si.mainserver.services.business.OfficeService;
+import ba.unsa.etf.si.mainserver.services.transactions.ReceiptService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -59,8 +58,7 @@ public class BusinessController {
                               EmployeeProfileRepository employeeProfileRepository,
                               UserService userService, OfficeProfileRepository officeProfileRepository,
                               EmployeeActivityRepository employeeActivityRepository,
-                              ReceiptService receiptService) {
-                              EmployeeActivityRepository employeeActivityRepository,
+                              ReceiptService receiptService,
                               EmploymentHistoryRepository employmentHistoryRepository) {
         this.businessService = businessService;
         this.employeeProfileService = employeeProfileService;
@@ -203,6 +201,7 @@ public class BusinessController {
                                 break;
                             }
                         }
+                        officeProfileRepository.delete(officeProfile);
             }
         }
         return ResponseEntity.ok(officeService.deleteOfficeOfBusiness(officeId, businessId));
@@ -281,7 +280,6 @@ public class BusinessController {
             Optional<Office> optionalOffice = officeService.findById(officeId);
             if (optionalOffice.isPresent() && optionalOffice.get().getBusiness().getId().equals(businessId)) {
                 Office office = optionalOffice.get();
-
                 if(office.getManager() != null &&
                         employeeProfile.getId().equals(office.getManager().getId())){ //ista osoba
                     return ResponseEntity.ok(new ApiResponse(
@@ -329,9 +327,10 @@ public class BusinessController {
                 }
 
                 EmploymentHistory employmentHistory =
-                        new EmploymentHistory(employeeProfile.getId(),office.getId(), new Date(), null, "ROLE_OFFICMAN");
+                        new EmploymentHistory(employeeProfile.getId(),office.getId(), new Date(), null, "ROLE_OFFICEMAN");
                 employmentHistoryRepository.save(employmentHistory);
                 office.setManager(employeeProfile);
+                officeService.save(office);
                 return ResponseEntity.ok(new ApiResponse(
                         "Employee with id " +
                                 optionalEmployeeProfile.get().getId() +
@@ -370,10 +369,10 @@ public class BusinessController {
                 .collect(Collectors.toList());
     }
 
-    /*@GetMapping("/employees/{userId}/office/history")
+    @GetMapping("/employees/{userId}/history")
     @Secured("ROLE_MANAGER")
-    public OfficeResponse getEmployeeHistory(@PathVariable Long userId,
-                                               @CurrentUser UserPrincipal userPrincipal){
+    public EmploymentHistoryResponse getEmployeeHistory(@PathVariable Long userId,
+                                                              @CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
         Optional<EmployeeProfile> employeeProfileOptional = employeeProfileRepository.findByAccount_Id(userId);
         if(!employeeProfileOptional.isPresent()){
@@ -386,13 +385,23 @@ public class BusinessController {
             throw new BadParameterValueException("Employee with this id doesn't exist");
         }
 
-        List<EmploymentHistory> employmentHistoryList = employmentHistoryRepository.findAllByEmployeeProfileIdAndRole(employeeId);
+        List<EmploymentHistory> employmentHistoryList = employmentHistoryRepository.findAllByEmployeeProfileId(employeeId);
         if(employmentHistoryList.isEmpty()){
-            throw new BadParameterValueException("Employee does'n have employment history!");
+            throw new BadParameterValueException("Employee doesn't have employment history!");
         }
 
-        return null;
-    }*/
+        List<OfficeHistory> responseList = new ArrayList<>();
+        for(EmploymentHistory employmentHistory : employmentHistoryList){
+            OfficeResponse officeResponse = null;
+            if(employmentHistory.getOfficeId() != null){
+                Optional<Office> officeOptional = officeService.findById(employmentHistory.getOfficeId());
+                officeResponse = new OfficeResponse(officeOptional.get(),cashRegisterService.getAllCashRegisterResponsesByOfficeId(officeOptional.get().getId()));
+            }
+            responseList.add(new OfficeHistory(employmentHistory,officeResponse));
+        }
+
+        return new EmploymentHistoryResponse(new EmployeeProfileResponse(employeeProfileOptional.get()), responseList);
+    }
 
 
     @PostMapping("/employees")
@@ -461,7 +470,6 @@ public class BusinessController {
         if(!employeeProfile.isPresent()){
             throw new ResourceNotFoundException("This employee doesn't exist");
         }
-
         Optional<OfficeProfile> officeProfile = officeProfileRepository.findByEmployeeIdAndOfficeId(employeeProfile.get().getId(), officeOptional.get().getId());
         if(!officeProfile.isPresent()){
             throw new AppException("This office doesn't hire this employee");

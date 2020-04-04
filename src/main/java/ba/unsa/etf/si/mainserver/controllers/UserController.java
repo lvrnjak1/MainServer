@@ -182,7 +182,6 @@ public class UserController {
                 .collect(Collectors.toList());
     }
 
-    //VALJDA OK
     @DeleteMapping("/employees/{userId}")
     @Secured({"ROLE_MANAGER", "ROLE_MERCHANT"})
     public ResponseEntity<ApiResponse> fireEmployee(@CurrentUser UserPrincipal userPrincipal, @PathVariable Long userId) {
@@ -360,7 +359,6 @@ public class UserController {
         employmentHistoryRepository.save(employmentHistory);
     }
 
-    //NADAM SE OK
     @PutMapping("/users/roles/{userId}")
     @Secured({"ROLE_ADMIN", "ROLE_MANAGER"})
     public ResponseEntity<EmployeeProfileResponse> updateUserRoles(@RequestBody RoleChangeRequest roleChangeRequest,

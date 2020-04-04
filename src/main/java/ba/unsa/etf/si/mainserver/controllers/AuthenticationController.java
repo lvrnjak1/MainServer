@@ -3,6 +3,8 @@ package ba.unsa.etf.si.mainserver.controllers;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
+import ba.unsa.etf.si.mainserver.models.employees.EmploymentHistory;
+import ba.unsa.etf.si.mainserver.repositories.business.EmploymentHistoryRepository;
 import ba.unsa.etf.si.mainserver.requests.auth.ChangePasswordRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.LoginRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.RegistrationRequest;
@@ -24,6 +26,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.validation.Valid;
 import java.net.URI;
 import java.text.ParseException;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -34,11 +38,13 @@ public class AuthenticationController {
     private final UserService userService;
     private final EmployeeProfileService employeeProfileService;
     private final BusinessService businessService;
+    private final EmploymentHistoryRepository employmentHistoryRepository;
 
-    public AuthenticationController(UserService userService, EmployeeProfileService employeeProfileService, BusinessService businessService) {
+    public AuthenticationController(UserService userService, EmployeeProfileService employeeProfileService, BusinessService businessService, EmploymentHistoryRepository employmentHistoryRepository) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.businessService = businessService;
+        this.employmentHistoryRepository = employmentHistoryRepository;
     }
 
     @PostMapping("/_register")
@@ -68,6 +74,13 @@ public class AuthenticationController {
             @RequestBody @Valid RegistrationRequest registrationRequest) throws ParseException {
         User result = userService.createUserAccount(registrationRequest);
         EmployeeProfile employeeProfile = employeeProfileService.createEmployeeProfile(registrationRequest, result);
+        List<String> roles = registrationRequest.getRoles().stream()
+                .map(roleResponse -> roleResponse.getRolename()).collect(Collectors.toList());
+        for(String role : roles){
+            if(role.equals("ROLE_PRW") || role.equals("ROLE_MANAGER") || role.equals("ROLE_WAREMAN") || role.equals("ROLE_PRP")){
+                employmentHistoryRepository.save(new EmploymentHistory(employeeProfile.getId(),null,new Date(),null,role));
+            }
+        }
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath().path("/api/users/{username}")

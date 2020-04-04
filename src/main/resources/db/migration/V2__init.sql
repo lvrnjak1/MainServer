@@ -312,18 +312,12 @@ INSERT INTO public.user_roles (user_id, role_id) VALUES (3, 8) ON CONFLICT ON CO
 INSERT INTO public.contact_information (id, address, city, country, email, phone_number)
 VALUES (3, 'some office address', 'Sarajevo', 'Bosnia', 'office1@gmail.com', '+38733222112');
 
-INSERT INTO public.contact_information (id, address, city, country, email, phone_number)
-VALUES (19, 'some office address', 'Sarajevo', 'Bosnia', 'office2@gmail.com', '+38733222112');
-
 INSERT INTO public.employee_profiles (id, created_at, updated_at, name, surname, date_of_birth, jmbg, account_id, business_id,
                                       contact_info_id)
 VALUES (3, '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000', 'OFFMan', 'SOFFMan', '2008-11-11','1235467891234',3, 1, 3);
 
 INSERT INTO public.offices (id, created_at, updated_at, business_id, contact_info_id, work_day_start,work_day_end, manager_id)
 VALUES (1,'2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000',1,3,'07:00:00','16:00:00',3);
-
-INSERT INTO public.offices (id, created_at, updated_at, business_id, contact_info_id, work_day_start,work_day_end, manager_id)
-VALUES (2,'2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000',1,19,'10:00:00','20:00:00',null);
 
 INSERT INTO public.office_profiles (id, created_at, updated_at, employee_id, office_id)
 VALUES (1, '2020-03-25 14:45:36.674000', '2020-03-25 14:45:36.674000', 3, 1);

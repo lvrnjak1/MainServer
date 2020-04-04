@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -90,5 +91,17 @@ public class ReceiptService {
                 .stream()
                 .map(Receipt::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public List<Receipt> findAllByUsername(String username) {
+        Optional<ReceiptStatus> receiptStatus = receiptStatusRepository.findByStatusName(
+                Enum.valueOf(ReceiptStatusName.class, "PAID")
+        );
+
+        if(!receiptStatus.isPresent()){
+            throw new AppException("Invalid status");
+        }
+
+        return receiptRepository.findAllByUsernameAndStatus_StatusName(username, receiptStatus.get().getStatusName());
     }
 }

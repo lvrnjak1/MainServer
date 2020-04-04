@@ -4,6 +4,7 @@ import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
+import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.*;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeActivity;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
@@ -375,9 +376,13 @@ public class BusinessController {
     public EmploymentHistoryResponse getEmployeeHistory(@PathVariable Long userId,
                                                               @CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        Optional<EmployeeProfile> employeeProfileOptional = employeeProfileRepository.findByAccount_Id(userId);
-        if(!employeeProfileOptional.isPresent()){
-            throw new BadParameterValueException("Employee with this id doesn't exist");
+        Optional<User> optionalUser = userService.findUserById(userId);
+        if (!optionalUser.isPresent()) {
+            throw new ResourceNotFoundException("User with id " + userId + " does not exist");
+        }
+        Optional<EmployeeProfile> employeeProfileOptional = employeeProfileService.findByAccount(optionalUser.get());
+        if (!employeeProfileOptional.isPresent()) {
+            throw new ResourceNotFoundException("User is not an employee");
         }
 
         Long employeeId = employeeProfileOptional.get().getId();

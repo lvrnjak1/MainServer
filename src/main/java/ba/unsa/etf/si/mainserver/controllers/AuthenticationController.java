@@ -1,17 +1,18 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
-<<<<<<<<< Temporary merge branch 1
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
+import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
 import ba.unsa.etf.si.mainserver.models.auth.OneTimePassword;
-=========
->>>>>>>>> Temporary merge branch 2
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
+import ba.unsa.etf.si.mainserver.models.employees.EmploymentHistory;
+import ba.unsa.etf.si.mainserver.repositories.business.EmploymentHistoryRepository;
 import ba.unsa.etf.si.mainserver.requests.auth.ChangePasswordRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.LoginRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.RegistrationRequest;
+import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.UserResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.LoginResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.RegistrationResponse;
@@ -25,13 +26,17 @@ import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
 import java.net.URI;
 import java.text.ParseException;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @RestController
@@ -47,8 +52,7 @@ public class AuthenticationController {
 
     public AuthenticationController(UserService userService, EmployeeProfileService employeeProfileService,
                                     BusinessService businessService, OneTimePasswordService oneTimePasswordService,
-                                    PasswordEncoder passwordEncoder) {
-    public AuthenticationController(UserService userService, EmployeeProfileService employeeProfileService, BusinessService businessService, EmploymentHistoryRepository employmentHistoryRepository) {
+                                    PasswordEncoder passwordEncoder,EmploymentHistoryRepository employmentHistoryRepository) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.businessService = businessService;

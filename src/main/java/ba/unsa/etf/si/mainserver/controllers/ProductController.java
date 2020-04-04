@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -257,6 +256,15 @@ public class ProductController {
     public List<CommentResponse> getCommentsForProduct(@PathVariable("productId") Long productId) {
 
         return commentService.findByProductId(productId)
+                .stream()
+                .map(CommentResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/products/comments")
+    public List<CommentResponse> getAllComments() {
+
+        return commentService.findAll()
                 .stream()
                 .map(CommentResponse::new)
                 .collect(Collectors.toList());

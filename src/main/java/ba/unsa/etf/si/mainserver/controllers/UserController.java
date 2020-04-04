@@ -396,7 +396,7 @@ public class UserController {
                         role -> role.getRolename()
                 )
                 .collect(Collectors.toList());
-        if(listOfNames.contains("ROLE_ADMIN")){
+        if(listOfNames.contains("ROLE_ADMIN") || listOfNames.contains("ROLE_MERCHANT")){
             throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
         }
         List<String> oldRoles = employeeProfile.getAccount().getRoles().stream()
@@ -404,7 +404,9 @@ public class UserController {
                         role -> role.getName().toString()
                 )
                 .collect(Collectors.toList());
-
+        if(oldRoles.contains("ROLE_ADMIN") || oldRoles.contains("ROLE_MERCHANT")){
+            throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
+        }
         for (String role : oldRoles) {
             if (listOfNames.contains(role)) {
                 //sve ok :D ne diraj

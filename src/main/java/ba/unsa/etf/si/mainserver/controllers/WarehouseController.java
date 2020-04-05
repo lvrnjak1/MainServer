@@ -7,6 +7,7 @@ import ba.unsa.etf.si.mainserver.models.products.Product;
 import ba.unsa.etf.si.mainserver.models.products.Warehouse;
 import ba.unsa.etf.si.mainserver.repositories.products.WarehouseRepository;
 import ba.unsa.etf.si.mainserver.requests.products.WarehouseRequest;
+import ba.unsa.etf.si.mainserver.responses.products.QuantityResponse;
 import ba.unsa.etf.si.mainserver.responses.products.WarehouseLogResponse;
 import ba.unsa.etf.si.mainserver.responses.products.WarehouseResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
@@ -87,5 +88,27 @@ public class WarehouseController {
                 .stream()
                 .map(WarehouseLogResponse::new)
                 .collect(Collectors.toList());
+    }
+
+    @GetMapping("/products/{productId}")
+    @Secured("ROLE_WAREMAN")
+    public QuantityResponse getQuantityByProductId(@PathVariable Long productId,
+                                                   @CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Optional<Product> productOptional = productService.findById(productId);
+        if(!productOptional.isPresent()){
+            throw new ResourceNotFoundException("Products doesn't exist");
+        }
+
+        if(!productOptional.get().getBusiness().getId().equals(business.getId())){
+            throw new UnauthorizedException("Not your product");
+        }
+
+        Optional<Warehouse> warehouseOptional = warehouseRepository.findByProduct(productOptional.get());
+        if(!warehouseOptional.isPresent()){
+            throw new ResourceNotFoundException("Your warehouse doesn't have this product");
+        }
+
+        return new QuantityResponse(productId, warehouseOptional.get().getQuantity());
     }
 }

@@ -152,7 +152,7 @@ public class ProductController {
         }
 
         product.setName(productRequest.getName());
-        product.setPrice(product.getPrice());
+        product.setPrice(productRequest.getPrice());
         product.setUnit(productRequest.getUnit());
         product.setBarcode(productRequest.getBarcode());
         return new ProductResponse(productService.save(product));

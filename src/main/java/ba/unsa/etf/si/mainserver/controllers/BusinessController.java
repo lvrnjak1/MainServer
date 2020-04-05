@@ -537,8 +537,24 @@ public class BusinessController {
             throw new UnauthorizedException("Not your office");
         }
 
+        return getCashRegisterProfitResponses(officeOptional.get());
+    }
+
+    @GetMapping("/offices/{officeId}/cashRegisters/profit")
+    @Secured("ROLE_ADMIN")
+    public List<CashRegisterProfitResponse> getProfitForAllCashRegisters(@PathVariable Long officeId){
+
+        Optional<Office> officeOptional = officeService.findById(officeId);
+        if(!officeOptional.isPresent()){
+            throw new ResourceNotFoundException("Office doesn't exist");
+        }
+
+        return getCashRegisterProfitResponses(officeOptional.get());
+    }
+
+    private List<CashRegisterProfitResponse> getCashRegisterProfitResponses(Office office) {
         return cashRegisterRepository
-                .findAllByOfficeId(officeOptional.get().getId())
+                .findAllByOfficeId(office.getId())
                 .stream()
                 .map(cashRegister -> {
                     BigDecimal dailyProfit = receiptService.findDailyProfitForCashRegister(cashRegister,

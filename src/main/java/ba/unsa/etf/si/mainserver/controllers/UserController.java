@@ -19,6 +19,7 @@ import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.UserResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.RegistrationResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.RoleResponse;
+import ba.unsa.etf.si.mainserver.responses.auth.UserNameResponse;
 import ba.unsa.etf.si.mainserver.responses.business.EmployeeProfileResponse;
 import ba.unsa.etf.si.mainserver.responses.transactions.ReceiptResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
@@ -466,8 +467,8 @@ public class UserController {
 
     @GetMapping("/users/{userId}/username")
     @Secured({"ROLE_MANAGER"})
-    public ApiResponse getUsernameForId(@PathVariable Long userId,
-                                                                  @CurrentUser UserPrincipal userPrincipal) {
+    public UserNameResponse getUsernameForId(@PathVariable Long userId,
+                                             @CurrentUser UserPrincipal userPrincipal) {
         Optional<User> optionalUser = userService.findUserById(userId);
         if (!optionalUser.isPresent()) {
             throw new ResourceNotFoundException("User with id " + userId + " does not exist");
@@ -476,7 +477,8 @@ public class UserController {
         if (!optionalEmployeeProfile.isPresent()) {
             throw new ResourceNotFoundException("User is not an employee");
         }
-        return new ApiResponse(optionalUser.get().getUsername(), 200);
+        return new UserNameResponse(optionalUser.get().getUsername(),
+                optionalEmployeeProfile.get().getName(), optionalEmployeeProfile.get().getSurname());
     }
 
     @GetMapping("/users/{username}/receipts")

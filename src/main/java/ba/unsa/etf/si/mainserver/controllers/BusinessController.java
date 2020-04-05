@@ -184,6 +184,25 @@ public class BusinessController {
     @Secured("ROLE_ADMIN")
     public ResponseEntity<ApiResponse> deleteOffice(@PathVariable("businessId") Long businessId,
                                                     @PathVariable("officeId") Long officeId){
+        Optional<Business> optionalBusiness = businessService.findById(businessId);
+        if (!optionalBusiness.isPresent()) {
+            throw new ResourceNotFoundException("Business with id " + businessId + " not found!");
+        }
+        Optional<Office> optionalOffice = officeService.findById(officeId);
+        if (!optionalOffice.isPresent()) {
+            throw new ResourceNotFoundException("Office with id " + officeId + " not found!");
+        }
+        if (!optionalOffice.get().getBusiness().getId().equals(optionalBusiness.get().getId())) {
+            throw new BadParameterValueException("Office with id " + officeId
+                    + " does not belong to business with id " + businessId);
+        }
+
+        optionalOffice.get().setManager(null);
+        //obrisi sve kase
+        List<CashRegister> cashRegisters = cashRegisterRepository.findAllByOfficeId(officeId);
+        for (CashRegister cashRegister : cashRegisters){
+            cashRegisterService.delete(cashRegister);
+        }
         List<OfficeProfile> officeProfiles = officeProfileRepository.findAllByOfficeIdAndOffice_BusinessId(officeId,businessId);
         if(!officeProfiles.isEmpty()){
             //daj svima otkaz

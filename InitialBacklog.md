@@ -86,11 +86,12 @@ Provide mechanism for successful warehouse item handling
 ## Feature 
 Password Change 
 ### Item
-Allowing admin to change merchant password
+Allowing admin to change user password and set new one time password, which needs to be changed on first login
 #### Task
 - Create a new branch and switch to it
-- Create routes for password change
+- Create routes for creating one time password
 - Specify only admin access to them
+- Create routes for creating new password 
 - Create a contoller class, response class and request class if needed
 - Commit and push on your branch
 - Create a pull request
@@ -152,6 +153,74 @@ If the password is forgotten, merchant can enter new password with given token a
 - Validate token which user entered
 - Use existing methods for encripting new password 
 - Link new password to user
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature 
+Privilege changes
+### Item
+Admin and user manager can change employees's privideges, and with that, change their roles and assignments in business
+#### Task
+- Create a new branch and switch to it
+- Create routes for allowing role changes
+- Check user's current assignments and make adjustments to enable new ones 
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature 
+Employment logs
+### Item
+User manager has insight into employment history for certain employee within business
+#### Task
+- Create a new branch and switch to it
+- Create routes for providing employment logs
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature 
+Warehouse logs
+### Item
+Warehouse web app has insight into history of warehouse supplies of products 
+#### Task
+- Create a new branch and switch to it
+- Create routes for providing warehouse logs
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature 
+Inventory logs
+### Item
+Providing inventory logs
+#### Task
+- Create a new branch and switch to it
+- Create routes for providing inventory logs
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature 
+PR reviews
+### Item
+Site visitors can leave comments and rate displayed products
+#### Task
+- Create a new branch and switch to it
+- Create routes for saving reviews
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature 
+Transactions
+### Item
+Main server must realize communication with cash register server and support whole payment process
+#### Task
+- Create a new branch and switch to it
+- Create routes for communicating with server
+- Create routes for transaction processing
 - Create a contoller class, response class and request class if needed
 - Commit and push on your branch
 - Create a pull request

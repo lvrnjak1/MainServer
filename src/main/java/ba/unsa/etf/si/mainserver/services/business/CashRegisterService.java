@@ -8,6 +8,7 @@ import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.repositories.business.BusinessRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeRepository;
+import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.business.CashRegisterResponse;
 import org.springframework.stereotype.Service;
 
@@ -18,13 +19,13 @@ import java.util.stream.Collectors;
 @Service
 public class CashRegisterService {
     private final CashRegisterRepository cashRegisterRepository;
-    private final BusinessRepository businessRepository;
     private final OfficeRepository officeRepository;
+    private final BusinessRepository businessRepository;
 
-    public CashRegisterService(CashRegisterRepository cashRegisterRepository, BusinessRepository businessRepository, OfficeRepository officeRepository) {
+    public CashRegisterService(CashRegisterRepository cashRegisterRepository, OfficeRepository officeRepository, BusinessRepository businessRepository) {
         this.cashRegisterRepository = cashRegisterRepository;
-        this.businessRepository = businessRepository;
         this.officeRepository = officeRepository;
+        this.businessRepository = businessRepository;
     }
 
     public CashRegister save(CashRegister cashRegister) {
@@ -35,27 +36,52 @@ public class CashRegisterService {
         cashRegisterRepository.delete(cashRegister);
     }
 
+    public CashRegister findCashRegisterById(Long cashRegisterId, Long officeId, Long businessId){
+        Office office = findOffice(officeId, businessId);
+        Optional<CashRegister> optionalCashRegister = cashRegisterRepository.findById(cashRegisterId);
+        if (!optionalCashRegister.isPresent()) {
+            throw new ResourceNotFoundException("No such cash register with id " + cashRegisterId);
+        }
+        if (!optionalCashRegister.get().getOffice().getId().equals(office.getId())) {
+            throw new BadParameterValueException("Cash register with id of " + cashRegisterId
+                    + " does not belong to office with id " + officeId);
+        }
+        return  optionalCashRegister.get();
+    }
+
+    public ApiResponse deleteCashRegisterByIdFromOfficeOfBusiness(Long cashRegisterId, Long officeId, Long businessId) {
+        CashRegister cashRegister = findCashRegisterById(cashRegisterId, officeId, businessId);
+        cashRegisterRepository.delete(cashRegister);
+        return new ApiResponse("Cash Register successfully deleted", 200);
+    }
+
     public CashRegister createCashRegisterInOfficeOfBusiness(Long officeId, Long businessId, String name) {
-        Optional<Business> optionalBusiness = businessRepository.findById(businessId);
-        if (!optionalBusiness.isPresent()) {
-            throw new ResourceNotFoundException("Business with id " + businessId + " not found!");
-        }
-        Optional<Office> optionalOffice = officeRepository.findById(officeId);
-        if (!optionalOffice.isPresent()) {
-            throw new ResourceNotFoundException("Office with id " + officeId + " not found!");
-        }
-        if (!optionalOffice.get().getBusiness().getId().equals(optionalBusiness.get().getId())) {
-            throw new BadParameterValueException("Office with id " + officeId
-                    + " does not belong to business with id " + businessId);
-        }
-        CashRegister cashRegister = new CashRegister();
-        cashRegister.setOffice(optionalOffice.get());
-        cashRegister.setName(name);
-        System.out.println(cashRegister.getName());
+        Office office = findOffice(officeId, businessId);
+        CashRegister cashRegister = new CashRegister(office, name);
         return cashRegisterRepository.save(cashRegister);
+    }
+
+    public List<CashRegister> getAllCashRegistersByOfficeId(Long officeId) {
+        return cashRegisterRepository.findAllByOfficeId(officeId);
     }
 
     public List<CashRegisterResponse> getAllCashRegisterResponsesByOfficeId(Long officeId) {
         return cashRegisterRepository.findAllByOfficeId(officeId).stream().map(CashRegisterResponse::new).collect(Collectors.toList());
+    }
+
+    public Office findOffice(Long officeId, Long businessId) {
+        Optional<Business> optionalBusiness = businessRepository.findById(businessId);
+        if (!optionalBusiness.isPresent()) {
+            throw new ResourceNotFoundException("No such business with id " + businessId);
+        }
+        Optional<Office> optionalOffice = officeRepository.findById(officeId);
+        if (!optionalOffice.isPresent()) {
+            throw new ResourceNotFoundException("No such office with id " + officeId);
+        }
+        if (!optionalOffice.get().getBusiness().getId().equals(optionalBusiness.get().getId())) {
+            throw new BadParameterValueException("Office with id of " + officeId
+                    + " does not belong to business with id " + businessId);
+        }
+        return optionalOffice.get();
     }
 }

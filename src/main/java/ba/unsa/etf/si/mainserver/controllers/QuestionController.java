@@ -91,12 +91,9 @@ public class QuestionController {
                                                  @PathVariable("questionId") Long questionId,
                                                  @CurrentUser UserPrincipal userPrincipal){
         return questionService.findQuestionById(questionId).map(question -> {
-            Optional<User> userOptional = userService.findByUsername(userPrincipal.getUsername());
-            if(userOptional.isPresent()){
-                Answer answer = new Answer(answerRequest.getText(), userOptional.get());
-                return new QuestionResponse(questionService.saveAnswer(questionId, answer));
-            }
-            throw new AppException("Contact the administrator");
+            User user = userService.findUserByUsername(userPrincipal.getUsername());
+            Answer answer = new Answer(answerRequest.getText(), user);
+            return new QuestionResponse(questionService.saveAnswer(questionId, answer));
         }).orElseThrow(() -> new AppException("Question with id " + questionId + " doesn't exist"));
     }
 

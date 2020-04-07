@@ -44,15 +44,8 @@ public class WarehouseController {
     @Secured("ROLE_WAREMAN")
     public WarehouseResponse registerIncomingProducts(@CurrentUser UserPrincipal userPrincipal,
                                                    @RequestBody WarehouseRequest warehouseRequest){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        Optional<Product> optionalProduct = productService.findById(warehouseRequest.getProductId());
-        if (!optionalProduct.isPresent()) {
-            throw new ResourceNotFoundException("Product does not exist");
-        }
-        Product product = optionalProduct.get();
-        if (!product.getBusiness().getId().equals(business.getId())) {
-            throw new UnauthorizedException("Not your product");
-        }
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        Product product = productService.findProductById(warehouseRequest.getProductId(), business.getId());
 
         Optional<Warehouse> optionalWarehouse = warehouseRepository.findByProduct(product);
         Warehouse warehouse;
@@ -72,7 +65,7 @@ public class WarehouseController {
     @GetMapping
     @Secured("ROLE_WAREMAN")
     public List<WarehouseResponse> getEverythingInAWarehouse(@CurrentUser UserPrincipal userPrincipal){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         return warehouseRepository.findAllByBusiness(business)
                 .stream()
                 .map(WarehouseResponse::new)
@@ -83,7 +76,7 @@ public class WarehouseController {
     @GetMapping("/log")
     @Secured("ROLE_WAREMAN")
     public List<WarehouseLogResponse> getWarehouseLogs(@CurrentUser UserPrincipal userPrincipal){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         return  warehouseLogService.findAllByBusiness(business)
                 .stream()
                 .map(WarehouseLogResponse::new)
@@ -94,7 +87,7 @@ public class WarehouseController {
     @Secured("ROLE_WAREMAN")
     public QuantityResponse getQuantityByProductId(@PathVariable Long productId,
                                                    @CurrentUser UserPrincipal userPrincipal){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         Optional<Product> productOptional = productService.findById(productId);
         if(!productOptional.isPresent()){
             throw new ResourceNotFoundException("Products doesn't exist");

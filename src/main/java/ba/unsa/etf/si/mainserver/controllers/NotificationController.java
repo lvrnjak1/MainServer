@@ -3,6 +3,7 @@ package ba.unsa.etf.si.mainserver.controllers;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
+import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.*;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.repositories.products.AdminMerchantNotificationRepository;
@@ -16,6 +17,7 @@ import ba.unsa.etf.si.mainserver.responses.business.NotificationResponse;
 import ba.unsa.etf.si.mainserver.responses.business.OpenOfficeResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
+import ba.unsa.etf.si.mainserver.services.UserService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
 import ba.unsa.etf.si.mainserver.services.business.NotificationService;
@@ -38,41 +40,40 @@ public class NotificationController {
     private final EmployeeProfileService employeeProfileService;
     private final AdminMerchantNotificationRepository adminMerchantNotificationRepository;
     private final OfficeService officeService;
+    private final UserService userService;
 
     public NotificationController(NotificationService notificationService, BusinessService businessService,
-                                  EmployeeProfileService employeeProfileService, AdminMerchantNotificationRepository adminMerchantNotificationRepository, OfficeService officeService) {
+                                  EmployeeProfileService employeeProfileService, AdminMerchantNotificationRepository adminMerchantNotificationRepository, OfficeService officeService, UserService userService) {
         this.notificationService = notificationService;
         this.businessService = businessService;
         this.employeeProfileService = employeeProfileService;
         this.adminMerchantNotificationRepository = adminMerchantNotificationRepository;
         this.officeService = officeService;
+        this.userService = userService;
     }
 
     @PostMapping("/send")
     @Secured({"ROLE_MANAGER"})
     public NotificationResponse addNewNotification(@CurrentUser UserPrincipal userPrincipal,
                                                    @RequestBody NotificationRequest notificationRequest){
-        Optional<EmployeeProfile> employeeProfileOptional = employeeProfileService.findById(notificationRequest.getEmployeeId());
-        if(employeeProfileOptional.isPresent()) {
-            Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-            Notification notification = null;
-            try {
-                notification = new Notification(business, employeeProfileOptional.get(),
-                        notificationRequest.isHired(), notificationRequest.getDateFromString(),
-                        notificationRequest.getTimeFromString());
-            } catch (ParseException e) {
-            }
-            return new NotificationResponse(notificationService.save(notification));
-
+        User user = userService.findUserById(notificationRequest.getEmployeeId());
+        EmployeeProfile employeeProfile = employeeProfileService.findEmployeeByAccount(user);
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        Notification notification = null;
+        try {
+            notification = new Notification(business, employeeProfile,
+                    notificationRequest.isHired(), notificationRequest.getDateFromString(),
+                    notificationRequest.getTimeFromString());
+        } catch (ParseException e) {
         }
-        throw new AppException("Employee with id " + notificationRequest.getEmployeeId() + " doesn't exist");
+        return new NotificationResponse(notificationService.save(notification));
+
     }
 
     @GetMapping("/read")
     @Secured({"ROLE_MERCHANT","ROLE_MANAGER"})
     public List<NotificationResponse> getAllReadNotifications(@CurrentUser UserPrincipal userPrincipal){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        System.out.println(notificationService.findAllByBusinessId(business.getId()));
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         return notificationService.findAllByBusinessId(business.getId())
                 .stream()
                 .filter(notification -> notification.isRead())
@@ -83,7 +84,7 @@ public class NotificationController {
     @GetMapping("/unread")
     @Secured({"ROLE_MERCHANT","ROLE_MANAGER"})
     public List<NotificationResponse> getAllUnreadNotifications(@CurrentUser UserPrincipal userPrincipal){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         return notificationService.findAllByBusinessId(business.getId())
                 .stream()
                 .filter(notification -> !notification.isRead())
@@ -95,7 +96,7 @@ public class NotificationController {
     @Secured({"ROLE_MERCHANT"})
     public NotificationResponse markNotification(@CurrentUser UserPrincipal userPrincipal,
                                                  @PathVariable Long notificationId){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         Notification notification = notificationService.findByIdInBusiness(notificationId, business);
         boolean read = notification.isRead();
         notification.setRead(!read);
@@ -106,7 +107,7 @@ public class NotificationController {
     @Secured("ROLE_MERCHANT")
     public ResponseEntity<ApiResponse> notifyAdminToOpen(@CurrentUser UserPrincipal userPrincipal,
                                                          @RequestBody OpenOfficeRequest notificationRequest) throws ParseException {
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
 
         AdminMerchantNotification adminMerchantNotification = new AdminMerchantNotification(
                 business,
@@ -127,24 +128,21 @@ public class NotificationController {
     @Secured("ROLE_MERCHANT")
     public ResponseEntity<ApiResponse> notifyAdminToClose(@CurrentUser UserPrincipal userPrincipal,
                                                           @RequestBody CloseOfficeRequest notificationRequest){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        Optional<Office> officeOptional = officeService.findById(notificationRequest.getOfficeId());
-        if(!officeOptional.isPresent()){
-            throw new ResourceNotFoundException("Office with this id doesn't exist");
-        }
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        Office office = officeService.findOfficeById(notificationRequest.getOfficeId(), business.getId());
 
         AdminMerchantNotification adminMerchantNotification = new AdminMerchantNotification(
                 business,
-                officeOptional.get().getContactInformation().getAddress(),
-                officeOptional.get().getContactInformation().getCity(),
-                officeOptional.get().getContactInformation().getCountry(),
-                officeOptional.get().getContactInformation().getEmail(),
-                officeOptional.get().getContactInformation().getPhoneNumber(),
-                officeOptional.get().getWorkDayStart(),
-                officeOptional.get().getWorkDayEnd(),
+                office.getContactInformation().getAddress(),
+                office.getContactInformation().getCity(),
+                office.getContactInformation().getCountry(),
+                office.getContactInformation().getEmail(),
+                office.getContactInformation().getPhoneNumber(),
+                office.getWorkDayStart(),
+                office.getWorkDayEnd(),
                 false
         );
-        adminMerchantNotification.setOfficeId(officeOptional.get().getId());
+        adminMerchantNotification.setOfficeId(office.getId());
         adminMerchantNotificationRepository.save(adminMerchantNotification);
         return ResponseEntity.ok(new ApiResponse("Notification successfully sent", 200));
     }

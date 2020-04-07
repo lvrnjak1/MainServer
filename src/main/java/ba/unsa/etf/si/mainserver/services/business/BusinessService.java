@@ -1,18 +1,16 @@
 package ba.unsa.etf.si.mainserver.services.business;
 
-import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
-import ba.unsa.etf.si.mainserver.models.business.CashRegister;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeActivity;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
-import ba.unsa.etf.si.mainserver.models.business.Office;
+import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.BusinessRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.EmployeeProfileRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeRepository;
-import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.business.BusinessResponse;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
@@ -30,14 +28,16 @@ public class BusinessService {
     private final OfficeService officeService;
     private final UserService userService;
     private final EmployeeProfileRepository employeeProfileRepository;
+    private final EmployeeActivityRepository employeeActivityRepository;
 
-    public BusinessService(BusinessRepository businessRepository, OfficeRepository officeRepository, CashRegisterRepository cashRegisterRepository, OfficeService officeService, UserService userService, EmployeeProfileRepository employeeProfileRepository) {
+    public BusinessService(BusinessRepository businessRepository, OfficeRepository officeRepository, CashRegisterRepository cashRegisterRepository, OfficeService officeService, UserService userService, EmployeeProfileRepository employeeProfileRepository, EmployeeActivityRepository employeeActivityRepository) {
         this.businessRepository = businessRepository;
         this.officeRepository = officeRepository;
         this.cashRegisterRepository = cashRegisterRepository;
         this.officeService = officeService;
         this.userService = userService;
         this.employeeProfileRepository = employeeProfileRepository;
+        this.employeeActivityRepository = employeeActivityRepository;
     }
 
     public Business save(Business business) {
@@ -48,33 +48,34 @@ public class BusinessService {
         return businessRepository.findAll();
     }
 
-    public Optional<Business> findById(Long businessId){
-        return businessRepository.findById(businessId);
-    }
-
-    public ApiResponse deleteCashRegisterFromOfficeOfBusiness(Long cashRegisterId, Long officeId, Long businessId) {
+    public Business findBusinessById(Long businessId){
         Optional<Business> optionalBusiness = businessRepository.findById(businessId);
         if (!optionalBusiness.isPresent()) {
             throw new ResourceNotFoundException("No such business with id " + businessId);
         }
-        Optional<Office> optionalOffice = officeRepository.findById(officeId);
-        if (!optionalOffice.isPresent()) {
-            throw new ResourceNotFoundException("No such office with id " + officeId);
+        return optionalBusiness.get();
+    }
+
+    public Business findByName(String businessName) {
+        Optional<Business> optionalBusiness = businessRepository.findByName(businessName);
+        if (!optionalBusiness.isPresent()) {
+            throw new ResourceNotFoundException("No such business with name " + businessName);
         }
-        if (!optionalOffice.get().getBusiness().getId().equals(optionalBusiness.get().getId())) {
-            throw new BadParameterValueException("Office with id of " + officeId
-                    + " does not belong to business with id " + businessId);
+        return optionalBusiness.get();
+    }
+
+    public Business findBusinessOfCurrentUser(UserPrincipal userPrincipal) {
+        User user = userService.findUserByUsername(userPrincipal.getUsername());
+        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileRepository.findByAccountId(user.getId());
+        if (!optionalEmployeeProfile.isPresent()) {
+            throw new BadParameterValueException("User is not an employee");
         }
-        Optional<CashRegister> optionalCashRegister = cashRegisterRepository.findById(cashRegisterId);
-        if (!optionalCashRegister.isPresent()) {
-            throw new ResourceNotFoundException("No such cash register with id " + cashRegisterId);
+        Optional<EmployeeActivity> employeeActivity = employeeActivityRepository.findByEmployeeProfile(optionalEmployeeProfile.get());
+        if(employeeActivity.isPresent()){
+            //ova osoba je inactive employee
+            throw new ResourceNotFoundException("This employee doesn't exist");
         }
-        if (!optionalCashRegister.get().getOffice().getId().equals(optionalOffice.get().getId())) {
-            throw new BadParameterValueException("Cash register with id of " + cashRegisterId
-                    + " does not belong to office with id " + officeId);
-        }
-        cashRegisterRepository.deleteById(cashRegisterId);
-        return new ApiResponse("Cash Register successfully deleted", 200);
+        return findBusinessById(optionalEmployeeProfile.get().getBusiness().getId());
     }
 
     public List<BusinessResponse> getAllBusinessResponses() {
@@ -92,21 +93,7 @@ public class BusinessService {
                 ).collect(Collectors.toList());
     }
 
-    public Business getBusinessOfCurrentUser(UserPrincipal userPrincipal) {
-        Optional<User> optionalUser = userService.findByUsername(userPrincipal.getUsername());
-        if (!optionalUser.isPresent()) {
-            throw new AppException("You did some nasty things!");
-        }
-        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileRepository.findByAccountId(optionalUser.get().getId());
-        if (!optionalEmployeeProfile.isPresent()) {
-            throw new AppException("Well congrats, you killed the server");
-        }
-        return optionalEmployeeProfile.get().getBusiness();
-    }
 
-    public Optional<Business> findByName(String businessName) {
-        return businessRepository.findByName(businessName);
-    }
 
 //    public Optional<Business> getBusinessByProductId(Product product){
 //        Optional<Office> officeOptional = officeRepository.findById(product.getId());

@@ -34,11 +34,8 @@ public class PasswordResetController {
 
     @PostMapping("/user/resetPassword")
     public ApiResponse resetPassword(@RequestBody PasswordResetRequest passwordResetRequest) {
-        Optional<User> userOptional = userService.findByEmail(passwordResetRequest.getEmail());
-        if (!userOptional.isPresent()) {
-            throw new AppException("User with email " + passwordResetRequest.getEmail() + " doesn't exist");
-        }
-        User user = userOptional.get();
+        User user = userService.findUserByEmail(passwordResetRequest.getEmail());
+
         String token = UUID.randomUUID().toString();
         userService.createPasswordResetTokenForUser(user, token);
 

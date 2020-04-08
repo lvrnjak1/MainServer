@@ -76,7 +76,7 @@ public class AuthenticationController {
     public ResponseEntity<RegistrationResponse> registerEmployee(
             @Valid @RequestBody RegistrationRequest registrationRequest,
             @CurrentUser UserPrincipal userPrincipal) throws ParseException {
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         registrationRequest.setBusinessId(business.getId());
         userService.checkPermissions(registrationRequest, userPrincipal);
         userService.checkAvailability(registrationRequest);
@@ -127,7 +127,6 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-        System.out.println(loginRequest);
         String jwt = userService.authenticateUser(loginRequest);
         UserResponse userResponse = userService.getUserResponseByUsername(loginRequest.getUsername());
         return ResponseEntity.ok(new LoginResponse(jwt, "Bearer", userResponse));
@@ -136,11 +135,7 @@ public class AuthenticationController {
     @GetMapping("/v2/login")
     @Secured({"ROLE_MERCHANT", "ROLE_MANAGER","ROLE_PRW","ROLE_PRP","ROLE_WAREMAN","ROLE_CASHIER","ROLE_BARTENDER","ROLE_OFFICEMAN"})
     public ApiResponse checkOTP(@CurrentUser UserPrincipal userPrincipal) {
-        Optional<User> userOptional = userService.findByUsername(userPrincipal.getUsername());
-        if (!userOptional.isPresent()) {
-            throw new ResourceNotFoundException("There is no user");
-        }
-        User user = userOptional.get();
+        User user = userService.findUserByUsername(userPrincipal.getUsername());
         Optional<OneTimePassword> otpOptional = oneTimePasswordService.findByUser(user);
         if (otpOptional.isPresent()) {
             //mora mijenjati sifru
@@ -153,14 +148,14 @@ public class AuthenticationController {
                     .toString();
             userService.changeUserPassword(user.getId(), generatedString);
             throw new AppException("Password must be changed!");
-
         }
         return new ApiResponse("OK", 200);
     }
 
     @PutMapping("/user/{userId}")
     @Secured("ROLE_ADMIN")
-    public ResponseEntity<RegistrationResponse> changeUserPassword(@PathVariable Long userId, @RequestBody ChangePasswordRequest changePasswordRequest) {
+    public ResponseEntity<RegistrationResponse> changeUserPassword(@PathVariable Long userId,
+                                                                   @RequestBody ChangePasswordRequest changePasswordRequest) {
         User user = userService.changeUserPassword(userId, changePasswordRequest.getPassword());
         Optional<OneTimePassword> otpOptional = oneTimePasswordService.findByUser(user);
         if (otpOptional.isPresent()) {
@@ -169,10 +164,11 @@ public class AuthenticationController {
         } else {
             oneTimePasswordService.createOneTimePassword(user, passwordEncoder.encode(changePasswordRequest.getPassword()));
         }
-
-        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(user);
-        EmployeeProfile employeeProfile = null;
-        employeeProfile = optionalEmployeeProfile.orElseGet(EmployeeProfile::new);
+        EmployeeProfile employeeProfile = new EmployeeProfile();
+        try{
+            employeeProfile = employeeProfileService.findEmployeeByAccount(user);
+        }
+        catch (Exception ignored){}
         return ResponseEntity.ok(new RegistrationResponse(
                 user.getId(),
                 user.getUsername(),
@@ -198,12 +194,9 @@ public class AuthenticationController {
 
     @PutMapping("/changePassword")
     @Secured({"ROLE_ADMIN","ROLE_MERCHANT", "ROLE_MANAGER","ROLE_PRW","ROLE_PRP","ROLE_WAREMAN","ROLE_CASHIER","ROLE_BARTENDER","ROLE_OFFICEMAN"})
-    public ApiResponse changePassword(@CurrentUser UserPrincipal userPrincipal, @RequestBody ChangePasswordRequest changePasswordRequest) {
-        Optional<User> userOptional = userService.findByUsername(userPrincipal.getUsername());
-        if (!userOptional.isPresent()) {
-            throw new ResourceNotFoundException("Error");
-        }
-        User user = userOptional.get();
+    public ApiResponse changePassword(@CurrentUser UserPrincipal userPrincipal,
+                                      @RequestBody ChangePasswordRequest changePasswordRequest) {
+        User user = userService.findUserByUsername(userPrincipal.getUsername());
         if (userPrincipal.getAuthorities().stream().noneMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
         //ako nije admin, onda mora biti upisan u otp tabelu da bi ovo uradio
             Optional<OneTimePassword> otpOptional = oneTimePasswordService.findByUser(user);
@@ -211,7 +204,7 @@ public class AuthenticationController {
                 oneTimePasswordService.delete(otpOptional.get());
             }
             else{
-                throw new UnauthorizedException();
+                throw new UnauthorizedException("You do not have permission to change password");
             }
         }
         userService.changeUserPassword(user.getId(),changePasswordRequest.getPassword());

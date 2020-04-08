@@ -3,7 +3,6 @@ package ba.unsa.etf.si.mainserver.controllers;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
-import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.products.*;
@@ -75,42 +74,28 @@ public class ProductController {
     @Secured({"ROLE_WAREMAN","ROLE_MERCHANT","ROLE_CASHIER","ROLE_OFFICEMAN","ROLE_BARTENDER"})
     public List<ProductInventoryResponse> getAllProductsForOffice(@CurrentUser UserPrincipal userPrincipal,
                                                                   @PathVariable("officeId") Long officeId){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        Optional<Business> businessOptional = businessService.findById(business.getId());
-        if(businessOptional.isPresent()){
-            Optional<Office> officeOptional = officeService.findById(officeId);
-            if(officeOptional.isPresent()){
-                if(officeOptional.get().getBusiness().getId().equals(business.getId())) {
-                    return officeInventoryService.findAllProductsForOffice(officeOptional.get()).stream().
-                            map(officeInventory -> new ProductInventoryResponse(officeInventory.getProduct(),
-                                    officeInventory)).collect(Collectors.toList());
-                }
-                throw new AppException("Office with id " + officeId + " doesn't exist for business with id " + business.getId());
-            }
-            throw new AppException("Office with id " + officeId + " doesn't exist");
-        }
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        Office office = officeService.findOfficeById(officeId, business.getId());
 
-        throw new AppException("Business with id " + business.getId() + " doesn't exist");
+        return officeInventoryService.findAllProductsForOffice(office).stream().
+                map(officeInventory -> new ProductInventoryResponse(officeInventory.getProduct(),
+                        officeInventory)).collect(Collectors.toList());
     }
 
     @PostMapping("/products")
     @Secured({"ROLE_WAREMAN","ROLE_MERCHANT"})
     public ProductResponse addProductFroBusiness(@CurrentUser UserPrincipal userPrincipal,
                                                  @RequestBody ProductRequest productRequest){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        Long businessId = business.getId();
-        Optional<Business> businessOptional = businessService.findById(businessId);
-        if(businessOptional.isPresent()){
-            Product product = new Product(productRequest.getName(),
-                    productRequest.getPrice(),
-                    productRequest.getUnit(),
-                    productRequest.getBarcode());
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        Product product = new Product(productRequest.getName(),
+                productRequest.getPrice(),
+                productRequest.getUnit(),
+                productRequest.getBarcode(),
+                productRequest.getDescription());
 
-            product.setBusiness(businessOptional.get());
-            businessService.save(businessOptional.get());
-            return new ProductResponse(productService.save(product));
-        }
-        throw new AppException("Business with id " + businessId + " doesn't exist");
+        product.setBusiness(business);
+        businessService.save(business);
+        return new ProductResponse(productService.save(product));
     }
 
     @PostMapping("/products/{productId}/image")
@@ -118,16 +103,10 @@ public class ProductController {
     public ResponseEntity<ApiResponse> uploadImage(@PathVariable Long productId,
                                                    @RequestParam("image") MultipartFile multipartFile,
                                                    @CurrentUser UserPrincipal userPrincipal) {
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         try {
             Optional<Product> optionalProduct = productService.findById(productId);
-            if (!optionalProduct.isPresent()) {
-                throw new ResourceNotFoundException("Product does not exist");
-            }
-            Product product = optionalProduct.get();
-            if (!product.getBusiness().getId().equals(business.getId())) {
-                throw new UnauthorizedException("Not your product");
-            }
+            Product product = productService.findProductById(productId, business.getId());
             product.setImage(multipartFile.getBytes());
             productService.save(product);
             return ResponseEntity.ok(new ApiResponse("Image uploaded successfully", 200));
@@ -141,20 +120,14 @@ public class ProductController {
     public ProductResponse updateProductForBusiness(@PathVariable("productId") Long productId,
                                                     @RequestBody ProductRequest productRequest,
                                                     @CurrentUser UserPrincipal userPrincipal){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        Optional<Product> optionalProduct = productService.findById(productId);
-        if (!optionalProduct.isPresent()) {
-            throw new ResourceNotFoundException("Product does not exist");
-        }
-        Product product = optionalProduct.get();
-        if (!product.getBusiness().getId().equals(business.getId())) {
-            throw new UnauthorizedException("Not your product");
-        }
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        Product product = productService.findProductById(productId, business.getId());
 
         product.setName(productRequest.getName());
         product.setPrice(productRequest.getPrice());
         product.setUnit(productRequest.getUnit());
         product.setBarcode(productRequest.getBarcode());
+        product.setDescription(productRequest.getDescription());
         return new ProductResponse(productService.save(product));
     }
 
@@ -162,16 +135,8 @@ public class ProductController {
     @Secured("ROLE_WAREMAN")
     public ResponseEntity<?> deleteProductForBusiness(@PathVariable("productId") Long productId,
                                                       @CurrentUser UserPrincipal userPrincipal){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        Optional<Product> optionalProduct = productService.findById(productId);
-        if (!optionalProduct.isPresent()) {
-            throw new ResourceNotFoundException("Product does not exist");
-        }
-        Product product = optionalProduct.get();
-        if (!product.getBusiness().getId().equals(business.getId())) {
-            throw new UnauthorizedException("Not your product");
-        }
-
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        Product product = productService.findProductById(productId, business.getId());
         productService.delete(product);
         return ResponseEntity.ok(new ApiResponse("Product successfully deleted", 200));
     }
@@ -181,24 +146,10 @@ public class ProductController {
     @Secured("ROLE_WAREMAN")
     public OfficeInventoryResponse addInventoryForOffice(@RequestBody InventoryRequest inventoryRequest,
                                                          @CurrentUser UserPrincipal userPrincipal){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        Optional<Product> optionalProduct = productService.findById(inventoryRequest.getProductId());
-        if (!optionalProduct.isPresent()) {
-            throw new ResourceNotFoundException("Product does not exist");
-        }
-        Product product = optionalProduct.get();
-        if (!product.getBusiness().getId().equals(business.getId())) {
-            throw new UnauthorizedException("Not your product");
-        }
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        Product product = productService.findProductById(inventoryRequest.getProductId(), business.getId());
 
-        Optional<Office> optionalOffice = officeService.findById(inventoryRequest.getOfficeId());
-        if (!optionalOffice.isPresent()) {
-            throw new ResourceNotFoundException("Office does not exist");
-        }
-        Office office = optionalOffice.get();
-        if (!office.getBusiness().getId().equals(business.getId())) {
-            throw new UnauthorizedException("Not your office");
-        }
+        Office office = officeService.findOfficeById(inventoryRequest.getOfficeId(), business.getId());
 
         Optional<Warehouse> optionalWarehouse = warehouseRepository.findByProductAndBusiness(product, business);
         if(!optionalWarehouse.isPresent()){
@@ -233,7 +184,7 @@ public class ProductController {
     @GetMapping("/inventory/log")
     @Secured("ROLE_WAREMAN")
     public List<InventoryLogResponse> getInventoryLogs(@CurrentUser UserPrincipal userPrincipal){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         return officeInventoryService.findAllByBusiness(business)
                 .stream()
                 .map(InventoryLogResponse::new)
@@ -292,15 +243,8 @@ public class ProductController {
     public ProductResponse updateDiscount(@PathVariable("productId") Long productId,
                                           @RequestBody DiscountRequest discountRequest,
                                           @CurrentUser UserPrincipal userPrincipal){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        Optional<Product> optionalProduct = productService.findById(productId);
-        if (!optionalProduct.isPresent()) {
-            throw new ResourceNotFoundException("Product does not exist");
-        }
-        Product product = optionalProduct.get();
-        if (!product.getBusiness().getId().equals(business.getId())) {
-            throw new UnauthorizedException("Not your product");
-        }
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        Product product = productService.findProductById(productId, business.getId());
 
         Discount discount = new Discount(discountRequest.getPercentage());
         product.setDiscount(discount);

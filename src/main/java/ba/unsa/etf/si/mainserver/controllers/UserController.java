@@ -46,23 +46,18 @@ public class UserController {
     private final UserService userService;
     private final EmployeeProfileService employeeProfileService;
     private final OfficeProfileRepository officeProfileRepository;
-    private final EmployeeActivityRepository employeeActivityRepository;
     private final BusinessService businessService;
-    private final OfficeService officeService;
     private final EmploymentHistoryRepository employmentHistoryRepository;
     private final ReceiptService receiptService;
 
     public UserController(UserService userService, EmployeeProfileService employeeProfileService,
                           OfficeProfileRepository officeProfileRepository,
-                          EmployeeActivityRepository employeeActivityRepository,
-                          BusinessService businessService, OfficeService officeService,
+                          BusinessService businessService,
                           EmploymentHistoryRepository employmentHistoryRepository, ReceiptService receiptService) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.officeProfileRepository = officeProfileRepository;
-        this.employeeActivityRepository = employeeActivityRepository;
         this.businessService = businessService;
-        this.officeService = officeService;
         this.employmentHistoryRepository = employmentHistoryRepository;
         this.receiptService = receiptService;
     }
@@ -90,227 +85,23 @@ public class UserController {
                 .collect(Collectors.toList());
     }
 
-    //MORA BITI EMPLOYEE SAMO U JEDNOM OFISU ZA OVU RUTU, INACE PADA
-    @GetMapping("/office-employees")
-    @Secured("ROLE_OFFICEMAN")
-    public List<RegistrationResponse> getOfficeEmployees(@CurrentUser UserPrincipal userPrincipal) {
-        Optional<User> optionalUser = userService.findByUsername(userPrincipal.getUsername());
-        if (!optionalUser.isPresent()) {
-            throw new AppException("Horror");
-        }
-        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(optionalUser.get());
-        if (!optionalEmployeeProfile.isPresent() || optionalEmployeeProfile.get().getBusiness() == null) {
-            throw new AppException("Not an employee");
-        }
-        Optional<OfficeProfile> optionalOfficeProfile = officeProfileRepository.findByEmployee_Id(optionalEmployeeProfile.get().getId());
-        if (!optionalOfficeProfile.isPresent()) {
-            throw new ResourceNotFoundException("No Office");
-        }
-        Office office = optionalOfficeProfile.get().getOffice();
-        List<OfficeProfile> officeProfiles = officeProfileRepository.findAllByOfficeIdAndOffice_BusinessId(office.getId(), office.getBusiness().getId());
-        List<EmployeeActivity> employeeActivities = employeeActivityRepository.findAll();
-        return officeProfiles
-                .stream()
-                .map(
-                        officeProfile -> {
-                            EmployeeProfile employee = officeProfile.getEmployee();
-                            User user = employee.getAccount();
-                            return new RegistrationResponse(
-                                    user.getId(),
-                                    user.getUsername(),
-                                    user.getPassword(),
-                                    user.getEmail(),
-                                    user.getRoles()
-                                            .stream()
-                                            .map(role -> new RoleResponse(role.getId(), role.getName().name()))
-                                            .collect(Collectors.toList()),
-                                    new EmployeeProfileResponse(employee));
-                        }
-                )
-                .filter(
-                        userResponse ->
-                                employeeActivities
-                                        .stream()
-                                        .noneMatch(
-                                                employeeActivity ->
-                                                        employeeActivity
-                                                                .getAccount()
-                                                                .getId()
-                                                                .equals(userResponse.getId())
-                                        )
-                )
-                .collect(Collectors.toList());
-    }
-
-    @GetMapping("/employees")
-    @Secured({"ROLE_MERCHANT", "ROLE_MANAGER"})
-    public List<UserResponse> getEmployees(@CurrentUser UserPrincipal userPrincipal) {
-        Optional<User> optionalUser = userService.findByUsername(userPrincipal.getUsername());
-        if (!optionalUser.isPresent()) {
-            throw new AppException("Horror");
-        }
-        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(optionalUser.get());
-        if (!optionalEmployeeProfile.isPresent() || optionalEmployeeProfile.get().getBusiness() == null) {
-            throw new AppException("Not an employee");
-        }
-        List<EmployeeActivity> employeeActivities = employeeActivityRepository.findAll();
-        return employeeProfileService
-                .findAllByOptionalBusinessId(optionalEmployeeProfile.get().getBusiness().getId())
-                .stream()
-                .map(
-                        employeeProfile -> new UserResponse(
-                                employeeProfile.getAccount().getId(),
-                                employeeProfile.getAccount().getUsername(),
-                                employeeProfile.getAccount().getEmail(),
-                                employeeProfile.getName(),
-                                employeeProfile.getSurname(),
-                                employeeProfile.getStringDate(),
-                                employeeProfile.getJmbg(),
-                                employeeProfile.getContactInformation().getAddress(),
-                                employeeProfile.getContactInformation().getPhoneNumber(),
-                                employeeProfile.getContactInformation().getCountry(),
-                                employeeProfile.getContactInformation().getCity(),
-                                employeeProfile.getAccount())
-                )
-                .filter(
-                        userResponse ->
-                                employeeActivities
-                                        .stream()
-                                        .noneMatch(
-                                                employeeActivity ->
-                                                        employeeActivity
-                                                                .getAccount()
-                                                                .getId()
-                                                                .equals(userResponse.getUserId())
-                                        )
-                )
-                .collect(Collectors.toList());
-    }
-
-    @DeleteMapping("/employees/{userId}")
-    @Secured({"ROLE_MANAGER", "ROLE_MERCHANT"})
-    public ResponseEntity<ApiResponse> fireEmployee(@CurrentUser UserPrincipal userPrincipal, @PathVariable Long userId) {
-        Optional<User> optionalUser = userService.findUserById(userId);
-        if (!optionalUser.isPresent()) {
-            throw new ResourceNotFoundException("User does not exist");
-        }
-        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(optionalUser.get());
-        if (!optionalEmployeeProfile.isPresent()) {
-            throw new ResourceNotFoundException("User is not an employee");
-        }
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        if (!business.getId().equals(optionalEmployeeProfile.get().getBusiness().getId())) {
-            throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
-        }
-
-        Optional<Office> officeOptional = officeService.findByManager(optionalEmployeeProfile.get());
-        if(officeOptional.isPresent()){
-            officeOptional.get().setManager(null);
-            officeService.save(officeOptional.get());
-        }
-
-
-
-        Optional<EmployeeActivity> employeeActivityOptional = employeeActivityRepository.
-                findByEmployeeProfile(optionalEmployeeProfile.get());
-        if(employeeActivityOptional.isPresent()){
-            throw new ResourceNotFoundException("User is not an employee");
-        }
-
-        List<OfficeProfile> officeProfiles = officeProfileRepository.findAllByEmployeeId(optionalEmployeeProfile.get().getId());
-        for(OfficeProfile officeProfile : officeProfiles){
-            officeProfileRepository.delete(officeProfile);
-        }
-
-        List<EmploymentHistory> employmentHistoryList = employmentHistoryRepository.findAllByEmployeeProfileId(optionalEmployeeProfile.get().getId());
-        for(EmploymentHistory employmentHistory : employmentHistoryList){
-            employmentHistoryRepository.delete(employmentHistory);
-        }
-
-        EmployeeActivity employeeActivity = new EmployeeActivity();
-        employeeActivity.setAccount(optionalUser.get());
-        employeeActivity.setEmployeeProfile(optionalEmployeeProfile.get());
-        employeeActivityRepository.save(employeeActivity);
-        return ResponseEntity.ok(new ApiResponse("Employee successfully fired", 200));
-    }
-
-    @GetMapping("/offices/{officeId}/employees")
-    @Secured({"ROLE_MERCHANT", "ROLE_MANAGER"})
-    public List<UserResponse> getEmployees(@CurrentUser UserPrincipal userPrincipal,
-                                           @PathVariable Long officeId) {
-        Optional<User> optionalUser = userService.findByUsername(userPrincipal.getUsername());
-        if (!optionalUser.isPresent()) {
-            throw new AppException("Horror");
-        }
-        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(optionalUser.get());
-        if (!optionalEmployeeProfile.isPresent() || optionalEmployeeProfile.get().getBusiness() == null) {
-            throw new AppException("Not an employee");
-        }
-        List<OfficeProfile> officeProfiles = officeProfileRepository.findAllByOfficeIdAndOffice_BusinessId(
-                officeId,
-                optionalEmployeeProfile.get().getBusiness().getId()
-        );
-        List<EmployeeActivity> employeeActivities = employeeActivityRepository.findAll();
-        return employeeProfileService
-                .findAllByOptionalBusinessId(optionalEmployeeProfile.get().getBusiness().getId())
-                .stream().filter(employeeProfile -> officeProfiles.stream().anyMatch(officeProfile -> officeProfile.getEmployee().getId().equals(employeeProfile.getId())))
-                .map(
-                        employeeProfile -> new UserResponse(
-                                employeeProfile.getAccount().getId(),
-                                employeeProfile.getAccount().getUsername(),
-                                employeeProfile.getAccount().getEmail(),
-                                employeeProfile.getName(),
-                                employeeProfile.getSurname(),
-                                employeeProfile.getStringDate(),
-                                employeeProfile.getJmbg(),
-                                employeeProfile.getContactInformation().getAddress(),
-                                employeeProfile.getContactInformation().getPhoneNumber(),
-                                employeeProfile.getContactInformation().getCountry(),
-                                employeeProfile.getContactInformation().getCity(),
-                                employeeProfile.getAccount())
-                )
-                .filter(
-                        userResponse ->
-                                employeeActivities
-                                        .stream()
-                                        .noneMatch(
-                                                employeeActivity ->
-                                                        employeeActivity
-                                                                .getAccount()
-                                                                .getId()
-                                                                .equals(userResponse.getUserId())
-                                        )
-                )
-                .collect(Collectors.toList());
-    }
 
     @PutMapping("/users/{userId}")
     @Secured({"ROLE_ADMIN", "ROLE_MERCHANT", "ROLE_MANAGER"})
     public ResponseEntity<EmployeeProfileResponse> updateUserProfile(@RequestBody EmployeeProfileRequest employeeProfileRequest,
                                                                      @PathVariable Long userId,
                                                                      @CurrentUser UserPrincipal userPrincipal) throws ParseException {
-        Optional<User> optionalUser = userService.findUserById(userId);
-        if (!optionalUser.isPresent()) {
-            throw new ResourceNotFoundException("User with id " + userId + " does not exist");
-        }
-        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(optionalUser.get());
-        if (!optionalEmployeeProfile.isPresent()) {
-            throw new ResourceNotFoundException("User is not an employee");
-        }
+        User user = userService.findUserById(userId);
+        EmployeeProfile employeeProfile2 = employeeProfileService.findEmployeeByAccount(user);
         if (userPrincipal.getAuthorities().stream().noneMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
-            Optional<User> optionalManager = userService.findByUsername(userPrincipal.getUsername());
-            if (!optionalManager.isPresent()) {
-                throw new AppException("This shouldn't happen. Contact your administrator!");
-            }
-            Optional<EmployeeProfile> optionalManagerProfile = employeeProfileService.findByAccount(optionalManager.get());
-            if (!optionalManagerProfile.isPresent()) {
-                throw new AppException("THIS IS HORROR. KILL THE MACHINE!");
-            }
-            if (!optionalEmployeeProfile.get().getBusiness().getId().equals(optionalManagerProfile.get().getBusiness().getId())) {
+            User manager = userService.findUserByUsername(userPrincipal.getUsername());
+            EmployeeProfile managerProfile = employeeProfileService.findEmployeeByAccount(manager);
+            if (!employeeProfile2.getBusiness().getId().equals(managerProfile.getBusiness().getId())) {
                 throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
             }
         }
-        EmployeeProfile employeeProfile = optionalEmployeeProfile.get();
+
+        EmployeeProfile employeeProfile = employeeProfile2;
         employeeProfile.setName(employeeProfileRequest.getName());
         employeeProfile.setSurname(employeeProfileRequest.getSurname());
         employeeProfile.setDateOfBirth(employeeProfileRequest.getDateFromString());
@@ -369,35 +160,24 @@ public class UserController {
     public ResponseEntity<EmployeeProfileResponse> updateUserRoles(@RequestBody RoleChangeRequest roleChangeRequest,
                                                                    @PathVariable Long userId,
                                                                    @CurrentUser UserPrincipal userPrincipal){
-        Optional<User> optionalUser = userService.findUserById(userId);
-        if (!optionalUser.isPresent()) {
-            throw new ResourceNotFoundException("User with id " + userId + " does not exist");
-        }
-        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(optionalUser.get());
-        if (!optionalEmployeeProfile.isPresent()) {
-            throw new ResourceNotFoundException("User is not an employee");
-        }
+        User user = userService.findUserById(userId);
+        EmployeeProfile employeeProfile = employeeProfileService.findEmployeeByAccount(user);
+        boolean admin = true;
         if (userPrincipal.getAuthorities().stream().noneMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
-            Optional<User> optionalManager = userService.findByUsername(userPrincipal.getUsername());
-            if (!optionalManager.isPresent()) {
-                throw new AppException("This shouldn't happen. Contact your administrator!");
-            }
-            Optional<EmployeeProfile> optionalManagerProfile = employeeProfileService.findByAccount(optionalManager.get());
-            if (!optionalManagerProfile.isPresent()) {
-                throw new AppException("THIS IS HORROR. KILL THE MACHINE!");
-            }
-            if (!optionalEmployeeProfile.get().getBusiness().getId().equals(optionalManagerProfile.get().getBusiness().getId())) {
+            admin = false;
+            User manager = userService.findUserByUsername(userPrincipal.getUsername());
+            EmployeeProfile managerProfile = employeeProfileService.findEmployeeByAccount(manager);
+            if (!employeeProfile.getBusiness().getId().equals(managerProfile.getBusiness().getId())) {
                 throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
             }
         }
-        EmployeeProfile employeeProfile = optionalEmployeeProfile.get();
-        List<String> listOfNames = roleChangeRequest.getNewRoles()
+        List<String> newRoles = roleChangeRequest.getNewRoles()
                 .stream()
                 .map(
                         role -> role.getRolename()
                 )
                 .collect(Collectors.toList());
-        if(listOfNames.contains("ROLE_ADMIN") || listOfNames.contains("ROLE_MERCHANT")){
+        if(newRoles.contains("ROLE_ADMIN") || newRoles.contains("ROLE_MERCHANT")){
             throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
         }
         List<String> oldRoles = employeeProfile.getAccount().getRoles().stream()
@@ -405,11 +185,11 @@ public class UserController {
                         role -> role.getName().toString()
                 )
                 .collect(Collectors.toList());
-        if(oldRoles.contains("ROLE_ADMIN") || oldRoles.contains("ROLE_MERCHANT")){
+        if(oldRoles.contains("ROLE_ADMIN") || (oldRoles.contains("ROLE_MERCHANT") && !admin)){
             throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
         }
         for (String role : oldRoles) {
-            if (listOfNames.contains(role)) {
+            if (newRoles.contains(role)) {
                 //sve ok :D ne diraj
             } else if (role.equals("ROLE_PRW") || role.equals("ROLE_WAREMAN") || role.equals("ROLE_PRP") || role.equals("ROLE_MANAGER")) {
                 setEndDateInEmployment(employeeProfile, role);
@@ -417,7 +197,7 @@ public class UserController {
                 fireEmployee(employeeProfile, role);
             }
         }
-        for(String role : listOfNames) {
+        for(String role : newRoles) {
             if (oldRoles.contains(role)) {
                 //sve ok :D ne diraj
             } else if (role.equals("ROLE_PRW") || role.equals("ROLE_WAREMAN") || role.equals("ROLE_PRP") || role.equals("ROLE_MANAGER")) {
@@ -426,8 +206,8 @@ public class UserController {
                 //nemoj nista jer oni ostaju u ofisu nedodijeljeni
             }
         }
-        userService.changeUserRoles(userId,listOfNames);
-        return ResponseEntity.ok(new EmployeeProfileResponse(optionalEmployeeProfile.get()));
+        userService.changeUserRoles(userId,newRoles);
+        return ResponseEntity.ok(new EmployeeProfileResponse(employeeProfile));
     }
 
 
@@ -435,68 +215,40 @@ public class UserController {
     @Secured({"ROLE_ADMIN", "ROLE_MERCHANT", "ROLE_MANAGER"})
     public ResponseEntity<EmployeeProfileResponse> getUserProfile(@PathVariable Long userId,
                                                                   @CurrentUser UserPrincipal userPrincipal) {
-        Optional<User> optionalUser = userService.findUserById(userId);
-        if (!optionalUser.isPresent()) {
-            throw new ResourceNotFoundException("User with id " + userId + " does not exist");
-        }
-        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(optionalUser.get());
-        if (!optionalEmployeeProfile.isPresent()) {
-            throw new ResourceNotFoundException("User is not an employee");
-        }
+        User user = userService.findUserById(userId);
+        EmployeeProfile employeeProfile = employeeProfileService.findEmployeeByAccount(user);
+
         if (userPrincipal.getAuthorities().stream().noneMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
-            Optional<User> optionalManager = userService.findByUsername(userPrincipal.getUsername());
-            if (!optionalManager.isPresent()) {
-                throw new AppException("This shouldn't happen. Contact your administrator!");
-            }
-            Optional<EmployeeProfile> optionalManagerProfile = employeeProfileService.findByAccount(optionalManager.get());
-            if (!optionalManagerProfile.isPresent()) {
-                throw new AppException("THIS IS HORROR. KILL THE MACHINE!");
-            }
-            if (!optionalEmployeeProfile.get().getBusiness().getId().equals(optionalManagerProfile.get().getBusiness().getId())) {
+            User manager = userService.findUserByUsername(userPrincipal.getUsername());
+            EmployeeProfile managerProfile = employeeProfileService.findEmployeeByAccount(manager);
+            if (!employeeProfile.getBusiness().getId().equals(managerProfile.getBusiness().getId())) {
                 throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
             }
         }
-        EmployeeProfile employeeProfile = optionalEmployeeProfile.get();
 
-        Optional<EmployeeProfile> result = employeeProfileService.findById(employeeProfile.getId());
-        if (!result.isPresent()) {
-            throw new ResourceNotFoundException("This user is not an employee");
-        }
-        return ResponseEntity.ok(new EmployeeProfileResponse(result.get()));
+        EmployeeProfile result = employeeProfileService.findEmployeeById(employeeProfile.getId());
+        return ResponseEntity.ok(new EmployeeProfileResponse(result));
     }
 
     @GetMapping("/users/{userId}/username")
     @Secured({"ROLE_MANAGER"})
     public UserNameResponse getUsernameForId(@PathVariable Long userId,
                                              @CurrentUser UserPrincipal userPrincipal) {
-        Optional<User> optionalUser = userService.findUserById(userId);
-        if (!optionalUser.isPresent()) {
-            throw new ResourceNotFoundException("User with id " + userId + " does not exist");
-        }
-        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(optionalUser.get());
-        if (!optionalEmployeeProfile.isPresent()) {
-            throw new ResourceNotFoundException("User is not an employee");
-        }
-        return new UserNameResponse(optionalUser.get().getUsername(),
-                optionalEmployeeProfile.get().getName(), optionalEmployeeProfile.get().getSurname());
+        User user = userService.findUserById(userId);
+        EmployeeProfile employeeProfile =  employeeProfileService.findEmployeeByAccount(user);
+        return new UserNameResponse(user.getUsername(),
+                employeeProfile.getName(), employeeProfile.getSurname());
     }
 
     @GetMapping("/users/{username}/receipts")
     @Secured("ROLE_MANAGER")
     public List<ReceiptResponse> getReceiptsForUsername(@CurrentUser UserPrincipal userPrincipal,
                                                         @PathVariable String username){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        Optional<User> optionalUser = userService.findByUsername(username);
-        if(!optionalUser.isPresent()){
-            throw new ResourceNotFoundException("Username doesn't belong to any user");
-        }
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        User user = userService.findUserByUsername(username);
+        EmployeeProfile employeeProfile = employeeProfileService.findEmployeeByAccount(user);
 
-        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileService.findByAccount(optionalUser.get());
-        if(!optionalEmployeeProfile.isPresent()){
-            throw new ResourceNotFoundException("Username doesn't belong to any employee");
-        }
-
-        if(!optionalEmployeeProfile.get().getBusiness().getId().equals(business.getId())){
+        if(!employeeProfile.getBusiness().getId().equals(business.getId())){
             throw new ResourceNotFoundException("Username doesn't belong to any employee of your business");
         }
 

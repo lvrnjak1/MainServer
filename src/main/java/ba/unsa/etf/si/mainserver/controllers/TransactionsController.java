@@ -23,6 +23,7 @@ import ba.unsa.etf.si.mainserver.responses.transactions.ReceiptStatusResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
+import ba.unsa.etf.si.mainserver.services.business.CashRegisterService;
 import ba.unsa.etf.si.mainserver.services.business.OfficeService;
 import ba.unsa.etf.si.mainserver.services.products.OfficeInventoryService;
 import ba.unsa.etf.si.mainserver.services.products.ProductService;
@@ -48,6 +49,7 @@ public class TransactionsController {
     private final PaymentMethodRepository paymentMethodRepository;
     private final ReceiptService receiptService;
     private final OfficeInventoryService officeInventoryService;
+    private final CashRegisterService cashRegisterService;
 
     public TransactionsController(ReceiptRepository receiptRepository,
                                   ReceiptItemRepository receiptItemRepository,
@@ -57,7 +59,7 @@ public class TransactionsController {
                                   CashRegisterRepository cashRegisterRepository,
                                   PaymentMethodRepository paymentMethodRepository,
                                   ReceiptService receiptService,
-                                  OfficeInventoryService officeInventoryService) {
+                                  OfficeInventoryService officeInventoryService, CashRegisterService cashRegisterService) {
         this.receiptRepository = receiptRepository;
         this.receiptItemRepository = receiptItemRepository;
         this.productService = productService;
@@ -68,6 +70,7 @@ public class TransactionsController {
         this.paymentMethodRepository = paymentMethodRepository;
         this.receiptService = receiptService;
         this.officeInventoryService = officeInventoryService;
+        this.cashRegisterService = cashRegisterService;
     }
 
 
@@ -76,30 +79,12 @@ public class TransactionsController {
     @Secured("ROLE_OFFICEMAN")
     public ResponseEntity<ApiResponse> saveReceipt(@CurrentUser UserPrincipal userPrincipal,
                                                    @RequestBody ReceiptRequest receiptRequest){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
-        Optional<Office> officeOptional = officeService.findById(receiptRequest.getOfficeId());
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        Office office = officeService.findOfficeById(receiptRequest.getOfficeId(), receiptRequest.getBusinessId());
         if(!business.getId().equals(receiptRequest.getBusinessId())){
             throw new UnauthorizedException("Not your business");
         }
-
-        if(!officeOptional.isPresent()){
-            throw new ResourceNotFoundException("This office doesn't exist");
-        }
-
-        if(!officeOptional.get().getBusiness().getId().equals(business.getId())){
-            throw new UnauthorizedException("Not your office");
-        }
-
-        Optional<CashRegister> optionalCashRegister =
-                cashRegisterRepository.findById(receiptRequest.getCashRegisterId());
-
-        if(!optionalCashRegister.isPresent()){
-            throw new ResourceNotFoundException("Cash register doesn't exist");
-        }
-
-        if(!optionalCashRegister.get().getOffice().getId().equals(officeOptional.get().getId())){
-            throw new UnauthorizedException("Not your cash register");
-        }
+        CashRegister cashRegister = cashRegisterService.findCashRegisterById(receiptRequest.getCashRegisterId(), office.getId(),business.getId());
 
         Optional<ReceiptStatus> receiptStatus = receiptStatusRepository.findByStatusName(
                 Enum.valueOf(ReceiptStatusName.class, receiptRequest.getStatus())
@@ -148,7 +133,7 @@ public class TransactionsController {
         //update zaliha samo kad nije pending i canceled i insuff
         if(receiptStatus.get().getStatusName().toString().equals("DELETED") ||
                 receiptStatus.get().getStatusName().toString().equals("PAID") ) {
-            officeInventoryService.processTransaction(officeOptional.get().getId(), receipt.getReceiptItems());
+            officeInventoryService.processTransaction(office.getId(), receipt.getReceiptItems());
         }
         receiptRepository.save(receipt);
         return ResponseEntity.ok(new ApiResponse("Receipt successfully sent", 200));
@@ -159,7 +144,7 @@ public class TransactionsController {
     @Secured("ROLE_OFFICEMAN")
     public ReceiptStatusResponse getReceiptStatus(@CurrentUser UserPrincipal userPrincipal,
                                                                   @PathVariable String receiptId){
-        Business business = businessService.getBusinessOfCurrentUser(userPrincipal);
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         Optional<Receipt> optionalReceipt = receiptRepository.findByReceiptId(receiptId);
         if(!optionalReceipt.isPresent()){
             throw new ResourceNotFoundException("Receipt doesn't exist");
@@ -176,11 +161,7 @@ public class TransactionsController {
     //secured
     @PostMapping("/info")
     public PayServerInfoResponse getReceiptInfo(@RequestBody PayServerInfoRequest payServerInfoRequest){
-        Optional<Business> businessOptional = businessService.findByName(payServerInfoRequest.getBusinessName());
-
-        if(!businessOptional.isPresent()){
-            throw new BadParameterValueException("Business doesn't exist");
-        }
+        Business business = businessService.findByName(payServerInfoRequest.getBusinessName());
 
         Optional<ReceiptStatus> receiptStatus = receiptStatusRepository.findByStatusName(
                 Enum.valueOf(ReceiptStatusName.class, "PENDING")
@@ -191,7 +172,7 @@ public class TransactionsController {
         }
 
         Optional<Receipt> receiptOptional = receiptRepository.findByBusinessIdAndCashRegisterIdAndOfficeIdAndStatus_StatusName(
-                businessOptional.get().getId(),
+                business.getId(),
                 payServerInfoRequest.getCashRegisterId(),
                 payServerInfoRequest.getOfficeId(),
                 receiptStatus.get().getStatusName());

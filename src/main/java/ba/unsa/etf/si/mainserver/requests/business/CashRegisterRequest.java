@@ -12,4 +12,6 @@ import javax.validation.constraints.NotBlank;
 public class CashRegisterRequest {
     @NotBlank
     private String name;
+    @NotBlank
+    private String uuid;
 }

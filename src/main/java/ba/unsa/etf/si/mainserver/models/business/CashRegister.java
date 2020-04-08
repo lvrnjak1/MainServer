@@ -23,18 +23,18 @@ public class CashRegister extends AuditModel {
 
     private String name;
 
+    private String uuid;
+
+
     public CashRegister(Office office){
         this.office = office;
     }
 
-    public CashRegister(Office office, String name){
+    public CashRegister(Office office, String name, String uuid){
         this.office = office;
         this.name = name;
+        this.uuid = uuid;
     }
-
-    //staticki QR kod ce biti samo ova tri podatka zakodirana
-    //to oni trebaju iz ova tri podatka generisati
-    //id, officeId, businessId
 
     public Long getId() {
         return id;
@@ -58,5 +58,13 @@ public class CashRegister extends AuditModel {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 }

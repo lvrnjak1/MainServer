@@ -8,7 +8,6 @@ import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.*;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeActivity;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
-import ba.unsa.etf.si.mainserver.models.employees.EmploymentHistory;
 import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.EmployeeProfileRepository;
@@ -178,11 +177,34 @@ public class BusinessController {
 
     @PostMapping("/{businessId}/offices/{officeId}/cashRegisters")
     @Secured("ROLE_ADMIN")
-    public CashRegisterResponse addCashRegisterForOffice(@PathVariable("officeId") Long officeId,
+    public CashRegisterWithUUIDResponse addCashRegisterForOffice(@PathVariable("officeId") Long officeId,
                                                                          @PathVariable("businessId") Long businessId,
                                                                          @RequestBody CashRegisterRequest cashRegisterRequest){
-        return new CashRegisterResponse(cashRegisterService
-                .createCashRegisterInOfficeOfBusiness(officeId,businessId, cashRegisterRequest.getName()));
+        return new CashRegisterWithUUIDResponse(cashRegisterService
+                .createCashRegisterInOfficeOfBusiness(officeId,businessId, cashRegisterRequest.getName(), cashRegisterRequest.getUuid()));
+    }
+
+    @GetMapping("/{businessId}/offices/{officeId}/cashRegisters/{cashRegisterId}")
+    @Secured("ROLE_ADMIN")
+    public CashRegisterWithUUIDResponse getCashRegister(@PathVariable("officeId") Long officeId,
+                                                        @PathVariable("businessId") Long businessId,
+                                                        @PathVariable("cashRegisterId") Long cashRegisterId){
+        return new CashRegisterWithUUIDResponse(cashRegisterService.findCashRegisterById(cashRegisterId, officeId, businessId));
+    }
+
+    @PostMapping("/{businessId}/offices/{officeId}/cashRegisters/{cashRegisterId}")
+    @Secured("ROLE_ADMIN")
+    public CashRegisterWithUUIDResponse editCashRegister(@PathVariable("officeId") Long officeId,
+                                                         @PathVariable("businessId") Long businessId,
+                                                         @PathVariable("cashRegisterId") Long cashRegisterId,
+                                                         @RequestBody CashRegisterRequest cashRegisterRequest){
+        CashRegister cashRegister = cashRegisterService.findCashRegisterById(cashRegisterId, officeId, businessId);
+        if(cashRegisterRequest.getUuid() != null)
+            cashRegister.setUuid(cashRegisterRequest.getUuid());
+        if(cashRegisterRequest.getName() != null)
+            cashRegister.setName(cashRegisterRequest.getName());
+        cashRegisterService.save(cashRegister);
+        return new CashRegisterWithUUIDResponse(cashRegister);
     }
 
     @DeleteMapping("/{businessId}/offices/{officeId}/cashRegisters/{cashRegId}")
@@ -393,7 +415,7 @@ public class BusinessController {
 
         List<CashRegister> cashRegisters = cashRegisterRepository.findAllByOfficeId(officeId);
         return new CashServerConfigResponse(business.getName(),
-                cashRegisters.stream().map(CashRegisterResponse::new).collect(Collectors.toList()));
+                cashRegisters.stream().map(CashRegisterWithUUIDResponse::new).collect(Collectors.toList()));
     }
 
     //ruta za PR app da vide informacije o svim offices u svim businesses

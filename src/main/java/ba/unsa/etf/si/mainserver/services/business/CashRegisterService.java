@@ -55,9 +55,9 @@ public class CashRegisterService {
         return new ApiResponse("Cash Register successfully deleted", 200);
     }
 
-    public CashRegister createCashRegisterInOfficeOfBusiness(Long officeId, Long businessId, String name) {
+    public CashRegister createCashRegisterInOfficeOfBusiness(Long officeId, Long businessId, String name, String uuid) {
         Office office = findOffice(officeId, businessId);
-        CashRegister cashRegister = new CashRegister(office, name);
+        CashRegister cashRegister = new CashRegister(office, name, uuid);
         return cashRegisterRepository.save(cashRegister);
     }
 

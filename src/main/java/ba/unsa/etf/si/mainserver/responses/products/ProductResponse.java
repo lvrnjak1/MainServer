@@ -18,6 +18,7 @@ public class ProductResponse {
     private String image = null;
     private String unit;
     private String barcode;
+    private String description;
     private DiscountResponse discount;
 
     public ProductResponse(Product product){
@@ -35,5 +36,6 @@ public class ProductResponse {
         }
         this.unit = product.getUnit();
         this.barcode = product.getBarcode();
+        this.description = product.getDescription();
     }
 }

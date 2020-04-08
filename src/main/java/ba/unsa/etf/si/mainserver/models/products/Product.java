@@ -36,6 +36,7 @@ public class Product extends AuditModel {
     private byte[] image;
     private String unit;
     private String barcode;
+    private String description = "";
 
     @ManyToOne
     @JsonBackReference
@@ -58,12 +59,13 @@ public class Product extends AuditModel {
         this.discount = discount;
     }
 
-    public Product(String name, BigDecimal price, String unit, String barcode) {
+    public Product(String name, BigDecimal price, String unit, String barcode, String description) {
         this.name = name;
         this.price = price;
         this.unit = unit;
         this.discount = null;
         this.barcode = barcode;
+        this.description = description;
     }
 
     public Long getId() {
@@ -128,5 +130,13 @@ public class Product extends AuditModel {
 
     public void setBarcode(String barcode) {
         this.barcode = barcode;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

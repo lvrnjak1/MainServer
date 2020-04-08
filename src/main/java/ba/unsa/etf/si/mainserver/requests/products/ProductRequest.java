@@ -19,4 +19,5 @@ public class ProductRequest {
     private String barcode;
     @NotBlank
     private String unit;
+    private String description;
 }

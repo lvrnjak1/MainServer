@@ -12,7 +12,6 @@ import ba.unsa.etf.si.mainserver.repositories.products.ProductRepository;
 import ba.unsa.etf.si.mainserver.responses.products.ExtendedProductResponse;
 import ba.unsa.etf.si.mainserver.responses.products.ProductResponse;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
-import ba.unsa.etf.si.mainserver.services.UserService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
 import org.springframework.stereotype.Service;
 

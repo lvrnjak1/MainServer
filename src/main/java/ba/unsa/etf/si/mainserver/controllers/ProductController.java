@@ -3,7 +3,6 @@ package ba.unsa.etf.si.mainserver.controllers;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
-import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.products.*;
@@ -24,7 +23,6 @@ import ba.unsa.etf.si.mainserver.services.products.OfficeInventoryService;
 import ba.unsa.etf.si.mainserver.services.products.ProductService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -92,7 +90,8 @@ public class ProductController {
         Product product = new Product(productRequest.getName(),
                 productRequest.getPrice(),
                 productRequest.getUnit(),
-                productRequest.getBarcode());
+                productRequest.getBarcode(),
+                productRequest.getDescription());
 
         product.setBusiness(business);
         businessService.save(business);
@@ -128,6 +127,7 @@ public class ProductController {
         product.setPrice(productRequest.getPrice());
         product.setUnit(productRequest.getUnit());
         product.setBarcode(productRequest.getBarcode());
+        product.setDescription(productRequest.getDescription());
         return new ProductResponse(productService.save(product));
     }
 

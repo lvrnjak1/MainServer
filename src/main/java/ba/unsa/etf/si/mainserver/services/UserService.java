@@ -125,7 +125,7 @@ public class UserService {
 
     public User createUserAccount(RegistrationRequest registrationRequest) {
         User user = new User(null, registrationRequest.getUsername(), registrationRequest.getPassword(),
-                registrationRequest.getEmail(), null);
+                registrationRequest.getEmail(), false,null);
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
@@ -238,6 +238,10 @@ public class UserService {
             //ova osoba je inactive employee
             throw new ResourceNotFoundException("This user doesn't exist");
         }
+    }
+
+    public void save(User user){
+        userRepository.save(user);
     }
 
 }

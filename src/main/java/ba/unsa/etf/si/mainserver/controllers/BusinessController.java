@@ -168,6 +168,12 @@ public class BusinessController {
         employeeProfileService.unassignAllEmployeesFromOffice(office);
         officeService.deleteOfficeOfBusiness(officeId, businessId);
 
+        if(office.getBusiness().getMainOfficeId() != null &&
+                office.getBusiness().getMainOfficeId().equals(officeId)){
+            office.getBusiness().setMainOfficeId(null);
+            businessService.save(office.getBusiness());
+        }
+
         return ResponseEntity.ok(officeService.deleteOfficeOfBusiness(officeId, businessId));
     }
 
@@ -427,12 +433,12 @@ public class BusinessController {
                 .collect(Collectors.toList());
     }
 
-    @PostMapping("/mainOffice")
+    @PutMapping("/mainOffice")
     @Secured("ROLE_MERCHANT")
     public ApiResponse setMainOffice(@CurrentUser UserPrincipal userPrincipal,
-                                     @RequestBody Long mainOfficeId){
+                                     @RequestBody MainOfficeRequest mainOfficeRequest){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
-        Optional<Office> officeOptional = officeService.findById(mainOfficeId);
+        Optional<Office> officeOptional = officeService.findById(mainOfficeRequest.getMainOfficeId());
         if(!officeOptional.isPresent()){
             throw new ResourceNotFoundException("Office doesn't exist");
         }
@@ -441,17 +447,23 @@ public class BusinessController {
             throw new UnauthorizedException("Not your office");
         }
 
-        business.setMainOfficeId(mainOfficeId);
+        business.setMainOfficeId(mainOfficeRequest.getMainOfficeId());
         businessService.save(business);
-        return new ApiResponse("Office with id " + mainOfficeId + " set as main office of your business", 200);
+        return new ApiResponse("Office with id " + mainOfficeRequest.getMainOfficeId()
+                + " set as main office of your business", 200);
     }
 
     @GetMapping("/mainOffice")
-    @Secured("ROLE_MERCHANT")
+    @Secured({"ROLE_MERCHANT", "ROLE_PRW", "ROLE_PRP", "ROLE_ADMIN", "ROLE_MANAGER", "ROLE_WAREMAN", "ROLE_OFFICEMAN"})
     public MainOfficeResponse getMyMainOffice(@CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         return new MainOfficeResponse(business.getMainOfficeId());
     }
 
-    @GetMapping("/{businessId}")
+    //ruta za dzavidove korisnike
+    @GetMapping("/{businessId}/mainOffice")
+    public MainOfficeResponse getMainOfficeForBusiness(@PathVariable Long businessId){
+        Business business = businessService.findBusinessById(businessId);
+        return new MainOfficeResponse(business.getMainOfficeId());
+    }
 }

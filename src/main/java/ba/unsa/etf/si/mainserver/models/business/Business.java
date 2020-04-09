@@ -24,6 +24,7 @@ public class Business extends AuditModel { //ovo je kao Bingo
     @JoinColumn(name = "merchant_id", referencedColumnName = "id")
     private EmployeeProfile merchant;
 
+    @Column(name = "main_office_id")
     private Long mainOfficeId = null;
 
     public Business(String name, boolean restaurantFeature, EmployeeProfile merchant) {

@@ -24,6 +24,7 @@ public class UserResponse {
     private String phoneNumber;
     private String country;
     private String city;
+    private boolean otp;
     private List<RoleResponse> roles;
 
     public UserResponse(Long userId, String username, String email, String name, String surname, String dateOfBirth,
@@ -39,7 +40,7 @@ public class UserResponse {
         this.phoneNumber = phoneNumber;
         this.country = country;
         this.city = city;
-
+        this.otp = user.isOtp();
         setRoles(user);
     }
 

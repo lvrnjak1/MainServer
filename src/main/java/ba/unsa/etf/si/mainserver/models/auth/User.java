@@ -29,6 +29,7 @@ public class User extends AuditModel {
     private String password;
     @NotBlank
     private String email;
+    private boolean otp = false;
 
 
     @ManyToMany(fetch = FetchType.LAZY)

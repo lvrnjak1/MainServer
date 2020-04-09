@@ -426,4 +426,32 @@ public class BusinessController {
                 .map(OfficeResponseLite::new)
                 .collect(Collectors.toList());
     }
+
+    @PostMapping("/mainOffice")
+    @Secured("ROLE_MERCHANT")
+    public ApiResponse setMainOffice(@CurrentUser UserPrincipal userPrincipal,
+                                     @RequestBody Long mainOfficeId){
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        Optional<Office> officeOptional = officeService.findById(mainOfficeId);
+        if(!officeOptional.isPresent()){
+            throw new ResourceNotFoundException("Office doesn't exist");
+        }
+
+        if(!officeOptional.get().getBusiness().getId().equals(business.getId())){
+            throw new UnauthorizedException("Not your office");
+        }
+
+        business.setMainOfficeId(mainOfficeId);
+        businessService.save(business);
+        return new ApiResponse("Office with id " + mainOfficeId + " set as main office of your business", 200);
+    }
+
+    @GetMapping("/mainOffice")
+    @Secured("ROLE_MERCHANT")
+    public MainOfficeResponse getMyMainOffice(@CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        return new MainOfficeResponse(business.getMainOfficeId());
+    }
+
+    @GetMapping("/{businessId}")
 }

@@ -4,6 +4,7 @@ import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.pr.OfficeReview;
 import ba.unsa.etf.si.mainserver.requests.pr.OfficeReviewRequest;
+import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.pr.OfficeReviewResponse;
 import ba.unsa.etf.si.mainserver.services.business.OfficeService;
 import ba.unsa.etf.si.mainserver.services.pr.OfficeReviewService;
@@ -25,7 +26,7 @@ public class ReviewController {
         this.officeService = officeService;
     }
 
-    @PostMapping("/{officeId}")
+    @PostMapping("/offices/{officeId}")
     public OfficeReviewResponse addReview(@PathVariable Long officeId,
                                           @RequestBody OfficeReviewRequest officeReviewRequest){
         Optional<Office> officeOptional = officeService.findById(officeId);
@@ -39,6 +40,7 @@ public class ReviewController {
                 officeReviewRequest.getEmail(),
                 officeReviewRequest.getStarReview(),
                 officeReviewRequest.getText(),
+                0,
                 officeOptional.get()
         );
 
@@ -53,11 +55,25 @@ public class ReviewController {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping("/{officeId}")
+    @GetMapping("/offices/{officeId}")
     public List<OfficeReviewResponse> getAllReviewsForOffice(@PathVariable Long officeId){
         return officeReviewService.findAllForOffice(officeId)
                 .stream()
                 .map(OfficeReviewResponse::new)
                 .collect(Collectors.toList());
+    }
+
+    @PutMapping("/{reviewId}/likes")
+    public ApiResponse sendLikeForReview(@PathVariable Long reviewId){
+        Optional<OfficeReview> officeReview = officeReviewService.findById(reviewId);
+
+        if(!officeReview.isPresent()){
+            throw new ResourceNotFoundException("Review doesn't exist");
+        }
+
+        int likes = officeReview.get().getLikes()+1;
+        officeReview.get().setLikes(likes);
+        officeReviewService.save(officeReview.get());
+        return new ApiResponse("Review with id " + reviewId + " now has " + likes + " likes", 200);
     }
 }

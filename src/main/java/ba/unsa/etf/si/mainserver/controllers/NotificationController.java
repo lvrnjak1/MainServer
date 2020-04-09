@@ -103,6 +103,16 @@ public class NotificationController {
         return new NotificationResponse(notificationService.save(notification));
     }
 
+    @DeleteMapping("/{notificationId}")
+    @Secured({"ROLE_MERCHANT"})
+    public ApiResponse deleteNotification(@CurrentUser UserPrincipal userPrincipal,
+                                                   @PathVariable Long notificationId){
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        Notification notification = notificationService.findByIdInBusiness(notificationId, business);
+        notificationService.delete(notification);
+        return new ApiResponse("Notification successfully deleted", 200);
+    }
+
     @PostMapping("/office/open")
     @Secured("ROLE_MERCHANT")
     public ResponseEntity<ApiResponse> notifyAdminToOpen(@CurrentUser UserPrincipal userPrincipal,

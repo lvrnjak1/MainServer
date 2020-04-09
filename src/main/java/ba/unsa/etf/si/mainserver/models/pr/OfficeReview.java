@@ -28,19 +28,21 @@ public class OfficeReview extends AuditModel {
     private String email;
     private int starReview;
     private String text;
+    private int likes;
 
     @ManyToOne
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "office_id")
     private Office office;
 
-    public OfficeReview(String firstName, String lastName, String email, int starReview, String text,
+    public OfficeReview(String firstName, String lastName, String email, int starReview, String text, int likes,
                         Office office){
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.starReview = starReview;
         this.text = text;
+        this.likes = likes;
         this.office = office;
     }
 }

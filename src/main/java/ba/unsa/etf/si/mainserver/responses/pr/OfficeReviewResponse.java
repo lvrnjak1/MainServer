@@ -15,6 +15,7 @@ public class OfficeReviewResponse {
     private String email;
     private String text;
     private int starReview;
+    private int likes;
     private OfficeResponseLite office;
 
     public OfficeReviewResponse(OfficeReview officeReview){
@@ -24,6 +25,7 @@ public class OfficeReviewResponse {
         this.email = officeReview.getEmail();
         this.text = officeReview.getText();
         this.starReview = officeReview.getStarReview();
+        this.likes = officeReview.getLikes();
         this.office = new OfficeResponseLite(officeReview.getOffice());
     }
 }

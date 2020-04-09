@@ -201,8 +201,11 @@ public class EmployeeController {
     @DeleteMapping("/employees/{userId}")
     @Secured({"ROLE_MANAGER", "ROLE_MERCHANT"})
     public ResponseEntity<ApiResponse> fireEmployee(@CurrentUser UserPrincipal userPrincipal, @PathVariable Long userId) {
-        User user = userService.findUserByUsername(userPrincipal.getUsername());
+        User user = userService.findUserById(userId);
         EmployeeProfile employeeProfile = employeeProfileService.findEmployeeByAccount(user);
+        if(user.getRoles().stream().anyMatch(role -> role.getName().toString().equals("ROLE_MERCHANT"))){
+            throw new UnauthorizedException("Merchant cannot get fired");
+        }
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         if (!business.getId().equals(employeeProfile.getBusiness().getId())) {
             throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
@@ -214,7 +217,6 @@ public class EmployeeController {
             officeService.save(officeOptional.get());
         }
 
-        employeeProfileService.fireEmployee(employeeProfile);
 
 
         List<OfficeProfile> officeProfiles = officeProfileRepository.findAllByEmployeeId(employeeProfile.getId());

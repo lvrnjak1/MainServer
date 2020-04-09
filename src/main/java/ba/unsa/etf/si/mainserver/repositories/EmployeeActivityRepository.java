@@ -10,4 +10,5 @@ import java.util.Optional;
 @Repository
 public interface EmployeeActivityRepository extends JpaRepository<EmployeeActivity,Long> {
     Optional<EmployeeActivity> findByEmployeeProfile(EmployeeProfile employeeProfile);
+    Optional<EmployeeActivity> findByAccount_Id(Long accountId);
 }

@@ -1,6 +1,5 @@
 package ba.unsa.etf.si.mainserver.services.business;
 
-import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.models.auth.User;
@@ -51,12 +50,16 @@ public class EmployeeProfileService {
         if (!optionalEmployeeProfile.isPresent()) {
             throw new ResourceNotFoundException("Employee doesn't exist");
         }
-        Optional<EmployeeActivity> employeeActivity = employeeActivityRepository.findByEmployeeProfile(optionalEmployeeProfile.get());
+        checkEmployeeActivity(optionalEmployeeProfile.get());
+        return optionalEmployeeProfile.get();
+    }
+
+    public void checkEmployeeActivity(EmployeeProfile employeeProfile){
+        Optional<EmployeeActivity> employeeActivity = employeeActivityRepository.findByEmployeeProfile(employeeProfile);
         if(employeeActivity.isPresent()){
             //ova osoba je inactive employee
             throw new ResourceNotFoundException("This employee doesn't exist");
         }
-        return optionalEmployeeProfile.get();
     }
 
     public EmployeeProfile save(EmployeeProfile employeeProfile) {
@@ -68,11 +71,7 @@ public class EmployeeProfileService {
         if (!optionalEmployeeProfile.isPresent()) {
             throw new BadParameterValueException("User is not an employee");
         }
-        Optional<EmployeeActivity> employeeActivity = employeeActivityRepository.findByEmployeeProfile(optionalEmployeeProfile.get());
-        if(employeeActivity.isPresent()){
-            //ova osoba je inactive employee
-            throw new ResourceNotFoundException("This employee doesn't exist");
-        }
+        checkEmployeeActivity(optionalEmployeeProfile.get());
         return optionalEmployeeProfile.get();
     }
 

@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -114,5 +116,40 @@ public class ReceiptService {
         .filter(receipt -> receipt.getOfficeId().equals(officeId) &&
                 receipt.getStatus().getStatusName().toString().equals("PAID"))
         .collect(Collectors.toList());
+    }
+
+    public List<Receipt> findAllFilteredByDate(String from, String to, Long businessId) {
+        Date dateFrom, dateTo;
+        try {
+            dateFrom = new SimpleDateFormat("dd.MM.yyyy").parse(from);
+            dateTo = new SimpleDateFormat("dd.MM.yyyy").parse(to);
+        } catch (ParseException e) {
+            throw new AppException("Bad date format");
+        }
+
+        return receiptRepository.findAllByBusinessId(businessId)
+                .stream()
+                .filter(receipt -> isBetween(dateFrom, dateTo, receipt.getTimestamp())
+                        && receipt.getStatus().getStatusName().toString().equals("PAID"))
+                .collect(Collectors.toList());
+    }
+
+    private static boolean isBetween(Date dateFrom, Date dateTo, Date date) {
+        date = getZeroTimeDate(date);
+        dateFrom = getZeroTimeDate(dateFrom);
+        dateTo = getZeroTimeDate(dateTo);
+        return (date.after(dateFrom) || date.equals(dateFrom))
+                && (date.before(dateTo) || date.equals(dateTo));
+    }
+
+    private static Date getZeroTimeDate(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        date = calendar.getTime();
+        return date;
     }
 }

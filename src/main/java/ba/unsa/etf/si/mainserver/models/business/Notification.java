@@ -23,12 +23,12 @@ public class Notification extends AuditModel {
     @Column(name = "id")
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JsonBackReference
     @JoinColumn(name="business_id", referencedColumnName = "id")
     private Business business;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name="employee_id", referencedColumnName = "id")
     private EmployeeProfile employeeProfile;
 

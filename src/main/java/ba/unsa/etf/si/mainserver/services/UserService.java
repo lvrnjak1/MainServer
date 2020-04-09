@@ -64,6 +64,7 @@ public class UserService {
         if (!optionalUser.isPresent()) {
             throw new ResourceNotFoundException("User does not exist");
         }
+        checkUserActivity(userId);
         return  optionalUser.get();
     }
 
@@ -72,6 +73,7 @@ public class UserService {
         if (!optionalUser.isPresent()) {
             throw new ResourceNotFoundException("User does not exist");
         }
+        checkUserActivity(optionalUser.get().getId());
         return optionalUser.get();
     }
 
@@ -80,6 +82,7 @@ public class UserService {
         if (!optionalUser.isPresent()) {
             throw new ResourceNotFoundException("User does not exist");
         }
+        checkUserActivity(optionalUser.get().getId());
         return optionalUser.get();
     }
 
@@ -183,11 +186,7 @@ public class UserService {
         if (!optionalEmployeeProfile.isPresent()) {
             throw new BadParameterValueException("User is not an employee");
         }
-        Optional<EmployeeActivity> employeeActivity = employeeActivityRepository.findByEmployeeProfile(optionalEmployeeProfile.get());
-        if(employeeActivity.isPresent()){
-            //ova osoba je inactive employee
-            throw new ResourceNotFoundException("This employee doesn't exist");
-        }
+        checkUserActivity(optionalEmployeeProfile.get().getAccount().getId());
 
         EmployeeProfile employeeProfile = optionalEmployeeProfile.get();
         if (employeeProfile.getBusiness() != null) {
@@ -205,6 +204,7 @@ public class UserService {
             return new UserResponse();
         }
         EmployeeProfile employeeProfile = optionalEmployeeProfile.get();
+        checkUserActivity(employeeProfile.getAccount().getId());
         return new UserResponse(
                 employeeProfile.getAccount().getId(),
                 username,
@@ -230,6 +230,14 @@ public class UserService {
     public void createPasswordResetTokenForUser(User user, String token) {
         PasswordResetToken myToken = new PasswordResetToken(token, user);
         passwordTokenRepository.save(myToken);
+    }
+
+    public void checkUserActivity(Long userId){
+        Optional<EmployeeActivity> employeeActivity = employeeActivityRepository.findByAccount_Id(userId);
+        if(employeeActivity.isPresent()){
+            //ova osoba je inactive employee
+            throw new ResourceNotFoundException("This user doesn't exist");
+        }
     }
 
 }

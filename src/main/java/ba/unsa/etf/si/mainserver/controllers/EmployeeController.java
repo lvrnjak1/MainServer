@@ -201,7 +201,7 @@ public class EmployeeController {
     @DeleteMapping("/employees/{userId}")
     @Secured({"ROLE_MANAGER", "ROLE_MERCHANT"})
     public ResponseEntity<ApiResponse> fireEmployee(@CurrentUser UserPrincipal userPrincipal, @PathVariable Long userId) {
-        User user = userService.findUserByUsername(userPrincipal.getUsername());
+        User user = userService.findUserById(userId);
         EmployeeProfile employeeProfile = employeeProfileService.findEmployeeByAccount(user);
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         if (!business.getId().equals(employeeProfile.getBusiness().getId())) {
@@ -214,7 +214,6 @@ public class EmployeeController {
             officeService.save(officeOptional.get());
         }
 
-        employeeProfileService.fireEmployee(employeeProfile);
 
 
         List<OfficeProfile> officeProfiles = officeProfileRepository.findAllByEmployeeId(employeeProfile.getId());

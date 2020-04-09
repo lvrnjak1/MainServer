@@ -4,6 +4,7 @@ import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.models.business.CashRegister;
 import ba.unsa.etf.si.mainserver.models.transactions.Receipt;
+import ba.unsa.etf.si.mainserver.models.transactions.ReceiptItem;
 import ba.unsa.etf.si.mainserver.models.transactions.ReceiptStatus;
 import ba.unsa.etf.si.mainserver.models.transactions.ReceiptStatusName;
 import ba.unsa.etf.si.mainserver.repositories.business.PaymentMethodRepository;
@@ -18,6 +19,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ReceiptService {
@@ -103,5 +105,13 @@ public class ReceiptService {
         }
 
         return receiptRepository.findAllByUsernameAndStatus_StatusName(username, receiptStatus.get().getStatusName());
+    }
+
+    public List<Receipt> findAllByProductAndOffice(Long productId, Long officeId) {
+        return receiptItemRepository.findAllByProductId(productId)
+        .stream()
+        .map(ReceiptItem::getReceipt)
+        .filter(receipt -> receipt.getOfficeId().equals(officeId))
+        .collect(Collectors.toList());
     }
 }

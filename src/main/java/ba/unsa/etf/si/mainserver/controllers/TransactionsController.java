@@ -17,9 +17,11 @@ import ba.unsa.etf.si.mainserver.repositories.transactions.ReceiptRepository;
 import ba.unsa.etf.si.mainserver.repositories.transactions.ReceiptStatusRepository;
 import ba.unsa.etf.si.mainserver.requests.transactions.PayServerInfoRequest;
 import ba.unsa.etf.si.mainserver.requests.transactions.PayServerStatusRequest;
+import ba.unsa.etf.si.mainserver.requests.transactions.ReceiptFilterRequest;
 import ba.unsa.etf.si.mainserver.requests.transactions.ReceiptRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.transactions.PayServerInfoResponse;
+import ba.unsa.etf.si.mainserver.responses.transactions.ReceiptResponse;
 import ba.unsa.etf.si.mainserver.responses.transactions.ReceiptResponseLite;
 import ba.unsa.etf.si.mainserver.responses.transactions.ReceiptStatusResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
@@ -261,6 +263,18 @@ public class TransactionsController {
                    );
                })
                .collect(Collectors.toList());
+    }
+
+    @PostMapping("/receipts/filtered")
+    @Secured("ROLE_MERCHANT")
+    public List<ReceiptResponse> getAllReceiptsFiltered(@RequestBody ReceiptFilterRequest receiptFilterRequest,
+                                                        @CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        return receiptService.findAllFilteredByDate(receiptFilterRequest.getFrom(), receiptFilterRequest.getTo(),
+                business.getId())
+                .stream()
+                .map(ReceiptResponse::new)
+                .collect(Collectors.toList());
     }
 
 }

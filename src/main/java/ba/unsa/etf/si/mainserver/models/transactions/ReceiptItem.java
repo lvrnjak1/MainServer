@@ -2,18 +2,12 @@ package ba.unsa.etf.si.mainserver.models.transactions;
 
 import ba.unsa.etf.si.mainserver.models.AuditModel;
 import ba.unsa.etf.si.mainserver.models.products.Product;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 
-@Data
 @Entity
 @Table(name = "receipt_items")
-@NoArgsConstructor
-@AllArgsConstructor
 public class ReceiptItem extends AuditModel {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -25,8 +19,13 @@ public class ReceiptItem extends AuditModel {
     private BigDecimal price;
     private int discountPercentage;
     private String unit;
-
     private double quantity;
+
+    @ManyToOne
+    @JoinColumn(name = "receipt_id")
+    private Receipt receipt;
+
+    public ReceiptItem(){}
 
     public ReceiptItem(Product product, double quantity){
         this.productId = product.getId();
@@ -39,5 +38,77 @@ public class ReceiptItem extends AuditModel {
         else this.discountPercentage = product.getDiscount().getPercentage();
         this.quantity = quantity;
         this.unit = product.getUnit();
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getBarcode() {
+        return barcode;
+    }
+
+    public void setBarcode(String barcode) {
+        this.barcode = barcode;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public int getDiscountPercentage() {
+        return discountPercentage;
+    }
+
+    public void setDiscountPercentage(int discountPercentage) {
+        this.discountPercentage = discountPercentage;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public double getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(double quantity) {
+        this.quantity = quantity;
+    }
+
+    public Receipt getReceipt() {
+        return receipt;
+    }
+
+    public void setReceipt(Receipt receipt) {
+        this.receipt = receipt;
     }
 }

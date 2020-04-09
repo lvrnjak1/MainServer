@@ -7,6 +7,7 @@ import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.CashRegister;
 import ba.unsa.etf.si.mainserver.models.business.Office;
+import ba.unsa.etf.si.mainserver.models.products.OfficeInventory;
 import ba.unsa.etf.si.mainserver.models.products.Product;
 import ba.unsa.etf.si.mainserver.models.transactions.*;
 import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
@@ -19,6 +20,7 @@ import ba.unsa.etf.si.mainserver.requests.transactions.PayServerStatusRequest;
 import ba.unsa.etf.si.mainserver.requests.transactions.ReceiptRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.transactions.PayServerInfoResponse;
+import ba.unsa.etf.si.mainserver.responses.transactions.ReceiptResponseLite;
 import ba.unsa.etf.si.mainserver.responses.transactions.ReceiptStatusResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
@@ -33,11 +35,12 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/receipts")
+@RequestMapping("/api")
 public class TransactionsController {
     private final ReceiptRepository receiptRepository;
     private final ReceiptItemRepository receiptItemRepository;
@@ -75,7 +78,7 @@ public class TransactionsController {
 
 
     //ruta na koju cash server salje racun
-    @PostMapping
+    @PostMapping("/receipts")
     @Secured("ROLE_OFFICEMAN")
     public ResponseEntity<ApiResponse> saveReceipt(@CurrentUser UserPrincipal userPrincipal,
                                                    @RequestBody ReceiptRequest receiptRequest){
@@ -140,7 +143,7 @@ public class TransactionsController {
     }
 
     //ruta na koju cash server polla status pojedinog racuna
-    @GetMapping("/{receiptId}")
+    @GetMapping("/receipts/{receiptId}")
     @Secured("ROLE_OFFICEMAN")
     public ReceiptStatusResponse getReceiptStatus(@CurrentUser UserPrincipal userPrincipal,
                                                                   @PathVariable String receiptId){
@@ -159,7 +162,7 @@ public class TransactionsController {
 
     //ruta na koju pay server trazi info o racunu sa neke kase office i businessa
     //secured
-    @PostMapping("/info")
+    @PostMapping("/receipts/info")
     public PayServerInfoResponse getReceiptInfo(@RequestBody PayServerInfoRequest payServerInfoRequest){
         Business business = businessService.findByName(payServerInfoRequest.getBusinessName());
 
@@ -189,7 +192,7 @@ public class TransactionsController {
     }
 
     //ruta na koju pay server updatuje status o racunu
-    @PutMapping("/{receiptId}")
+    @PutMapping("/receipts/{receiptId}")
     public ResponseEntity<ApiResponse> updateReceiptStatus(@PathVariable String receiptId,
                                                            @RequestBody PayServerStatusRequest receiptStatusRequest){
         Optional<Receipt> receiptOptional = receiptRepository.findByReceiptId(receiptId);
@@ -215,6 +218,49 @@ public class TransactionsController {
         return ResponseEntity.ok(new ApiResponse("Status successfully changed", 200));
     }
 
+    @GetMapping("/offices/{officeId}/products/{productId}/receipts")
+    @Secured("ROLE_MERCHANT")
+    public List<ReceiptResponseLite> getAllReceiptsByProduct(@PathVariable Long productId,
+                                                             @PathVariable Long officeId,
+                                                             @CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        Optional<Office> officeOptional = officeService.findById(officeId);
+        if(!officeOptional.isPresent()){
+            throw new ResourceNotFoundException("This office doesn't exist");
+        }
 
+        Optional<Product> productOptional = productService.findById(productId);
+        if(!productOptional.isPresent()){
+            throw new ResourceNotFoundException("This product doesn't exist");
+        }
+
+        Optional<OfficeInventory> officeInventoryOptional = officeInventoryService.findByProductAndOffice(
+                productOptional.get(), officeOptional.get()
+        );
+
+        if(!officeInventoryOptional.isPresent()){
+            throw new ResourceNotFoundException("This office doesn't stock this product");
+        }
+
+       return receiptService.findAllByProductAndOffice(productId, officeId)
+               .stream()
+               .map(receipt -> {
+                   ReceiptItem receiptItem = receipt.getReceiptItems()
+                           .stream()
+                           .filter(receiptItem1 -> receiptItem1.getProductId().equals(productId))
+                           .findAny()
+                           .orElse(null);
+                   return new ReceiptResponseLite(
+                           receipt.getReceiptId(),
+                           receipt.getCashRegisterId(),
+                           receipt.getTimestamp().getTime(),
+                           receipt.getUsername(),
+                           receiptItem.getPrice(),
+                          receipt.getTotalPrice(),
+                          receiptItem.getQuantity()
+                   );
+               })
+               .collect(Collectors.toList());
+    }
 
 }

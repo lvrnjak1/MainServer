@@ -1,20 +1,12 @@
 package ba.unsa.etf.si.mainserver.models.transactions;
 
 import ba.unsa.etf.si.mainserver.models.AuditModel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
 
-@EqualsAndHashCode(callSuper = true)
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
 @Table(name = "reciepts")
 public class Receipt extends AuditModel {
@@ -60,4 +52,94 @@ public class Receipt extends AuditModel {
         this.receiptItems = receiptItems;
     }
 
+    public Receipt(){
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getReceiptId() {
+        return receiptId;
+    }
+
+    public void setReceiptId(String receiptId) {
+        this.receiptId = receiptId;
+    }
+
+    public Long getCashRegisterId() {
+        return cashRegisterId;
+    }
+
+    public void setCashRegisterId(Long cashRegisterId) {
+        this.cashRegisterId = cashRegisterId;
+    }
+
+    public Long getOfficeId() {
+        return officeId;
+    }
+
+    public void setOfficeId(Long officeId) {
+        this.officeId = officeId;
+    }
+
+    public Long getBusinessId() {
+        return businessId;
+    }
+
+    public void setBusinessId(Long businessId) {
+        this.businessId = businessId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public ReceiptStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ReceiptStatus status) {
+        this.status = status;
+    }
+
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public Set<ReceiptItem> getReceiptItems() {
+        return receiptItems;
+    }
+
+    public void setReceiptItems(Set<ReceiptItem> receiptItems) {
+        this.receiptItems = receiptItems;
+    }
 }

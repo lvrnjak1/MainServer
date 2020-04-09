@@ -40,4 +40,8 @@ public class NotificationService {
         return notificationOptional.get();
     }
 
+    public void delete(Notification notification){
+        notificationRepository.delete(notification);
+    }
+
 }

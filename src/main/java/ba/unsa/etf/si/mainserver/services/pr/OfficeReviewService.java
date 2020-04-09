@@ -6,6 +6,7 @@ import ba.unsa.etf.si.mainserver.repositories.pr.OfficeReviewRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OfficeReviewService {
@@ -28,5 +29,9 @@ public class OfficeReviewService {
 
     public List<OfficeReview> findAllForOffice(Long officeId) {
         return officeReviewRepository.findAllByOffice_Id(officeId);
+    }
+
+    public Optional<OfficeReview> findById(Long reviewId) {
+        return officeReviewRepository.findById(reviewId);
     }
 }

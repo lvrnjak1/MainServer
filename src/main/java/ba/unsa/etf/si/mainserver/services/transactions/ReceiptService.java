@@ -111,7 +111,8 @@ public class ReceiptService {
         return receiptItemRepository.findAllByProductId(productId)
         .stream()
         .map(ReceiptItem::getReceipt)
-        .filter(receipt -> receipt.getOfficeId().equals(officeId))
+        .filter(receipt -> receipt.getOfficeId().equals(officeId) &&
+                receipt.getStatus().getStatusName().toString().equals("PAID"))
         .collect(Collectors.toList());
     }
 }

@@ -162,9 +162,7 @@ public class UserController {
                                                                    @CurrentUser UserPrincipal userPrincipal){
         User user = userService.findUserById(userId);
         EmployeeProfile employeeProfile = employeeProfileService.findEmployeeByAccount(user);
-        boolean admin = true;
         if (userPrincipal.getAuthorities().stream().noneMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
-            admin = false;
             User manager = userService.findUserByUsername(userPrincipal.getUsername());
             EmployeeProfile managerProfile = employeeProfileService.findEmployeeByAccount(manager);
             if (!employeeProfile.getBusiness().getId().equals(managerProfile.getBusiness().getId())) {
@@ -185,7 +183,7 @@ public class UserController {
                         role -> role.getName().toString()
                 )
                 .collect(Collectors.toList());
-        if(oldRoles.contains("ROLE_ADMIN") || (oldRoles.contains("ROLE_MERCHANT") && !admin)){
+        if(oldRoles.contains("ROLE_ADMIN") || oldRoles.contains("ROLE_MERCHANT")){
             throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
         }
         for (String role : oldRoles) {

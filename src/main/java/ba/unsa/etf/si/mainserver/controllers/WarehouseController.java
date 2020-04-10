@@ -1,5 +1,6 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
+import ba.unsa.etf.si.mainserver.configurations.Actions;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
 import ba.unsa.etf.si.mainserver.models.business.Business;
@@ -12,6 +13,7 @@ import ba.unsa.etf.si.mainserver.responses.products.WarehouseLogResponse;
 import ba.unsa.etf.si.mainserver.responses.products.WarehouseResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
+import ba.unsa.etf.si.mainserver.services.admin.logs.LogServerService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.products.ProductService;
 import ba.unsa.etf.si.mainserver.services.products.WarehouseLogService;
@@ -29,15 +31,17 @@ public class WarehouseController {
     private final BusinessService businessService;
     private final ProductService productService;
     private final WarehouseLogService warehouseLogService;
+    private final LogServerService logServerService;
 
     public WarehouseController(WarehouseRepository warehouseRepository,
                                BusinessService businessService,
                                ProductService productService,
-                               WarehouseLogService warehouseLogService) {
+                               WarehouseLogService warehouseLogService, LogServerService logServerService) {
         this.warehouseRepository = warehouseRepository;
         this.businessService = businessService;
         this.productService = productService;
         this.warehouseLogService = warehouseLogService;
+        this.logServerService = logServerService;
     }
 
     @PostMapping
@@ -57,6 +61,15 @@ public class WarehouseController {
         }
 
         warehouseLogService.logNewDelivery(warehouse, warehouseRequest.getQuantity());
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.REGISTER_INCOMING_PRODUCTS_ACTION_NAME,
+                "warehouse",
+                "Employee " + userPrincipal.getUsername() + " has registered product("
+                        + product.getName() + ", quantity = " + warehouseRequest.getQuantity() + ")!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
 
         return new WarehouseResponse(warehouseRepository.save(warehouse));
     }

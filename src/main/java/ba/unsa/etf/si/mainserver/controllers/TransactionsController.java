@@ -1,5 +1,6 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
+import ba.unsa.etf.si.mainserver.configurations.Actions;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
@@ -26,6 +27,7 @@ import ba.unsa.etf.si.mainserver.responses.transactions.ReceiptResponseLite;
 import ba.unsa.etf.si.mainserver.responses.transactions.ReceiptStatusResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
+import ba.unsa.etf.si.mainserver.services.admin.logs.LogServerService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.CashRegisterService;
 import ba.unsa.etf.si.mainserver.services.business.OfficeService;
@@ -64,7 +66,7 @@ public class TransactionsController {
                                   CashRegisterRepository cashRegisterRepository,
                                   PaymentMethodRepository paymentMethodRepository,
                                   ReceiptService receiptService,
-                                  OfficeInventoryService officeInventoryService, CashRegisterService cashRegisterService) {
+                                  OfficeInventoryService officeInventoryService, CashRegisterService cashRegisterService, LogServerService logServerService) {
         this.receiptRepository = receiptRepository;
         this.receiptItemRepository = receiptItemRepository;
         this.productService = productService;

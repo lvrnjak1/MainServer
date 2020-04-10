@@ -1,5 +1,6 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
+import ba.unsa.etf.si.mainserver.configurations.Actions;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
@@ -15,6 +16,7 @@ import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.products.*;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
+import ba.unsa.etf.si.mainserver.services.admin.logs.LogServerService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.CashRegisterService;
 import ba.unsa.etf.si.mainserver.services.business.OfficeService;
@@ -41,7 +43,8 @@ public class ProductController {
     private final OfficeInventoryService officeInventoryService;
     private final CashRegisterService cashRegisterService;
     private final WarehouseRepository warehouseRepository;
-    private CommentService commentService;
+    private final CommentService commentService;
+    private final LogServerService logServerService;
 
     public ProductController(ProductService productService,
                              BusinessService businessService,
@@ -49,7 +52,8 @@ public class ProductController {
                              OfficeInventoryService officeInventoryService,
                              CashRegisterService cashRegisterService,
                              WarehouseRepository warehouseRepository,
-                             CommentService commentService) {
+                             CommentService commentService,
+                             LogServerService logServerService) {
         this.productService = productService;
         this.businessService = businessService;
         this.officeService = officeService;
@@ -57,6 +61,7 @@ public class ProductController {
         this.warehouseRepository = warehouseRepository;
         this.cashRegisterService = cashRegisterService;
         this.commentService = commentService;
+        this.logServerService = logServerService;
     }
 
     @GetMapping("/products")
@@ -95,6 +100,15 @@ public class ProductController {
 
         product.setBusiness(business);
         businessService.save(business);
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.CREATE_PRODUCT_ACTION_NAME,
+                "product",
+                "Employee " + userPrincipal.getUsername() + " has created product: " + product.getName()
+                        + "!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return new ProductResponse(productService.save(product));
     }
 
@@ -109,6 +123,15 @@ public class ProductController {
             Product product = productService.findProductById(productId, business.getId());
             product.setImage(multipartFile.getBytes());
             productService.save(product);
+            // DO NOT EDIT THIS CODE BELOW, EVER
+            logServerService.documentAction(
+                    userPrincipal.getUsername(),
+                    Actions.UPLOAD_IMAGE_ACTION_NAME,
+                    "image",
+                    "Employee " + userPrincipal.getUsername() + " has uploaded image for product " +
+                            product.getName() + "!"
+            );
+            // DO NOT EDIT THIS CODE ABOVE, EVER
             return ResponseEntity.ok(new ApiResponse("Image uploaded successfully", 200));
         } catch (IOException e) {
             throw new BadParameterValueException("Image not sent as image or format not ok");
@@ -128,6 +151,15 @@ public class ProductController {
         product.setUnit(productRequest.getUnit());
         product.setBarcode(productRequest.getBarcode());
         product.setDescription(productRequest.getDescription());
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.UPDATE_PRODUCT_ACTION_NAME,
+                "product",
+                "Employee " + userPrincipal.getUsername() + " has updated the product " +
+                        product.getName() + "!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return new ProductResponse(productService.save(product));
     }
 
@@ -138,6 +170,15 @@ public class ProductController {
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         Product product = productService.findProductById(productId, business.getId());
         productService.delete(product);
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.DELETE_PRODUCT_ACTION_NAME,
+                "product",
+                "EMPLOYEE " + userPrincipal.getUsername() + " has deleted the product " +
+                        product.getName() + "!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return ResponseEntity.ok(new ApiResponse("Product successfully deleted", 200));
     }
 
@@ -177,6 +218,15 @@ public class ProductController {
 
         OfficeInventory officeInventory = new OfficeInventory(office, product, inventoryRequest.getQuantity());
         officeInventoryService.logDelivery(officeInventory, inventoryRequest.getQuantity());
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.PRODUCTS_TO_OFFICE_ACTION_NAME,
+                "office",
+                "Employee " + userPrincipal.getUsername() + " has added product " +
+                        product.getName() + " to office " + office.getContactInformation().getCity() + "!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return new OfficeInventoryResponse(
                 officeInventoryService.save(officeInventory));
     }
@@ -223,18 +273,29 @@ public class ProductController {
 
     @DeleteMapping("/products/{productId}/comments/{commentId}")
     @Secured({"ROLE_PRW", "ROLE_PRP"})
-    public ResponseEntity<?> deleteCommentForProduct(@PathVariable("productId") Long productId,
-                                                     @PathVariable("commentId") Long commentId) {
+    public ResponseEntity<?> deleteCommentForProduct(
+            @PathVariable("productId") Long productId,
+            @PathVariable("commentId") Long commentId,
+            @CurrentUser UserPrincipal userPrincipal) {
         Optional<Product> optionalProduct = productService.findById(productId);
         if (!optionalProduct.isPresent()) {
             throw new ResourceNotFoundException("Product does not exist");
         }
         Optional<Comment> optionalComment = commentService.findById(commentId);
-        if(!optionalComment.isPresent()) {
+        if (!optionalComment.isPresent()) {
             throw new ResourceNotFoundException("Comment does not exist");
         }
         Comment comment = optionalComment.get();
         commentService.delete(comment);
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.DELETE_COMMENT_ON_PRODUCT_ACTION_NAME,
+                "comment",
+                "Employee " + userPrincipal.getUsername() + " has deleted the comment " +
+                        comment.getText() + "!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return ResponseEntity.ok(new ApiResponse("Comment successfully deleted", 200));
     }
 
@@ -248,6 +309,15 @@ public class ProductController {
 
         Discount discount = new Discount(discountRequest.getPercentage());
         product.setDiscount(discount);
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.UPDATE_DISCOUNT_ACTION_NAME,
+                "product",
+                "Employee " + userPrincipal.getUsername() + " has updated discount for product " +
+                        product.getName() + "!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return new ProductResponse(productService.save(product));
     }
 }

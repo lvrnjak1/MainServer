@@ -1,5 +1,6 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
+import ba.unsa.etf.si.mainserver.configurations.Actions;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
@@ -21,6 +22,7 @@ import ba.unsa.etf.si.mainserver.responses.transactions.CashRegisterProfitRespon
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
+import ba.unsa.etf.si.mainserver.services.admin.logs.LogServerService;
 import ba.unsa.etf.si.mainserver.services.business.*;
 import ba.unsa.etf.si.mainserver.services.transactions.ReceiptService;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +49,7 @@ public class BusinessController {
     private final OfficeProfileRepository officeProfileRepository;
     private final EmployeeActivityRepository employeeActivityRepository;
     private final ReceiptService receiptService;
+    private final LogServerService logServerService;
 
     public BusinessController(BusinessService businessService, EmployeeProfileService employeeProfileService,
                               OfficeService officeService, CashRegisterService cashRegisterService,
@@ -54,7 +57,7 @@ public class BusinessController {
                               EmployeeProfileRepository employeeProfileRepository,
                               UserService userService, OfficeProfileRepository officeProfileRepository,
                               EmployeeActivityRepository employeeActivityRepository,
-                              ReceiptService receiptService) {
+                              ReceiptService receiptService, LogServerService logServerService) {
         this.businessService = businessService;
         this.employeeProfileService = employeeProfileService;
         this.officeService = officeService;
@@ -65,6 +68,7 @@ public class BusinessController {
         this.officeProfileRepository = officeProfileRepository;
         this.employeeActivityRepository = employeeActivityRepository;
         this.receiptService = receiptService;
+        this.logServerService = logServerService;
     }
 
     @PostMapping
@@ -130,10 +134,21 @@ public class BusinessController {
 
     @PostMapping("/{id}/restaurant")
     @Secured("ROLE_ADMIN")
-    public BusinessResponse toggleRestaurantFeature(@PathVariable("id") Long businessId){
+    public BusinessResponse toggleRestaurantFeature(
+            @PathVariable("id") Long businessId,
+            @CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.findBusinessById(businessId);
         boolean presentRestaurantFeature = business.isRestaurantFeature();
         business.setRestaurantFeature(!presentRestaurantFeature);
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.ADMIN_TOGGLE_RESTAURANT_ACTION_NAME,
+                "restaurant",
+                "Admin " + userPrincipal.getUsername() + " has toggled the restaurant feature to " +
+                        business.isRestaurantFeature() + "!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return new BusinessResponse(
                 businessService.save(business),
                 officeService.getAllOfficeResponsesByBusinessId(businessId));
@@ -141,32 +156,53 @@ public class BusinessController {
 
     @PostMapping("/{id}/offices")
     @Secured("ROLE_ADMIN")
-    public OfficeResponse addOffice(@PathVariable("id") Long businessId,
-                                      @RequestBody OfficeRequest officeRequest) throws ParseException {
+    public OfficeResponse addOffice(
+            @PathVariable("id") Long businessId,
+            @RequestBody OfficeRequest officeRequest,
+            @CurrentUser UserPrincipal userPrincipal) throws ParseException {
+
         Business business = businessService.findBusinessById(businessId);
         ContactInformation contactInformation = new ContactInformation(officeRequest.getAddress(),
-                officeRequest.getCity(),officeRequest.getCountry(),officeRequest.getEmail(),
+                officeRequest.getCity(), officeRequest.getCountry(), officeRequest.getEmail(),
                 officeRequest.getPhoneNumber());
         Office office = new Office(contactInformation, business, officeRequest.getWorkDayStartDateFromString(),
                 officeRequest.getWorkDayEndDateFromString());
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.ADMIN_CREATE_OFFICE_ACTION_NAME,
+                "office",
+                "Admin " + userPrincipal.getUsername() + " has created an office!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return new OfficeResponse(officeService.save(office), new ArrayList<>());
     }
 
     @DeleteMapping("/{businessId}/offices/{officeId}")
     @Secured("ROLE_ADMIN")
-    public ResponseEntity<ApiResponse> deleteOffice(@PathVariable("businessId") Long businessId,
-                                                    @PathVariable("officeId") Long officeId){
+    public ResponseEntity<ApiResponse> deleteOffice(
+            @PathVariable("businessId") Long businessId,
+            @PathVariable("officeId") Long officeId,
+            @CurrentUser UserPrincipal userPrincipal) {
+
         Office office = officeService.findOfficeById(officeId, businessId);
         office.setManager(null);
 
         employeeProfileService.deleteAllEmployeesFromOffice(office);
 
-        if(office.getBusiness().getMainOfficeId() != null &&
-                office.getBusiness().getMainOfficeId().equals(officeId)){
+        if (office.getBusiness().getMainOfficeId() != null &&
+                office.getBusiness().getMainOfficeId().equals(officeId)) {
             office.getBusiness().setMainOfficeId(null);
             businessService.save(office.getBusiness());
         }
-
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.ADMIN_DELETE_OFFICE_ACTION_NAME,
+                "office",
+                "Admin " + userPrincipal.getUsername() + " has deleted an office!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return ResponseEntity.ok(officeService.deleteOfficeOfBusiness(officeId, businessId));
     }
 
@@ -176,11 +212,21 @@ public class BusinessController {
 
     @PostMapping("/{businessId}/offices/{officeId}/cashRegisters")
     @Secured("ROLE_ADMIN")
-    public CashRegisterWithUUIDResponse addCashRegisterForOffice(@PathVariable("officeId") Long officeId,
-                                                                         @PathVariable("businessId") Long businessId,
-                                                                         @RequestBody CashRegisterRequest cashRegisterRequest){
+    public CashRegisterWithUUIDResponse addCashRegisterForOffice(
+            @PathVariable("officeId") Long officeId,
+            @PathVariable("businessId") Long businessId,
+            @RequestBody CashRegisterRequest cashRegisterRequest,
+            @CurrentUser UserPrincipal userPrincipal) {
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.ADMIN_CREATE_CASH_REGISTER_ACTION_NAME,
+                "cash_register",
+                "Admin " + userPrincipal.getUsername() + " has created a cash register!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return new CashRegisterWithUUIDResponse(cashRegisterService
-                .createCashRegisterInOfficeOfBusiness(officeId,businessId, cashRegisterRequest.getName(), cashRegisterRequest.getUuid()));
+                .createCashRegisterInOfficeOfBusiness(officeId, businessId, cashRegisterRequest.getName(), cashRegisterRequest.getUuid()));
     }
 
     @GetMapping("/{businessId}/offices/{officeId}/cashRegisters/{cashRegisterId}")
@@ -193,32 +239,56 @@ public class BusinessController {
 
     @PostMapping("/{businessId}/offices/{officeId}/cashRegisters/{cashRegisterId}")
     @Secured("ROLE_ADMIN")
-    public CashRegisterWithUUIDResponse editCashRegister(@PathVariable("officeId") Long officeId,
-                                                         @PathVariable("businessId") Long businessId,
-                                                         @PathVariable("cashRegisterId") Long cashRegisterId,
-                                                         @RequestBody CashRegisterRequest cashRegisterRequest){
+    public CashRegisterWithUUIDResponse editCashRegister(
+            @PathVariable("officeId") Long officeId,
+            @PathVariable("businessId") Long businessId,
+            @PathVariable("cashRegisterId") Long cashRegisterId,
+            @RequestBody CashRegisterRequest cashRegisterRequest,
+            @CurrentUser UserPrincipal userPrincipal) {
+
         CashRegister cashRegister = cashRegisterService.findCashRegisterById(cashRegisterId, officeId, businessId);
-        if(cashRegisterRequest.getUuid() != null)
+        if (cashRegisterRequest.getUuid() != null)
             cashRegister.setUuid(cashRegisterRequest.getUuid());
-        if(cashRegisterRequest.getName() != null)
+        if (cashRegisterRequest.getName() != null)
             cashRegister.setName(cashRegisterRequest.getName());
         cashRegisterService.save(cashRegister);
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.ADMIN_EDIT_CASH_REGISTER_ACTION_NAME,
+                "cash_register",
+                "Admin " + userPrincipal.getUsername() + " has edit a cash register!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return new CashRegisterWithUUIDResponse(cashRegister);
     }
 
     @DeleteMapping("/{businessId}/offices/{officeId}/cashRegisters/{cashRegId}")
     @Secured("ROLE_ADMIN")
-    public ResponseEntity<?> deleteCashRegister(@PathVariable("businessId") Long businessId,
-                                          @PathVariable("officeId") Long officeId,
-                                          @PathVariable("cashRegId") Long cashRegisterId){
+    public ResponseEntity<?> deleteCashRegister(
+            @PathVariable("businessId") Long businessId,
+            @PathVariable("officeId") Long officeId,
+            @PathVariable("cashRegId") Long cashRegisterId,
+            @CurrentUser UserPrincipal userPrincipal) {
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.ADMIN_DELETE_CASH_REGISTER_ACTION_NAME,
+                "cash_register",
+                "Admin " + userPrincipal.getUsername() + " has deleted a cash register!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return ResponseEntity.ok(cashRegisterService.deleteCashRegisterByIdFromOfficeOfBusiness(cashRegisterId, officeId, businessId));
     }
 
 
     @PostMapping("/{businessId}/offices/{officeId}/manager")
     @Secured({"ROLE_ADMIN", "ROLE_MERCHANT", "ROLE_MANAGER"})
-    public ResponseEntity<ApiResponse> setManager(@RequestBody OfficeManagerRequest officeManagerRequest,
-                                                  @PathVariable Long businessId, @PathVariable Long officeId) {
+    public ResponseEntity<ApiResponse> setManager(
+            @RequestBody OfficeManagerRequest officeManagerRequest,
+            @PathVariable Long businessId, @PathVariable Long officeId,
+            @CurrentUser UserPrincipal userPrincipal) {
+
         Optional<EmployeeProfile> optionalEmployeeProfile = Optional.empty();
         if (officeManagerRequest.getUserId() != null) {
             optionalEmployeeProfile = employeeProfileRepository
@@ -252,35 +322,42 @@ public class BusinessController {
 
         if (optionalEmployeeProfile.isPresent()) {
             Optional<EmployeeActivity> employeeActivity = employeeActivityRepository.findByEmployeeProfile(optionalEmployeeProfile.get());
-            if(employeeActivity.isPresent()){
+            if (employeeActivity.isPresent()) {
                 //ova osoba je inactive employee
                 throw new ResourceNotFoundException("This employee doesn't exist");
             }
             EmployeeProfile employeeProfile = optionalEmployeeProfile.get();
-            if(employeeProfile.getAccount().getRoles().stream()
-                .noneMatch(role -> role.getName().toString().equals("ROLE_OFFICEMAN")))
-            {
+            if (employeeProfile.getAccount().getRoles().stream()
+                    .noneMatch(role -> role.getName().toString().equals("ROLE_OFFICEMAN"))) {
                 throw new ResourceNotFoundException("This employee isn't officeman");
             }
 
             Office office = officeService.findOfficeById(officeId, businessId);
 
-            if(office.getManager() != null &&
-                    employeeProfile.getId().equals(office.getManager().getId())){ //ista osoba
+            if (office.getManager() != null &&
+                    employeeProfile.getId().equals(office.getManager().getId())) { //ista osoba
                 return ResponseEntity.ok(new ApiResponse(
                         "Employee with id " + employeeProfile.getId() +
-                                " set as manager for office with id " + office.getId(),200));
+                                " set as manager for office with id " + office.getId(), 200));
             }
-            if(office.getManager() != null){ //daje se otkaz starom
+            if (office.getManager() != null) { //daje se otkaz starom
                 EmployeeProfile oldManager = office.getManager();
                 employeeProfileService.unassignEmployeeFromOffice(oldManager, office);
             }
             employeeProfileService.assignEmployeeToOffice(employeeProfile, office, "ROLE_OFFICEMAN");
             office.setManager(employeeProfile);
             officeService.save(office);
+            // DO NOT EDIT THIS CODE BELOW, EVER
+            logServerService.documentAction(
+                    userPrincipal.getUsername(),
+                    Actions.ADMIN_CREATE_CASH_REGISTER_ACTION_NAME,
+                    "cash_register",
+                    "User " + userPrincipal.getUsername() + " has set manager" + employeeProfile.getName()
+            );
+            // DO NOT EDIT THIS CODE ABOVE, EVER
             return ResponseEntity.ok(new ApiResponse(
                     "Employee with id " + employeeProfile.getId() +
-                            " set as manager for office with id " + office.getId(),200));
+                            " set as manager for office with id " + office.getId(), 200));
         }
         throw new AppException("Bad request");
     }
@@ -336,7 +413,14 @@ public class BusinessController {
         }
 
         employeeProfileService.assignEmployeeToOffice(employeeProfile, office, role);
-
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.ASSIGN_EMPLOYEE_FOR_OFFICE_ACTION_NAME,
+                "employee",
+                "Manager " + userPrincipal.getUsername() + " has assigned employee to office"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return ResponseEntity.ok(new ApiResponse("Employee successfully assigned to this office", 200));
     }
 
@@ -356,7 +440,14 @@ public class BusinessController {
             office.setManager(null);
             officeService.save(office);
         }
-
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.UNASSIGN_EMPLOYEE_FOR_OFFICE_ACTION_NAME,
+                "employee",
+                "Employee " + userPrincipal.getUsername() + " has unassigned employee from office!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return ResponseEntity.ok(new ApiResponse("Employee successfully unassigned from this office", 200));
 
     }
@@ -424,20 +515,30 @@ public class BusinessController {
 
     @PutMapping("/mainOffice")
     @Secured("ROLE_MERCHANT")
-    public ApiResponse setMainOffice(@CurrentUser UserPrincipal userPrincipal,
-                                     @RequestBody MainOfficeRequest mainOfficeRequest){
+    public ApiResponse setMainOffice(
+            @CurrentUser UserPrincipal userPrincipal,
+            @RequestBody MainOfficeRequest mainOfficeRequest) {
+
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         Optional<Office> officeOptional = officeService.findById(mainOfficeRequest.getMainOfficeId());
-        if(!officeOptional.isPresent()){
+        if (!officeOptional.isPresent()) {
             throw new ResourceNotFoundException("Office doesn't exist");
         }
 
-        if(!officeOptional.get().getBusiness().getId().equals(business.getId())){
+        if (!officeOptional.get().getBusiness().getId().equals(business.getId())) {
             throw new UnauthorizedException("Not your office");
         }
 
         business.setMainOfficeId(mainOfficeRequest.getMainOfficeId());
         businessService.save(business);
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.SET_MAIN_OFFICE_ACTION_NAME,
+                "office",
+                "Merchant " + userPrincipal.getUsername() + " has set main office!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return new ApiResponse("Office with id " + mainOfficeRequest.getMainOfficeId()
                 + " set as main office of your business", 200);
     }

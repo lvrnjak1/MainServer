@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface EmploymentHistoryRepository extends JpaRepository<EmploymentHistory, Long> {
     List<EmploymentHistory> findAllByEmployeeProfileIdAndOfficeIdAndRole(Long employeeProfileId, Long officeId, String role);
-    List<EmploymentHistory> findAllByEmployeeProfileIdAndOfficeId(Long employeeProfileId, Long officeId);
+    List<EmploymentHistory> findAllByOfficeId(Long officeId);
     List<EmploymentHistory> findAllByEmployeeProfileIdAndRole(Long employeeProfileId, String role);
     List<EmploymentHistory> findAllByEmployeeProfileId(Long employeeProfileId);
 

@@ -83,8 +83,8 @@ public class OfficeService {
                 ).collect(Collectors.toList());
     }
 
-    public Optional<Office> findByManager(EmployeeProfile employeeProfile) {
-        return officeRepository.findByManager(employeeProfile);
+    public List<Office> findAllByManager(EmployeeProfile employeeProfile) {
+        return officeRepository.findAllByManager(employeeProfile);
     }
 
     public List<Office> findAll() {

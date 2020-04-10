@@ -11,7 +11,6 @@ import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.EmployeeProfileRepository;
-import ba.unsa.etf.si.mainserver.repositories.business.EmploymentHistoryRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.business.*;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
@@ -48,8 +47,6 @@ public class BusinessController {
     private final OfficeProfileRepository officeProfileRepository;
     private final EmployeeActivityRepository employeeActivityRepository;
     private final ReceiptService receiptService;
-    private final EmploymentHistoryRepository employmentHistoryRepository;
-    private final OfficeProfileService officeProfileService;
 
     public BusinessController(BusinessService businessService, EmployeeProfileService employeeProfileService,
                               OfficeService officeService, CashRegisterService cashRegisterService,
@@ -57,8 +54,7 @@ public class BusinessController {
                               EmployeeProfileRepository employeeProfileRepository,
                               UserService userService, OfficeProfileRepository officeProfileRepository,
                               EmployeeActivityRepository employeeActivityRepository,
-                              ReceiptService receiptService,
-                              EmploymentHistoryRepository employmentHistoryRepository, OfficeProfileService officeProfileService) {
+                              ReceiptService receiptService) {
         this.businessService = businessService;
         this.employeeProfileService = employeeProfileService;
         this.officeService = officeService;
@@ -69,8 +65,6 @@ public class BusinessController {
         this.officeProfileRepository = officeProfileRepository;
         this.employeeActivityRepository = employeeActivityRepository;
         this.receiptService = receiptService;
-        this.employmentHistoryRepository = employmentHistoryRepository;
-        this.officeProfileService = officeProfileService;
     }
 
     @PostMapping
@@ -138,7 +132,7 @@ public class BusinessController {
     @Secured("ROLE_ADMIN")
     public BusinessResponse toggleRestaurantFeature(@PathVariable("id") Long businessId){
         Business business = businessService.findBusinessById(businessId);
-        Boolean presentRestaurantFeature = business.isRestaurantFeature();
+        boolean presentRestaurantFeature = business.isRestaurantFeature();
         business.setRestaurantFeature(!presentRestaurantFeature);
         return new BusinessResponse(
                 businessService.save(business),
@@ -165,8 +159,7 @@ public class BusinessController {
         Office office = officeService.findOfficeById(officeId, businessId);
         office.setManager(null);
 
-        employeeProfileService.unassignAllEmployeesFromOffice(office);
-        officeService.deleteOfficeOfBusiness(officeId, businessId);
+        employeeProfileService.deleteAllEmployeesFromOffice(office);
 
         if(office.getBusiness().getMainOfficeId() != null &&
                 office.getBusiness().getMainOfficeId().equals(officeId)){
@@ -280,7 +273,7 @@ public class BusinessController {
             }
             if(office.getManager() != null){ //daje se otkaz starom
                 EmployeeProfile oldManager = office.getManager();
-                employeeProfileService.unassignEmployeeFromPosition(oldManager, office, "ROLE_OFFICEMAN");
+                employeeProfileService.unassignEmployeeFromOffice(oldManager, office);
             }
             employeeProfileService.assignEmployeeToOffice(employeeProfile, office, "ROLE_OFFICEMAN");
             office.setManager(employeeProfile);
@@ -321,8 +314,8 @@ public class BusinessController {
 
     @PostMapping("/employees")
     @Secured("ROLE_MANAGER")
-    public ResponseEntity<ApiResponse> hireEmployeeForOffice(@CurrentUser UserPrincipal userPrincipal,
-                                                             @RequestBody HiringRequest hiringRequest){
+    public ResponseEntity<ApiResponse> assignEmployeeForOffice(@CurrentUser UserPrincipal userPrincipal,
+                                                               @RequestBody HiringRequest hiringRequest){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         User user = userService.findUserById(hiringRequest.getEmployeeId());
         EmployeeProfile employeeProfile = employeeProfileService.findEmployeeByAccount(user);
@@ -344,31 +337,27 @@ public class BusinessController {
 
         employeeProfileService.assignEmployeeToOffice(employeeProfile, office, role);
 
-        return ResponseEntity.ok(new ApiResponse("Employee successfully hired at this office", 200));
+        return ResponseEntity.ok(new ApiResponse("Employee successfully assigned to this office", 200));
     }
 
 
     @DeleteMapping("/employees")
     @Secured("ROLE_MANAGER")
-    public ResponseEntity<ApiResponse> fireEmployeeFromOffice(@CurrentUser UserPrincipal userPrincipal,
-                                                             @RequestBody HiringRequest hiringRequest){
+    public ResponseEntity<ApiResponse> unassignEmployeeFromOffice(@CurrentUser UserPrincipal userPrincipal,
+                                                                  @RequestBody HiringRequest hiringRequest){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         User user = userService.findUserById(hiringRequest.getEmployeeId());
         EmployeeProfile employeeProfile = employeeProfileService.findEmployeeByAccount(user);
         Office office = officeService.findOfficeById(hiringRequest.getOfficeId(), business.getId());
 
-        Optional<OfficeProfile> officeProfile = officeProfileRepository.findByEmployeeIdAndOfficeId(employeeProfile.getId(), office.getId());
-        if(!officeProfile.isPresent()){
-            throw new AppException("This office doesn't hire this employee");
-        }
+        employeeProfileService.unassignEmployeeFromOffice(employeeProfile, office);
+
         if(office.getManager()!= null && office.getManager().getId().equals(employeeProfile.getId())){
             office.setManager(null);
             officeService.save(office);
         }
 
-        employeeProfileService.unassignEmployeeFromOffice(officeProfile.get());
-
-        return ResponseEntity.ok(new ApiResponse("Employee successfully fired from this office", 200));
+        return ResponseEntity.ok(new ApiResponse("Employee successfully unassigned from this office", 200));
 
     }
 

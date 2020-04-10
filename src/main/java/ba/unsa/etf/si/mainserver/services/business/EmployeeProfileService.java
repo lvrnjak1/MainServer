@@ -1,5 +1,6 @@
 package ba.unsa.etf.si.mainserver.services.business;
 
+import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.models.auth.User;
@@ -29,13 +30,15 @@ public class EmployeeProfileService {
     private final OfficeProfileRepository officeProfileRepository;
     private final EmploymentHistoryRepository employmentHistoryRepository;
     private final EmployeeActivityRepository employeeActivityRepository;
+    private final OfficeService officeService;
 
-    public EmployeeProfileService(EmployeeProfileRepository employeeProfileRepository, BusinessService businessService, OfficeProfileRepository officeProfileRepository, EmploymentHistoryRepository employmentHistoryRepository, EmployeeActivityRepository employeeActivityRepository) {
+    public EmployeeProfileService(EmployeeProfileRepository employeeProfileRepository, BusinessService businessService, OfficeProfileRepository officeProfileRepository, EmploymentHistoryRepository employmentHistoryRepository, EmployeeActivityRepository employeeActivityRepository, OfficeService officeService) {
         this.employeeProfileRepository = employeeProfileRepository;
         this.businessService = businessService;
         this.officeProfileRepository = officeProfileRepository;
         this.employmentHistoryRepository = employmentHistoryRepository;
         this.employeeActivityRepository = employeeActivityRepository;
+        this.officeService = officeService;
     }
 
     public List<EmployeeProfile> findAllByOptionalBusinessId(Long businessId) {
@@ -107,84 +110,70 @@ public class EmployeeProfileService {
             officeProfileRepository.save(new OfficeProfile(office, employeeProfile));
         }
         else { //vec zaposlen u ovom ofisu
-            List<EmploymentHistory> employmentHistoryList =
-                    employmentHistoryRepository.findAllByEmployeeProfileId(employeeProfile.getId());
-            //mora biti samo jedan
-            for(EmploymentHistory employmentHistory: employmentHistoryList){
-                if(employmentHistory.getEndDate() == null){
-                    employmentHistory.setEndDate(new Date());
-                    employmentHistoryRepository.save(employmentHistory);
-                    break;
-                }
-            }
+            unassignEmployeeFromOffice(employeeProfile, office);
+            officeProfileRepository.save(new OfficeProfile(office, employeeProfile));
         }
+        createNewEmployment(employeeProfile, office, role);
+    }
+
+    public void createNewEmployment(EmployeeProfile employeeProfile, Office office, String role){
         EmploymentHistory employmentHistory =
                 new EmploymentHistory(employeeProfile.getId(),office.getId(), new Date(), null, role);
         employmentHistoryRepository.save(employmentHistory);
     }
 
-
-    public void unassignEmployeeFromPosition(EmployeeProfile employeeProfile, Office office, String role) {
-        Optional<OfficeProfile> officeProfileOptional = officeProfileRepository
-                .findByEmployeeIdAndOfficeId(employeeProfile.getId(), office.getId());
-        if(!officeProfileOptional.isPresent()){
-            throw new BadParameterValueException("This employee is not asssigned to this office");
+    public void endEmployment(EmployeeProfile employeeProfile, Office office, String role){
+        List<EmploymentHistory> employmentHistoryList = null;
+        if (office != null) {
+            employmentHistoryList = employmentHistoryRepository.findAllByEmployeeProfileIdAndOfficeIdAndRole
+                    (employeeProfile.getId(), office.getId(), role);
         }
-        OfficeProfile officeProfile = officeProfileOptional.get();
-        officeProfileRepository.delete(officeProfile); //ne radi vise
-        List<EmploymentHistory> employmentHistoryList =
-                employmentHistoryRepository.findAllByEmployeeProfileIdAndOfficeIdAndRole(employeeProfile.getId(), office.getId(), role);
-        //mora biti samo jedan
-        for(EmploymentHistory employmentHistory: employmentHistoryList){
-            if(employmentHistory.getEndDate() == null){
-                employmentHistory.setEndDate(new Date());
-                employmentHistoryRepository.save(employmentHistory);
-                break;
-            }
+        else{
+            employmentHistoryList = employmentHistoryRepository.findAllByEmployeeProfileIdAndRole
+                    (employeeProfile.getId(), role);
         }
+        employmentHistoryList.stream()
+                .filter(employmentHistory -> employmentHistory.getEndDate() == null)
+                .forEach(employmentHistory -> {
+                    employmentHistory.setEndDate(new Date());
+                    employmentHistoryRepository.save(employmentHistory);
+                });
     }
 
-    public void unassignEmployeeFromOffice(OfficeProfile officeProfile){
-        List<EmploymentHistory> employmentHistoryList =
-                employmentHistoryRepository.findAllByEmployeeProfileIdAndOfficeIdAndRole
-                        (officeProfile.getEmployee().getId(), officeProfile.getOffice().getId(),"ROLE_CASHIER");
-        List<EmploymentHistory> employmentHistoryList2 =
-                employmentHistoryRepository.findAllByEmployeeProfileIdAndOfficeIdAndRole
-                        (officeProfile.getEmployee().getId(), officeProfile.getOffice().getId(),"ROLE_BARTENDER");
-        List<EmploymentHistory> employmentHistoryList3 =
-                employmentHistoryRepository.findAllByEmployeeProfileIdAndOfficeIdAndRole
-                        (officeProfile.getEmployee().getId(), officeProfile.getOffice().getId(),"ROLE_OFFICEMAN");
-        employmentHistoryList.addAll(employmentHistoryList2);
-        employmentHistoryList.addAll(employmentHistoryList3);
-
-        for(EmploymentHistory employmentHistory: employmentHistoryList){
-            if(employmentHistory.getEndDate() == null){
-                employmentHistory.setEndDate(new Date());
-                employmentHistoryRepository.save(employmentHistory);
-                break;
-            }
-        }
-        officeProfileRepository.delete(officeProfile);
+    public void unassignEmployee(EmployeeProfile employeeProfile){
+        officeService.findAllByManager(employeeProfile).forEach(office -> {
+            office.setManager(null);
+            officeService.save(office);
+        });
+        officeProfileRepository.findAllByEmployeeId(employeeProfile.getId())
+                .forEach(officeProfile -> unassignEmployeeFromOffice(employeeProfile,officeProfile.getOffice()));
     }
 
-    public void unassignAllEmployeesFromOffice(Office office){
-        List<OfficeProfile> officeProfiles =
-                officeProfileRepository.findAllByOfficeIdAndOffice_BusinessId(office.getId(),office.getBusiness().getId());
-        if(!officeProfiles.isEmpty()){
-            officeProfiles.forEach(officeProfile -> unassignEmployeeFromOffice(officeProfile));
+    public void unassignEmployeeFromOffice(EmployeeProfile employeeProfile, Office office){
+        Optional<OfficeProfile> officeProfile = officeProfileRepository.findByEmployeeIdAndOfficeId(employeeProfile.getId(), office.getId());
+        if(!officeProfile.isPresent()){
+            throw new AppException("This office doesn't hire this employee");
         }
+        endEmployment(employeeProfile, office, "ROLE_CASHIER");
+        endEmployment(employeeProfile, office,"ROLE_BARTENDER");
+        endEmployment(employeeProfile, office, "ROLE_OFFICEMAN");
+        officeProfileRepository.delete(officeProfile.get());
+    }
+
+    public void deleteAllEmployeesFromOffice(Office office){
+        officeProfileRepository.findAllByOfficeIdAndOffice_BusinessId(office.getId(),office.getBusiness().getId())
+                .forEach(officeProfileRepository::delete);
+        employmentHistoryRepository.findAllByOfficeId(office.getId())
+                .forEach(employmentHistoryRepository::delete);
+
     }
 
     public void fireEmployee(EmployeeProfile employeeProfile){
-        List<OfficeProfile> officeProfiles = officeProfileRepository.findAllByEmployeeId(employeeProfile.getId());
-        for(OfficeProfile officeProfile : officeProfiles){
-            officeProfileRepository.delete(officeProfile);
-        }
+        officeProfileRepository.findAllByEmployeeId(employeeProfile.getId())
+                .forEach(officeProfileRepository::delete);
 
-        List<EmploymentHistory> employmentHistoryList = employmentHistoryRepository.findAllByEmployeeProfileId(employeeProfile.getId());
-        for(EmploymentHistory employmentHistory : employmentHistoryList){
-            employmentHistoryRepository.delete(employmentHistory);
-        }
+        employmentHistoryRepository.findAllByEmployeeProfileId(employeeProfile.getId())
+                .forEach(employmentHistoryRepository::delete);
 
         EmployeeActivity employeeActivity = new EmployeeActivity();
         employeeActivity.setAccount(employeeProfile.getAccount());

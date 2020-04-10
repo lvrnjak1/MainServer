@@ -211,18 +211,10 @@ public class EmployeeController {
             throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
         }
 
-        Optional<Office> officeOptional = officeService.findByManager(employeeProfile);
-        if(officeOptional.isPresent()){
-            officeOptional.get().setManager(null);
-            officeService.save(officeOptional.get());
-        }
-
-
-
-        List<OfficeProfile> officeProfiles = officeProfileRepository.findAllByEmployeeId(employeeProfile.getId());
-        for(OfficeProfile officeProfile : officeProfiles){
-            officeProfileRepository.delete(officeProfile);
-        }
+        officeService.findAllByManager(employeeProfile).forEach(office -> {
+            office.setManager(null);
+            officeService.save(office);
+        });
 
         employeeProfileService.fireEmployee(employeeProfile);
         return ResponseEntity.ok(new ApiResponse("Employee successfully fired", 200));

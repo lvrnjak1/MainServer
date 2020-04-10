@@ -13,5 +13,5 @@ public interface OfficeRepository extends JpaRepository<Office, Long> {
 
     List<Office> findAllByBusinessId(Long businessId);
 
-    Optional<Office> findByManager(EmployeeProfile employeeProfile);
+    List<Office>  findAllByManager(EmployeeProfile employeeProfile);
 }

@@ -1,8 +1,7 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
-import ba.unsa.etf.si.mainserver.exceptions.AppException;
+import ba.unsa.etf.si.mainserver.configurations.Actions;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
-import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.*;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
@@ -18,6 +17,7 @@ import ba.unsa.etf.si.mainserver.responses.business.OpenOfficeResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
+import ba.unsa.etf.si.mainserver.services.admin.logs.LogServerService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
 import ba.unsa.etf.si.mainserver.services.business.NotificationService;
@@ -41,15 +41,17 @@ public class NotificationController {
     private final AdminMerchantNotificationRepository adminMerchantNotificationRepository;
     private final OfficeService officeService;
     private final UserService userService;
+    private final LogServerService logServerService;
 
     public NotificationController(NotificationService notificationService, BusinessService businessService,
-                                  EmployeeProfileService employeeProfileService, AdminMerchantNotificationRepository adminMerchantNotificationRepository, OfficeService officeService, UserService userService) {
+                                  EmployeeProfileService employeeProfileService, AdminMerchantNotificationRepository adminMerchantNotificationRepository, OfficeService officeService, UserService userService, LogServerService logServerService) {
         this.notificationService = notificationService;
         this.businessService = businessService;
         this.employeeProfileService = employeeProfileService;
         this.adminMerchantNotificationRepository = adminMerchantNotificationRepository;
         this.officeService = officeService;
         this.userService = userService;
+        this.logServerService = logServerService;
     }
 
     @PostMapping("/send")
@@ -66,6 +68,14 @@ public class NotificationController {
                     notificationRequest.getTimeFromString());
         } catch (ParseException e) {
         }
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.ADD_NOTIFICATION_ACTION_NAME,
+                "notification",
+                "Employee " + userPrincipal.getUsername() + " has added a notification!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return new NotificationResponse(notificationService.save(notification));
 
     }
@@ -100,6 +110,14 @@ public class NotificationController {
         Notification notification = notificationService.findByIdInBusiness(notificationId, business);
         boolean read = notification.isRead();
         notification.setRead(!read);
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.MARK_NOTIFICATION_ACTION_NAME,
+                "notification",
+                "Merchant " + userPrincipal.getUsername() + " has marked a notification!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return new NotificationResponse(notificationService.save(notification));
     }
 
@@ -110,6 +128,14 @@ public class NotificationController {
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         Notification notification = notificationService.findByIdInBusiness(notificationId, business);
         notificationService.delete(notification);
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.DELETE_NOTIFICATION_ACTION_NAME,
+                "notification",
+                "Merchant " + userPrincipal.getUsername() + " has deleted a notification!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return new ApiResponse("Notification successfully deleted", 200);
     }
 
@@ -131,6 +157,14 @@ public class NotificationController {
                 true
         );
         adminMerchantNotificationRepository.save(adminMerchantNotification);
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.NOTIFY_ADMIN_OPEN_OFFICE_ACTION_NAME,
+                "office",
+                "Employee " + userPrincipal.getUsername() + " has sent a notification to the admin to open an office!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return ResponseEntity.ok(new ApiResponse("Notification successfully sent", 200));
     }
 
@@ -154,6 +188,14 @@ public class NotificationController {
         );
         adminMerchantNotification.setOfficeId(office.getId());
         adminMerchantNotificationRepository.save(adminMerchantNotification);
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.NOTIFY_ADMIN_CLOSE_OFFICE_ACTION_NAME,
+                "office",
+                "Employee " + userPrincipal.getUsername() + " has sent a notification to the admin to close an office!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return ResponseEntity.ok(new ApiResponse("Notification successfully sent", 200));
     }
 
@@ -206,7 +248,9 @@ public class NotificationController {
 
     @PostMapping("/admin/read/{notificationId}")
     @Secured("ROLE_ADMIN")
-    public ResponseEntity<ApiResponse> readOneNotification(@PathVariable Long notificationId){
+    public ResponseEntity<ApiResponse> readOneNotification(
+            @PathVariable Long notificationId,
+            @CurrentUser UserPrincipal userPrincipal){
         Optional<AdminMerchantNotification> adminMerchantNotification =
                 adminMerchantNotificationRepository.findById(notificationId);
 
@@ -216,6 +260,14 @@ public class NotificationController {
 
         adminMerchantNotification.get().setRead(true);
         adminMerchantNotificationRepository.save(adminMerchantNotification.get());
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.ADMIN_READ_NOTIFICATION_ACTION_NAME,
+                "notification",
+                "Admin " + userPrincipal.getUsername() + " has read a notification!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return ResponseEntity.ok(new ApiResponse("Notification is read", 200));
     }
 }

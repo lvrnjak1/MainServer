@@ -1,42 +1,32 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
-import ba.unsa.etf.si.mainserver.exceptions.AppException;
+import ba.unsa.etf.si.mainserver.configurations.Actions;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
-import ba.unsa.etf.si.mainserver.models.employees.EmployeeActivity;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
-import ba.unsa.etf.si.mainserver.models.business.Office;
-import ba.unsa.etf.si.mainserver.models.business.OfficeProfile;
-import ba.unsa.etf.si.mainserver.models.employees.EmploymentHistory;
-import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.EmploymentHistoryRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.business.EmployeeProfileRequest;
 import ba.unsa.etf.si.mainserver.requests.business.RoleChangeRequest;
-import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.UserResponse;
-import ba.unsa.etf.si.mainserver.responses.auth.RegistrationResponse;
-import ba.unsa.etf.si.mainserver.responses.auth.RoleResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.UserNameResponse;
 import ba.unsa.etf.si.mainserver.responses.business.EmployeeProfileResponse;
 import ba.unsa.etf.si.mainserver.responses.transactions.ReceiptResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
+import ba.unsa.etf.si.mainserver.services.admin.logs.LogServerService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
-import ba.unsa.etf.si.mainserver.services.business.OfficeService;
 import ba.unsa.etf.si.mainserver.services.transactions.ReceiptService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -49,17 +39,19 @@ public class UserController {
     private final BusinessService businessService;
     private final EmploymentHistoryRepository employmentHistoryRepository;
     private final ReceiptService receiptService;
+    private final LogServerService logServerService;
 
     public UserController(UserService userService, EmployeeProfileService employeeProfileService,
                           OfficeProfileRepository officeProfileRepository,
                           BusinessService businessService,
-                          EmploymentHistoryRepository employmentHistoryRepository, ReceiptService receiptService) {
+                          EmploymentHistoryRepository employmentHistoryRepository, ReceiptService receiptService, LogServerService logServerService) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.officeProfileRepository = officeProfileRepository;
         this.businessService = businessService;
         this.employmentHistoryRepository = employmentHistoryRepository;
         this.receiptService = receiptService;
+        this.logServerService = logServerService;
     }
 
     @GetMapping("/users")
@@ -112,6 +104,14 @@ public class UserController {
         employeeProfile.getContactInformation().setPhoneNumber(employeeProfileRequest.getPhoneNumber());
 
         EmployeeProfile result = employeeProfileService.save(employeeProfile);
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.UPDATE_USER_PROFILE_ACTION_NAME,
+                "user_account",
+                "User " + userPrincipal.getUsername() + " has changed profile of " + user.getUsername() + "!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return ResponseEntity.ok(new EmployeeProfileResponse(result));
     }
 
@@ -169,6 +169,14 @@ public class UserController {
             }
         }
         userService.changeUserRoles(userId,newRoles);
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.UPDATE_USER_ROLES_ACTION_NAME,
+                "user_account",
+                "User " + userPrincipal.getUsername() + " has changed roles of " + user.getUsername() + "!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return ResponseEntity.ok(new EmployeeProfileResponse(employeeProfile));
     }
 

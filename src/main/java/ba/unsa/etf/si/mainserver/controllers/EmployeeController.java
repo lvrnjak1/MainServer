@@ -1,5 +1,6 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
+import ba.unsa.etf.si.mainserver.configurations.Actions;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
@@ -25,6 +26,7 @@ import ba.unsa.etf.si.mainserver.responses.business.OfficeResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
+import ba.unsa.etf.si.mainserver.services.admin.logs.LogServerService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.CashRegisterService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
@@ -51,11 +53,12 @@ public class EmployeeController {
     private final EmployeeActivityRepository employeeActivityRepository;
     private final OfficeService officeService;
     private final CashRegisterService cashRegisterService;
+    private final LogServerService logServerService;
 
     public EmployeeController(UserService userService, EmployeeProfileService employeeProfileService,
                               OfficeProfileRepository officeProfileRepository,
                               BusinessService businessService,
-                              EmploymentHistoryRepository employmentHistoryRepository, EmployeeActivityRepository employeeActivityRepository, OfficeService officeService, CashRegisterService cashRegisterService) {
+                              EmploymentHistoryRepository employmentHistoryRepository, EmployeeActivityRepository employeeActivityRepository, OfficeService officeService, CashRegisterService cashRegisterService, LogServerService logServerService) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.officeProfileRepository = officeProfileRepository;
@@ -64,6 +67,7 @@ public class EmployeeController {
         this.employeeActivityRepository = employeeActivityRepository;
         this.officeService = officeService;
         this.cashRegisterService = cashRegisterService;
+        this.logServerService = logServerService;
     }
 
     @GetMapping("/offices/{officeId}/employees")
@@ -217,6 +221,14 @@ public class EmployeeController {
         });
 
         employeeProfileService.fireEmployee(employeeProfile);
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.FIRE_EMPLOYEE_ACTION_NAME,
+                "employee",
+                "Employee " + userPrincipal.getUsername() + " has fired employee " + employeeProfile.getName()
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return ResponseEntity.ok(new ApiResponse("Employee successfully fired", 200));
     }
 

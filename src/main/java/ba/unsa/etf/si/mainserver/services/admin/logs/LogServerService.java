@@ -23,7 +23,7 @@ public class LogServerService {
     @Value("${app.logServer}")
     private String logServerUrl;
 
-    @Value("${app.value}")
+    @Value("${app.pass}")
     private String pass;
 
     public LogServerService(RestTemplateBuilder restTemplateBuilder) {

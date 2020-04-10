@@ -80,6 +80,9 @@ public class LogServerService {
     }
 
     public void documentAction(String username, String actionName, String actionObject, String actionDescription) {
+        if (logServerUrl.contains("localhost")) {
+            return;
+        }
         String url = logServerUrl + "/logs";
 
         HttpHeaders headers = new HttpHeaders();

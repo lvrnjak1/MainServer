@@ -28,25 +28,17 @@ public class Actions {
     public static final String NOTIFY_ADMIN_CLOSE_OFFICE_ACTION_NAME = "notify_admin_close_office";
     public static final String ADMIN_READ_NOTIFICATION_ACTION_NAME = "admin_read_notification";
 
-    public static final String RESET_PASSWORD_ACTION_NAME = "reset_password";
-    public static final String SAVE_PASSWORD_ACTION_NAME = "save_password";
-
     public static final String CREATE_PRODUCT_ACTION_NAME = "create_product";
     public static final String UPLOAD_IMAGE_ACTION_NAME = "upload_image";
     public static final String UPDATE_PRODUCT_ACTION_NAME = "update_product";
     public static final String DELETE_PRODUCT_ACTION_NAME = "delete_product";
     public static final String PRODUCTS_TO_OFFICE_ACTION_NAME = "products_to_office";
-    public static final String ADD_COMMENT_ON_PRODUCT_ACTION_NAME = "add_comment_on_product";
     public static final String DELETE_COMMENT_ON_PRODUCT_ACTION_NAME = "delete_comment_on_product";
     public static final String UPDATE_DISCOUNT_ACTION_NAME = "update_discount";
 
-    public static final String SAVE_QUESTION_ACTION_NAME = "save_question";
     public static final String DELETE_QUESTION_ACTION_NAME = "delete_question";
     public static final String SAVE_ANSWER_ACTION_NAME = "save_answer";
     public static final String DELETE_ANSWER_ACTION_NAME = "delete_answer";
-
-    public static final String SAVE_RECEIPT_ACTION_NAME = "save_receipt";
-    public static final String UPDATE_RECEIPT_STATUS_ACTION_NAME = "update_receipt_status";
 
     public static final String UPDATE_USER_PROFILE_ACTION_NAME = "update_user_profile";
     public static final String UPDATE_USER_ROLES_ACTION_NAME = "update_user_roles";

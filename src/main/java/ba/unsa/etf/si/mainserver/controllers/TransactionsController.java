@@ -267,7 +267,7 @@ public class TransactionsController {
                .collect(Collectors.toList());
     }
 
-    @PostMapping("/receipts/filtered")
+    @GetMapping("/receipts/filtered")
     @Secured("ROLE_MERCHANT")
     public List<ReceiptResponse> getAllReceiptsFiltered(@RequestBody ReceiptFilterRequest receiptFilterRequest,
                                                         @CurrentUser UserPrincipal userPrincipal){

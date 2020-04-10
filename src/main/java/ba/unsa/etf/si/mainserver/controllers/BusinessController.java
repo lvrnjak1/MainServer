@@ -73,7 +73,9 @@ public class BusinessController {
 
     @PostMapping
     @Secured("ROLE_ADMIN")
-    public BusinessResponse registerNewBusiness(@RequestBody BusinessRequest businessRequest){
+    public BusinessResponse registerNewBusiness(
+            @RequestBody BusinessRequest businessRequest,
+            @CurrentUser UserPrincipal userPrincipal){
         EmployeeProfile employeeProfile = employeeProfileService.findEmployeeById(businessRequest.getMerchantId());
         User user = userService.findUserById(employeeProfile.getAccount().getId());
         Business business = new Business(businessRequest.getName(),
@@ -82,6 +84,14 @@ public class BusinessController {
         businessService.save(business);
         employeeProfile.setBusiness(business);
         employeeProfileService.save(employeeProfile);
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.ADMIN_CREATE_BUSINESS_ACTION_NAME,
+                "business",
+                "Admin " + userPrincipal.getUsername() + " has a business " + business.getName()
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return new BusinessResponse(business,new ArrayList<>());
     }
 

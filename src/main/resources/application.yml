@@ -25,4 +25,6 @@ spring:
 app:
   jwtSecret: "supershhhhh"
   jwtExpirationInMs: 604800000
+  logServer: ${LOG_SERVER:localhost}
+  pass: ${PASS:pass}
 

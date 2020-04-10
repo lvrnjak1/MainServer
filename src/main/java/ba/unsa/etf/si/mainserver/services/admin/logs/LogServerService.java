@@ -2,13 +2,18 @@ package ba.unsa.etf.si.mainserver.services.admin.logs;
 
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.responses.admin.logs.LogCollectionResponse;
+import ba.unsa.etf.si.mainserver.responses.admin.logs.LogResponse;
+import ba.unsa.etf.si.mainserver.responses.admin.logs.SimpleActionResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 
 @Service
 public class LogServerService {
@@ -26,7 +31,7 @@ public class LogServerService {
     }
 
     public LogCollectionResponse getLogsFromServer(String username, Long from, Long to, String action, String object) {
-        String url = logServerUrl+"/logs";
+        StringBuilder url = new StringBuilder(logServerUrl + "/logs");
         ArrayList<String> entries = new ArrayList<>();
         if (username != null) {
             entries.add("username=" + username);
@@ -44,11 +49,11 @@ public class LogServerService {
             entries.add("object=" + object);
         }
         if (entries.size() != 0) {
-            url = url + "?";
+            url.append("?");
             for (String entry : entries) {
-                url = url + entry + "&";
+                url.append(entry).append("&");
             }
-            url = url.substring(0, url.length() - 1);
+            url = new StringBuilder(url.substring(0, url.length() - 1));
         }
 
         HttpHeaders headers = new HttpHeaders();
@@ -57,7 +62,7 @@ public class LogServerService {
         HttpEntity request = new HttpEntity(headers);
 
         ResponseEntity<LogCollectionResponse> response = restTemplate.exchange(
-                url,
+                url.toString(),
                 HttpMethod.GET,
                 request,
                 LogCollectionResponse.class
@@ -72,5 +77,23 @@ public class LogServerService {
             throw new AppException("Cannot establish connection to server");
         }
         return response.getBody();
+    }
+
+    public void documentAction(String username, String actionName, String actionObject, String actionDescription) {
+        String url = logServerUrl + "/logs";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set("pass", pass);
+
+        LogResponse requestBody = new LogResponse(
+                username,
+                LocalDateTime.now().toEpochSecond(OffsetDateTime.now().getOffset()),
+                new SimpleActionResponse(actionName,actionObject,actionDescription)
+        );
+
+        HttpEntity<LogResponse> entity = new HttpEntity<>(requestBody, headers);
+        System.out.println(restTemplate.postForObject(url, entity, String.class));
     }
 }

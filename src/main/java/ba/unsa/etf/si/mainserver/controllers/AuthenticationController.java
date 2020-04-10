@@ -1,5 +1,6 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
+import ba.unsa.etf.si.mainserver.configurations.Actions;
 import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
@@ -18,11 +19,11 @@ import ba.unsa.etf.si.mainserver.responses.business.EmployeeProfileResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
+import ba.unsa.etf.si.mainserver.services.admin.logs.LogServerService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -30,7 +31,6 @@ import javax.validation.Valid;
 import java.net.URI;
 import java.text.ParseException;
 import java.util.Date;
-import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -42,14 +42,17 @@ public class AuthenticationController {
     private final EmployeeProfileService employeeProfileService;
     private final BusinessService businessService;
     private final EmploymentHistoryRepository employmentHistoryRepository;
+    private final LogServerService logServerService;
 
     public AuthenticationController(UserService userService, EmployeeProfileService employeeProfileService,
                                     BusinessService businessService,
-                                    EmploymentHistoryRepository employmentHistoryRepository) {
+                                    EmploymentHistoryRepository employmentHistoryRepository,
+                                    LogServerService logServerService) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.businessService = businessService;
         this.employmentHistoryRepository = employmentHistoryRepository;
+        this.logServerService = logServerService;
     }
 
     @PostMapping("/_register")
@@ -117,6 +120,12 @@ public class AuthenticationController {
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         String jwt = userService.authenticateUser(loginRequest);
         UserResponse userResponse = userService.getUserResponseByUsername(loginRequest.getUsername());
+        logServerService.documentAction(
+                loginRequest.getUsername(),
+                Actions.LOGIN_ACTION_NAME,
+                "system",
+                "User " + loginRequest.getUsername() + " has logged into the system!"
+        );
         return ResponseEntity.ok(new LoginResponse(jwt, "Bearer", userResponse));
     }
 
@@ -135,22 +144,38 @@ public class AuthenticationController {
                     .toString();
             userService.changeUserPassword(user.getId(), generatedString);
         }
-
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                loginRequest.getUsername(),
+                Actions.LOGIN_ACTION_NAME,
+                "system",
+                "User " + loginRequest.getUsername() + " has logged into the system!"
+        );
         return ResponseEntity.ok(new LoginResponse(jwt, "Bearer", userResponse));
     }
 
     @PutMapping("/user/{userId}")
     @Secured("ROLE_ADMIN")
-    public ResponseEntity<RegistrationResponse> changeUserPassword(@PathVariable Long userId,
-                                                                   @RequestBody ChangePasswordRequest changePasswordRequest) {
+    public ResponseEntity<RegistrationResponse> changeUserPassword(
+            @PathVariable Long userId,
+            @RequestBody ChangePasswordRequest changePasswordRequest,
+            @CurrentUser UserPrincipal userPrincipal) {
         User user = userService.changeUserPassword(userId, changePasswordRequest.getPassword());
         user.setOtp(true);
         userService.save(user);
         EmployeeProfile employeeProfile = new EmployeeProfile();
-        try{
+        try {
             employeeProfile = employeeProfileService.findEmployeeByAccount(user);
+        } catch (Exception ignored) {
         }
-        catch (Exception ignored){}
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.ADMIN_PASSWORD_CHANGE_ACTION_NAME,
+                "user_account",
+                "Admin " + userPrincipal.getUsername() + " has changed password of " + user.getUsername() + "!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return ResponseEntity.ok(new RegistrationResponse(
                 user.getId(),
                 user.getUsername(),
@@ -165,11 +190,11 @@ public class AuthenticationController {
                         employeeProfile.getSurname(),
                         employeeProfile.getStringDate(),
                         employeeProfile.getJmbg(),
-                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getAddress():null,
-                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getCity():null,
-                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getCountry():null,
-                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getEmail():null,
-                        employeeProfile.getContactInformation()!=null?employeeProfile.getContactInformation().getPhoneNumber():null,
+                        employeeProfile.getContactInformation() != null ? employeeProfile.getContactInformation().getAddress() : null,
+                        employeeProfile.getContactInformation() != null ? employeeProfile.getContactInformation().getCity() : null,
+                        employeeProfile.getContactInformation() != null ? employeeProfile.getContactInformation().getCountry() : null,
+                        employeeProfile.getContactInformation() != null ? employeeProfile.getContactInformation().getEmail() : null,
+                        employeeProfile.getContactInformation() != null ? employeeProfile.getContactInformation().getPhoneNumber() : null,
                         employeeProfile.getAccount()
                 )));
     }
@@ -186,6 +211,14 @@ public class AuthenticationController {
         }
         user.setOtp(false);
         userService.changeUserPassword(user.getId(),changePasswordRequest.getPassword());
+        // DO NOT EDIT THIS CODE BELOW, EVER
+        logServerService.documentAction(
+                userPrincipal.getUsername(),
+                Actions.PASSWORD_CHANGE_ACTION_NAME,
+                "user_acount",
+                "User " + userPrincipal.getUsername() + " has changed his password!"
+        );
+        // DO NOT EDIT THIS CODE ABOVE, EVER
         return new ApiResponse("Password changed!", 200);
     }
 }

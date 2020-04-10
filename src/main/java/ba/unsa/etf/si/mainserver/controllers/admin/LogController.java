@@ -3,6 +3,7 @@ package ba.unsa.etf.si.mainserver.controllers.admin;
 import ba.unsa.etf.si.mainserver.responses.admin.logs.LogCollectionResponse;
 import ba.unsa.etf.si.mainserver.services.admin.logs.LogServerService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,6 +19,7 @@ public class LogController {
     }
 
     @GetMapping("/logs")
+    @Secured("ROLE_ADMIN")
     public ResponseEntity<LogCollectionResponse> getLogs(
             @RequestParam(name = "username",required = false) String username,
             @RequestParam(name = "from",required = false) Long from,

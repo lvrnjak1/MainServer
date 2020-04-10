@@ -115,46 +115,6 @@ public class UserController {
         return ResponseEntity.ok(new EmployeeProfileResponse(result));
     }
 
-    void fireEmployee(EmployeeProfile employeeProfile, String role){
-        List<OfficeProfile> officeProfiles = officeProfileRepository.findAllByEmployeeId(employeeProfile.getId());
-        if(!officeProfiles.isEmpty()){
-            for(OfficeProfile officeProfile : officeProfiles){
-                if(officeProfile.getOffice().getManager().getId().equals(employeeProfile.getId())){
-                    officeProfile.getOffice().setManager(null);
-                }
-                List<EmploymentHistory> employmentHistoryList =
-                        employmentHistoryRepository.findAllByEmployeeProfileIdAndOfficeIdAndRole
-                                (officeProfile.getEmployee().getId(), officeProfile.getOffice().getId(), role);
-
-                for(EmploymentHistory employmentHistory: employmentHistoryList){
-                    if(employmentHistory.getEndDate() == null){
-                        employmentHistory.setEndDate(new Date());
-                        employmentHistoryRepository.save(employmentHistory);
-                        break;
-                    }
-                }
-                officeProfileRepository.delete(officeProfile);
-            }
-        }
-    }
-
-    void setEndDateInEmployment(EmployeeProfile employeeProfile, String role){
-        List<EmploymentHistory> employmentHistoryList =
-                employmentHistoryRepository.findAllByEmployeeProfileIdAndRole(employeeProfile.getId(), role);
-        for(EmploymentHistory employmentHistory: employmentHistoryList){
-            if(employmentHistory.getEndDate() == null){
-                employmentHistory.setEndDate(new Date());
-                employmentHistoryRepository.save(employmentHistory);
-                break;
-            }
-        }
-    }
-
-    void makeNewEmloyment(EmployeeProfile employeeProfile, String role) {
-        EmploymentHistory employmentHistory = new EmploymentHistory(employeeProfile.getId(), null, new Date(), null, role);
-        employmentHistoryRepository.save(employmentHistory);
-    }
-
     @PutMapping("/users/roles/{userId}")
     @Secured({"ROLE_ADMIN", "ROLE_MANAGER"})
     public ResponseEntity<EmployeeProfileResponse> updateUserRoles(@RequestBody RoleChangeRequest roleChangeRequest,
@@ -175,31 +135,35 @@ public class UserController {
                         role -> role.getRolename()
                 )
                 .collect(Collectors.toList());
+
         if(newRoles.contains("ROLE_ADMIN") || newRoles.contains("ROLE_MERCHANT")){
             throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
         }
+
         List<String> oldRoles = employeeProfile.getAccount().getRoles().stream()
                 .map(
                         role -> role.getName().toString()
                 )
                 .collect(Collectors.toList());
+
         if(oldRoles.contains("ROLE_ADMIN") || oldRoles.contains("ROLE_MERCHANT")){
             throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
         }
+
         for (String role : oldRoles) {
             if (newRoles.contains(role)) {
                 //sve ok :D ne diraj
             } else if (role.equals("ROLE_PRW") || role.equals("ROLE_WAREMAN") || role.equals("ROLE_PRP") || role.equals("ROLE_MANAGER")) {
-                setEndDateInEmployment(employeeProfile, role);
+                employeeProfileService.endEmployment(employeeProfile, null, role);
             } else if (role.equals("ROLE_CASHIER") || role.equals("ROLE_BARTENDER") || role.equals("ROLE_OFFICEMAN")) {
-                fireEmployee(employeeProfile, role);
+                employeeProfileService.unassignEmployee(employeeProfile);
             }
         }
         for(String role : newRoles) {
             if (oldRoles.contains(role)) {
                 //sve ok :D ne diraj
             } else if (role.equals("ROLE_PRW") || role.equals("ROLE_WAREMAN") || role.equals("ROLE_PRP") || role.equals("ROLE_MANAGER")) {
-                makeNewEmloyment(employeeProfile, role);
+                employeeProfileService.createNewEmployment(employeeProfile, null,  role);
             } else if (role.equals("ROLE_CASHIER") || role.equals("ROLE_BARTENDER") || role.equals("ROLE_OFFICEMAN")) {
                 //nemoj nista jer oni ostaju u ofisu nedodijeljeni
             }

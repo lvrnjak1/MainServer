@@ -79,13 +79,10 @@ public class AuthenticationController {
             @RequestBody @Valid RegistrationRequest registrationRequest) throws ParseException {
         User result = userService.createUserAccount(registrationRequest);
         EmployeeProfile employeeProfile = employeeProfileService.createEmployeeProfile(registrationRequest, result);
-        List<String> roles = registrationRequest.getRoles().stream()
-                .map(roleResponse -> roleResponse.getRolename()).collect(Collectors.toList());
-        for(String role : roles){
-            if(role.equals("ROLE_PRW") || role.equals("ROLE_MANAGER") || role.equals("ROLE_WAREMAN") || role.equals("ROLE_PRP")){
-                employmentHistoryRepository.save(new EmploymentHistory(employeeProfile.getId(),null,new Date(),null,role));
-            }
-        }
+        registrationRequest.getRoles().stream()
+                .map(roleResponse -> roleResponse.getRolename())
+                .filter(role -> role.equals("ROLE_PRW") || role.equals("ROLE_MANAGER") || role.equals("ROLE_WAREMAN") || role.equals("ROLE_PRP"))
+                .forEach(role -> employmentHistoryRepository.save(new EmploymentHistory(employeeProfile.getId(),null,new Date(),null,role)));
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath().path("/api/users/{username}")

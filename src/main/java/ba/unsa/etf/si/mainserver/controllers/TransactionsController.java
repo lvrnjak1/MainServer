@@ -1,6 +1,5 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
-import ba.unsa.etf.si.mainserver.configurations.Actions;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
@@ -267,7 +266,7 @@ public class TransactionsController {
                .collect(Collectors.toList());
     }
 
-    @GetMapping("/receipts/filtered")
+    @PostMapping("/receipts/filtered")
     @Secured("ROLE_MERCHANT")
     public List<ReceiptResponse> getAllReceiptsFiltered(@RequestBody ReceiptFilterRequest receiptFilterRequest,
                                                         @CurrentUser UserPrincipal userPrincipal){
@@ -279,4 +278,14 @@ public class TransactionsController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping("/business/{businessId}/transactions")
+    @Secured("ROLE_ADMIN")
+    public List<ReceiptResponse> getAllTransactionsForBusiness(@PathVariable Long businessId){
+        Business business = businessService.findBusinessById(businessId);
+        return receiptService.findAllByBusinessId(businessId)
+                .stream()
+                .filter(receipt -> receipt.getStatus().getStatusName().toString().equals("PAID"))
+                .map(ReceiptResponse::new)
+                .collect(Collectors.toList());
+    }
 }

@@ -152,4 +152,8 @@ public class ReceiptService {
         date = calendar.getTime();
         return date;
     }
+
+    public List<Receipt> findAllByBusinessId(Long businessId) {
+        return receiptRepository.findAllByBusinessId(businessId);
+    }
 }

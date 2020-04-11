@@ -3,6 +3,8 @@ package ba.unsa.etf.si.mainserver.controllers.admin;
 import ba.unsa.etf.si.mainserver.configurations.Actions;
 import ba.unsa.etf.si.mainserver.responses.admin.logs.ActionCollectionResponse;
 import ba.unsa.etf.si.mainserver.responses.admin.logs.LogCollectionResponse;
+import ba.unsa.etf.si.mainserver.security.CurrentUser;
+import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.admin.logs.LogServerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/admin")
@@ -23,19 +26,35 @@ public class LogController {
     }
 
     @GetMapping("/logs")
-    @Secured("ROLE_ADMIN")
+    @Secured({"ROLE_ADMIN","ROLE_MANAGER"})
     public ResponseEntity<LogCollectionResponse> getLogs(
             @RequestParam(name = "username",required = false) String username,
             @RequestParam(name = "from",required = false) Long from,
             @RequestParam(name = "to",required = false) Long to,
             @RequestParam(name = "action",required = false) String action,
-            @RequestParam(name = "object",required = false) String object
-    ) {
-        return ResponseEntity.ok(logServerService.getLogsFromServer(username,from,to,action,object));
+            @RequestParam(name = "object",required = false) String object,
+            @CurrentUser UserPrincipal userPrincipal
+            ) {
+        LogCollectionResponse response = logServerService.getLogsFromServer(username, from, to, action, object);
+        if (userPrincipal.getAuthorities().stream().noneMatch(authority -> authority.toString().contains("ADMIN"))) {
+            response
+                    .setLogs(
+                            response
+                                    .getLogs()
+                                    .stream()
+                                    .filter(
+                                            logResponse ->
+                                                    !logResponse
+                                                            .getAction()
+                                                            .getName()
+                                                            .contains("admin")
+                                    ).collect(Collectors.toList()));
+        }
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/logs/actions")
-    @Secured("ROLE_ADMIN")
+    @Secured({"ROLE_ADMIN","ROLE_MANAGER"})
     public ResponseEntity<ActionCollectionResponse> getActions() {
         return ResponseEntity.ok(new ActionCollectionResponse(Arrays.asList(
                 Actions.LOGIN_ACTION_NAME,

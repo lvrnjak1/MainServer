@@ -2,12 +2,12 @@ package ba.unsa.etf.si.mainserver.services.business;
 
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
+import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.CashRegister;
-import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.models.business.Office;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.repositories.business.BusinessRepository;
-import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeRepository;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.business.OfficeResponse;
@@ -53,6 +53,10 @@ public class OfficeService {
         return officeRepository.findById(officeId);
     }
 
+    public Office findByIdOrThrow(Long officeId){
+        return findById(officeId).orElseThrow(
+                () -> new ResourceNotFoundException("Office with id " + officeId + " doesn't exist"));
+    }
 
     public void delete(Office office) {
         officeRepository.delete(office);
@@ -89,5 +93,11 @@ public class OfficeService {
 
     public List<Office> findAll() {
         return officeRepository.findAll();
+    }
+
+    public void validateBusiness(Office office, Business business) {
+        if (!office.getBusiness().getId().equals(business.getId())) {
+            throw new UnauthorizedException("Not your office");
+        }
     }
 }

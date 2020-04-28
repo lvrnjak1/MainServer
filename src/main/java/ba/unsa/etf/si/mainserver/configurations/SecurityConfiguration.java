@@ -46,7 +46,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     "/swagger-ui.html**",
                     "/webjars/**",
                     "/v2/api-docs",
-                    "/api/business/**/mainOffice"
+                    "/api/business/**/mainOffice",
+                    "/api/business/**/offices/**/tables"
             };
 
     public SecurityConfiguration(CustomUserDetailsService customUserDetailsService, JwtAuthenticationEntryPoint unauthorizedHandler) {

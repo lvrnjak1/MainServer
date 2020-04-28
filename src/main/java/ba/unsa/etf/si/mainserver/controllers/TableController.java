@@ -31,22 +31,26 @@ public class TableController {
     }
 
     @GetMapping("/offices/{officeId}/tables")
-    @Secured({"ROLE_OFFICEMAN", "ROLE_MERCHANT"})
+    @Secured({"ROLE_OFFICEMAN", "ROLE_MERCHANT", "ROLE_PRW", "ROLE_PRP"})
     public List<TableResponse> getTablesForOffice(@PathVariable Long officeId,
                                                   @CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        businessService.checkIfTablesAvailable(business);
         return  getAllTablesForOfficeAndBusiness(officeService.findByIdOrThrow(officeId),
-                businessService.findBusinessOfCurrentUser(userPrincipal))
+                    business)
                 .stream()
                 .map(TableService::mapTableToTableResponse)
                 .collect(Collectors.toList());
     }
 
+    //ruta za admina i neulogovanog korisnika pr aplikacije
     @GetMapping("/business/{businessId}/offices/{officeId}/tables")
-    @Secured("ROLE_ADMIN")
     public List<TableResponse> getTablesForBusinessAndOffice(@PathVariable Long businessId,
                                                              @PathVariable Long officeId){
+        Business business = businessService.findBusinessById(businessId);
+        businessService.checkIfTablesAvailable(business);
         return getAllTablesForOfficeAndBusiness(officeService.findByIdOrThrow(officeId),
-                    businessService.findBusinessById(businessId))
+                    business)
                 .stream()
                 .map(TableService::mapTableToTableResponse)
                 .collect(Collectors.toList());
@@ -62,10 +66,11 @@ public class TableController {
     public List<TableResponse> addTable(@PathVariable Long officeId,
                                         @PathVariable Long businessId,
                                         @RequestBody TableRequest tableRequest){
-        officeService.validateBusiness(officeService.findByIdOrThrow(officeId),
-                businessService.findBusinessById(businessId));
+        Business business = businessService.findBusinessById(businessId);
+        businessService.checkIfTablesAvailable(business);
+        officeService.validateBusiness(officeService.findByIdOrThrow(officeId), business);
 
-       tableService.save(tableService.getFromTableRequestAndOfficeId(tableRequest, officeId)); //will check unique table number
+        tableService.save(tableService.getFromTableRequestAndOfficeId(tableRequest, officeId)); //will check unique table number
 
         return getTablesForBusinessAndOffice(businessId, officeId);
     }
@@ -75,8 +80,9 @@ public class TableController {
     public List<TableResponse> deleteTable(@PathVariable Long officeId,
                                 @PathVariable Long businessId,
                                 @PathVariable Long tableId){
-        officeService.validateBusiness(officeService.findByIdOrThrow(officeId),
-                businessService.findBusinessById(businessId));
+        Business business = businessService.findBusinessById(businessId);
+        businessService.checkIfTablesAvailable(business);
+        officeService.validateBusiness(officeService.findByIdOrThrow(officeId),business);
 
         if(!tableService.isInOffice(tableId, officeId)){
            throw new UnauthorizedException("Table with id " + tableId + " doesn't exist in this office");

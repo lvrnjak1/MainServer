@@ -1,5 +1,6 @@
 package ba.unsa.etf.si.mainserver.services.business;
 
+import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.models.auth.User;
@@ -93,6 +94,12 @@ public class BusinessService {
                                         )
                         )
                 ).collect(Collectors.toList());
+    }
+
+    public void checkIfTablesAvailable(Business business) {
+        if(!business.isRestaurantFeature()){
+            throw new AppException("This business is not a restaurant!");
+        }
     }
 
 //    public Optional<Business> getBusinessByProductId(Product product){

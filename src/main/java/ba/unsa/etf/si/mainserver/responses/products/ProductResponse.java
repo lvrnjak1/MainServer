@@ -15,6 +15,7 @@ public class ProductResponse {
     private Long id;
     private String name;
     private BigDecimal price;
+    private double pdv;
     private String image = null;
     private String unit;
     private String barcode;
@@ -37,5 +38,6 @@ public class ProductResponse {
         this.unit = product.getUnit();
         this.barcode = product.getBarcode();
         this.description = product.getDescription();
+        this.pdv = product.getPdv();
     }
 }

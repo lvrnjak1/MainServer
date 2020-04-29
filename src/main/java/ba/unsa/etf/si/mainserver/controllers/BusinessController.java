@@ -510,7 +510,7 @@ public class BusinessController {
         Office office = officeService.findOfficeById(officeId, businessId);
 
         List<CashRegister> cashRegisters = cashRegisterRepository.findAllByOfficeId(officeId);
-        return new CashServerConfigResponse(business.getName(),
+        return new CashServerConfigResponse(business.getName(), business.isRestaurantFeature(),
                 cashRegisters.stream().map(CashRegisterWithUUIDResponse::new).collect(Collectors.toList()));
     }
 

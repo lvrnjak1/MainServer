@@ -50,11 +50,6 @@ public class BusinessService {
     }
 
     public Business findBusinessById(Long businessId){
-//        Optional<Business> optionalBusiness = businessRepository.findById(businessId);
-//        if (!optionalBusiness.isPresent()) {
-//            throw new ResourceNotFoundException("No such business with id " + businessId);
-//        }
-//        return optionalBusiness.get();
         return businessRepository.findById(businessId)
                 .orElseThrow(() -> new ResourceNotFoundException("Business with id " + businessId + " doesn't exist"));
     }

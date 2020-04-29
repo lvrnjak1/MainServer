@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import javax.persistence.Table;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -42,6 +43,8 @@ public class Office extends AuditModel { //ovo je poslovnica
     @Basic
     @Temporal(TemporalType.TIME)
     private Date workDayEnd;
+
+    private int maxNumberCashRegisters = 5;
 
     public Office(ContactInformation contactInformation, Business business, Date start, Date end){
         this.contactInformation = contactInformation;
@@ -96,6 +99,14 @@ public class Office extends AuditModel { //ovo je poslovnica
 
     public void setWorkDayEnd(Date workDayEnd) {
         this.workDayEnd = workDayEnd;
+    }
+
+    public int getMaxNumberCashRegisters() {
+        return maxNumberCashRegisters;
+    }
+
+    public void setMaxNumberCashRegisters(int max_number_cashRegisters) {
+        this.maxNumberCashRegisters = max_number_cashRegisters;
     }
 
     public String getStringStart(){

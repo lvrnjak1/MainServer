@@ -202,6 +202,21 @@ public class BusinessController {
                 ),
                 "user_management"
         );
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "open_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been opened."
+                        )
+                ),
+                "warehouse"
+        );
         return new OfficeResponse(officeService.save(office), new ArrayList<>());
     }
 
@@ -230,6 +245,21 @@ public class BusinessController {
                 "Admin " + userPrincipal.getUsername() + " has deleted an office!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "close_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been closed."
+                        )
+                ),
+                "warehouse"
+        );
         return ResponseEntity.ok(officeService.deleteOfficeOfBusiness(officeId, businessId));
     }
 

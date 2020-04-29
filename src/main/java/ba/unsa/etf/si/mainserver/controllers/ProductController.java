@@ -89,7 +89,7 @@ public class ProductController {
 
     @PostMapping("/products")
     @Secured({"ROLE_WAREMAN","ROLE_MERCHANT"})
-    public ProductResponse addProductFroBusiness(@CurrentUser UserPrincipal userPrincipal,
+    public ProductResponse addProductForBusiness(@CurrentUser UserPrincipal userPrincipal,
                                                  @RequestBody ProductRequest productRequest){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         Product product = new Product(productRequest.getName(),

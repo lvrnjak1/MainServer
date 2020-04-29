@@ -15,6 +15,7 @@ public class ReceiptItemResponse {
     private String productName;
     private String barcode;
     private BigDecimal price;
+    private double pdv;
     private int discountPercentage;
     private String unit;
     private double quantity;
@@ -27,5 +28,6 @@ public class ReceiptItemResponse {
         this.discountPercentage = receiptItem.getDiscountPercentage();
         this.unit = receiptItem.getUnit();
         this.quantity = receiptItem.getQuantity();
+        this.pdv = receiptItem.getPdv();
     }
 }

@@ -20,4 +20,5 @@ public class ProductRequest {
     @NotBlank
     private String unit;
     private String description;
+    private double pdv;
 }

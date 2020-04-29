@@ -14,6 +14,8 @@ import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.EmployeeProfileRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.business.*;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.CashServerConfigResponse;
 import ba.unsa.etf.si.mainserver.responses.business.*;
@@ -185,6 +187,51 @@ public class BusinessController {
                 "Admin " + userPrincipal.getUsername() + " has created an office!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "open_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been opened."
+                        )
+                ),
+                "user_management"
+        );
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "open_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been opened."
+                        )
+                ),
+                "warehouse"
+        );
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "open_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been opened."
+                        )
+                ),
+                "merchant_dashboard"
+        );
         return new OfficeResponse(officeService.save(office), new ArrayList<>());
     }
 
@@ -213,12 +260,58 @@ public class BusinessController {
                 "Admin " + userPrincipal.getUsername() + " has deleted an office!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "close_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been closed."
+                        )
+                ),
+                "warehouse"
+        );
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "close_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been closed."
+                        )
+                ),
+                "merchant_dashboard"
+        );
         return ResponseEntity.ok(officeService.deleteOfficeOfBusiness(officeId, businessId));
     }
 
 
 
     // TODO make update route(/{businessId}/offices/{officeId}) for admin
+
+    @PutMapping("/{businessId}/offices/{officeId}/maxCashRegisters")
+    @Secured("ROLE_ADMIN")
+    public ApiResponse ChangeMaxNumberCashRegisters(
+            @PathVariable("officeId") Long officeId,
+            @PathVariable("businessId") Long businessId,
+            @RequestBody MaxRequest maxRequest) {
+
+        Office office = officeService.findOfficeById(officeId, businessId);
+        //provjeri je li broj manji od postojeceg broja kasa
+        office.setMaxNumberCashRegisters(maxRequest.getMax());
+        officeService.save(office);
+
+        return new ApiResponse("Max number of cash registers in office changed to " + maxRequest.getMax(),
+                200);
+    }
 
     @PostMapping("/{businessId}/offices/{officeId}/cashRegisters")
     @Secured("ROLE_ADMIN")
@@ -551,6 +644,21 @@ public class BusinessController {
         // DO NOT EDIT THIS CODE ABOVE, EVER
         return new ApiResponse("Office with id " + mainOfficeRequest.getMainOfficeId()
                 + " set as main office of your business", 200);
+    }
+
+    @PutMapping("/{businessId}/maxOffices")
+    @Secured("ROLE_ADMIN")
+    public ApiResponse changeMaxNumberOffices(
+            @PathVariable("businessId") Long businessId,
+            @RequestBody MaxRequest maxRequest) {
+
+        Business business = businessService.findBusinessById(businessId);
+        //provjeri je li broj manji od postojeceg broja officea
+        business.setMaxNumberOffices(maxRequest.getMax());
+        businessService.save(business);
+
+        return new ApiResponse("Max number of offices in business changed to " + maxRequest.getMax(),
+                200);
     }
 
     @GetMapping("/mainOffice")

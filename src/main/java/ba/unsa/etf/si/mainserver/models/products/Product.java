@@ -27,6 +27,7 @@ public class Product extends AuditModel {
 
     private String name;
     private BigDecimal price;
+    private double pdv;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "discount_id", referencedColumnName = "id")
@@ -43,29 +44,32 @@ public class Product extends AuditModel {
     @JoinColumn(name="business_id", nullable=false)
     private Business business;
 
-    public Product(String name, BigDecimal price, String unit, byte[] image) throws IOException {
+    public Product(String name, BigDecimal price, String unit, byte[] image, double pdv) throws IOException {
         this.name = name;
         this.price = price;
         this.unit = unit;
         this.image = image;
         this.discount = null;
+        this.pdv = pdv;
     }
 
-    public Product(String name, BigDecimal price, String unit, byte[] image, Discount discount) throws IOException {
+    public Product(String name, BigDecimal price, String unit, byte[] image, Discount discount, double pdv) throws IOException {
         this.name = name;
         this.price = price;
         this.unit = unit;
         this.image = image;
         this.discount = discount;
+        this.pdv = pdv;
     }
 
-    public Product(String name, BigDecimal price, String unit, String barcode, String description) {
+    public Product(String name, BigDecimal price, String unit, String barcode, String description, double pdv) {
         this.name = name;
         this.price = price;
         this.unit = unit;
         this.discount = null;
         this.barcode = barcode;
         this.description = description;
+        this.pdv = pdv;
     }
 
     public Long getId() {
@@ -138,5 +142,13 @@ public class Product extends AuditModel {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public double getPdv() {
+        return pdv;
+    }
+
+    public void setPdv(double pdv) {
+        this.pdv = pdv;
     }
 }

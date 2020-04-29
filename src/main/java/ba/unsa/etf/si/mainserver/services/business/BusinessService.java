@@ -1,5 +1,6 @@
 package ba.unsa.etf.si.mainserver.services.business;
 
+import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.models.auth.User;
@@ -49,11 +50,13 @@ public class BusinessService {
     }
 
     public Business findBusinessById(Long businessId){
-        Optional<Business> optionalBusiness = businessRepository.findById(businessId);
-        if (!optionalBusiness.isPresent()) {
-            throw new ResourceNotFoundException("No such business with id " + businessId);
-        }
-        return optionalBusiness.get();
+//        Optional<Business> optionalBusiness = businessRepository.findById(businessId);
+//        if (!optionalBusiness.isPresent()) {
+//            throw new ResourceNotFoundException("No such business with id " + businessId);
+//        }
+//        return optionalBusiness.get();
+        return businessRepository.findById(businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Business with id " + businessId + " doesn't exist"));
     }
 
     public Business findByName(String businessName) {
@@ -93,7 +96,11 @@ public class BusinessService {
                 ).collect(Collectors.toList());
     }
 
-
+    public void checkIfTablesAvailable(Business business) {
+        if(!business.isRestaurantFeature()){
+            throw new AppException("This business is not a restaurant!");
+        }
+    }
 
 //    public Optional<Business> getBusinessByProductId(Product product){
 //        Optional<Office> officeOptional = officeRepository.findById(product.getId());

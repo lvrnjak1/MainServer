@@ -10,6 +10,8 @@ import ba.unsa.etf.si.mainserver.repositories.business.EmploymentHistoryReposito
 import ba.unsa.etf.si.mainserver.requests.auth.ChangePasswordRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.LoginRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.RegistrationRequest;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.UserResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.LoginResponse;
@@ -90,7 +92,17 @@ public class AuthenticationController {
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath().path("/api/users/{username}")
                 .buildAndExpand(result.getUsername()).toUri();
-
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                result.getUsername(),
+                                "hire_employee",
+                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has has been hired."
+                        )
+                ),
+                "merchant_dashboard"
+        );
         return ResponseEntity.created(location).body(
                 new RegistrationResponse(
                         result.getId(),
@@ -120,12 +132,7 @@ public class AuthenticationController {
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         String jwt = userService.authenticateUser(loginRequest);
         UserResponse userResponse = userService.getUserResponseByUsername(loginRequest.getUsername());
-        logServerService.documentAction(
-                loginRequest.getUsername(),
-                Actions.LOGIN_ACTION_NAME,
-                "system",
-                "User " + loginRequest.getUsername() + " has logged into the system!"
-        );
+        logAndNotify(loginRequest);
         return ResponseEntity.ok(new LoginResponse(jwt, "Bearer", userResponse));
     }
 
@@ -144,6 +151,11 @@ public class AuthenticationController {
                     .toString();
             userService.changeUserPassword(user.getId(), generatedString);
         }
+        logAndNotify(loginRequest);
+        return ResponseEntity.ok(new LoginResponse(jwt, "Bearer", userResponse));
+    }
+
+    private void logAndNotify(@RequestBody @Valid LoginRequest loginRequest) {
         // DO NOT EDIT THIS CODE BELOW, EVER
         logServerService.documentAction(
                 loginRequest.getUsername(),
@@ -151,7 +163,19 @@ public class AuthenticationController {
                 "system",
                 "User " + loginRequest.getUsername() + " has logged into the system!"
         );
-        return ResponseEntity.ok(new LoginResponse(jwt, "Bearer", userResponse));
+        if (loginRequest.getRole().equals("ROLE_MERCHANT")) {
+            logServerService.broadcastNotification(
+                    new NotificationRequest(
+                            "info",
+                            new NotificationPayload(
+                                    loginRequest.getUsername(),
+                                    "login",
+                                    "User " + loginRequest.getUsername() + " has logged into the Merchant Dashboard Web app."
+                            )
+                    ),
+                    "user_management"
+            );
+        }
     }
 
     @PutMapping("/user/{userId}")
@@ -219,6 +243,17 @@ public class AuthenticationController {
                 "User " + userPrincipal.getUsername() + " has changed his password!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                user.getUsername(),
+                                "password_change",
+                                user.getUsername() + " has changed his/her password."
+                        )
+                ),
+                "user_management"
+        );
         return new ApiResponse("Password changed!", 200);
     }
 }

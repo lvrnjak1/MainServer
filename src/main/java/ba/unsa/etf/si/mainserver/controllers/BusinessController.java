@@ -14,6 +14,8 @@ import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.EmployeeProfileRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.business.*;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.CashServerConfigResponse;
 import ba.unsa.etf.si.mainserver.responses.business.*;
@@ -185,6 +187,51 @@ public class BusinessController {
                 "Admin " + userPrincipal.getUsername() + " has created an office!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "open_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been opened."
+                        )
+                ),
+                "user_management"
+        );
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "open_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been opened."
+                        )
+                ),
+                "warehouse"
+        );
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "open_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been opened."
+                        )
+                ),
+                "merchant_dashboard"
+        );
         return new OfficeResponse(officeService.save(office), new ArrayList<>());
     }
 
@@ -213,6 +260,36 @@ public class BusinessController {
                 "Admin " + userPrincipal.getUsername() + " has deleted an office!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "close_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been closed."
+                        )
+                ),
+                "warehouse"
+        );
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "close_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been closed."
+                        )
+                ),
+                "merchant_dashboard"
+        );
         return ResponseEntity.ok(officeService.deleteOfficeOfBusiness(officeId, businessId));
     }
 

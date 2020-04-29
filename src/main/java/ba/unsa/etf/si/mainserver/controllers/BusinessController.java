@@ -217,6 +217,21 @@ public class BusinessController {
                 ),
                 "warehouse"
         );
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "open_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been opened."
+                        )
+                ),
+                "merchant_dashboard"
+        );
         return new OfficeResponse(officeService.save(office), new ArrayList<>());
     }
 
@@ -259,6 +274,21 @@ public class BusinessController {
                         )
                 ),
                 "warehouse"
+        );
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "close_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been closed."
+                        )
+                ),
+                "merchant_dashboard"
         );
         return ResponseEntity.ok(officeService.deleteOfficeOfBusiness(officeId, businessId));
     }

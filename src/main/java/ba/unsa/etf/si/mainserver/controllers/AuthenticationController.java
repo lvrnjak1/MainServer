@@ -92,7 +92,17 @@ public class AuthenticationController {
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath().path("/api/users/{username}")
                 .buildAndExpand(result.getUsername()).toUri();
-
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                result.getUsername(),
+                                "hire_employee",
+                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has has been hired."
+                        )
+                ),
+                "merchant_dashboard"
+        );
         return ResponseEntity.created(location).body(
                 new RegistrationResponse(
                         result.getId(),
@@ -233,6 +243,17 @@ public class AuthenticationController {
                 "User " + userPrincipal.getUsername() + " has changed his password!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                user.getUsername(),
+                                "password_change",
+                                user.getUsername() + " has changed his/her password."
+                        )
+                ),
+                "user_management"
+        );
         return new ApiResponse("Password changed!", 200);
     }
 }

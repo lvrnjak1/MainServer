@@ -8,6 +8,8 @@ import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.products.*;
 import ba.unsa.etf.si.mainserver.repositories.products.WarehouseRepository;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
 import ba.unsa.etf.si.mainserver.requests.products.CommentRequest;
 import ba.unsa.etf.si.mainserver.requests.products.DiscountRequest;
 import ba.unsa.etf.si.mainserver.requests.products.InventoryRequest;
@@ -227,6 +229,34 @@ public class ProductController {
                         product.getName() + " to office " + office.getContactInformation().getCity() + "!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                product.getName(),
+                                "office_products_add",
+                                inventoryRequest.getQuantity() + " " +
+                                        product.getName() + " have been added to the office in " +
+                                        office.getContactInformation().getCity() + " " +
+                                        office.getContactInformation().getAddress() + "(" + office.getId() + ")"
+                        )
+                ),
+                "merchant_dashboard"
+        );
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                product.getName(),
+                                "office_products_add",
+                                inventoryRequest.getQuantity() + " " +
+                                        product.getName() + " have been added to the office in " +
+                                        office.getContactInformation().getCity() + " " +
+                                        office.getContactInformation().getAddress() + "(" + office.getId() + ")"
+                        )
+                ),
+                "cash_register"
+        );
         return new OfficeInventoryResponse(
                 officeInventoryService.save(officeInventory));
     }

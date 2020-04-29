@@ -220,6 +220,22 @@ public class BusinessController {
 
     // TODO make update route(/{businessId}/offices/{officeId}) for admin
 
+    @PutMapping("/{businessId}/offices/{officeId}/maxCashRegisters")
+    @Secured("ROLE_ADMIN")
+    public ApiResponse ChangeMaxNumberCashRegisters(
+            @PathVariable("officeId") Long officeId,
+            @PathVariable("businessId") Long businessId,
+            @RequestBody MaxRequest maxRequest) {
+
+        Office office = officeService.findOfficeById(officeId, businessId);
+        //provjeri je li broj manji od postojeceg broja kasa
+        office.setMaxNumberCashRegisters(maxRequest.getMax());
+        officeService.save(office);
+
+        return new ApiResponse("Max number of cash registers in office changed to " + maxRequest.getMax(),
+                200);
+    }
+
     @PostMapping("/{businessId}/offices/{officeId}/cashRegisters")
     @Secured("ROLE_ADMIN")
     public CashRegisterWithUUIDResponse addCashRegisterForOffice(
@@ -551,6 +567,21 @@ public class BusinessController {
         // DO NOT EDIT THIS CODE ABOVE, EVER
         return new ApiResponse("Office with id " + mainOfficeRequest.getMainOfficeId()
                 + " set as main office of your business", 200);
+    }
+
+    @PutMapping("/{businessId}/maxOffices")
+    @Secured("ROLE_ADMIN")
+    public ApiResponse changeMaxNumberOffices(
+            @PathVariable("businessId") Long businessId,
+            @RequestBody MaxRequest maxRequest) {
+
+        Business business = businessService.findBusinessById(businessId);
+        //provjeri je li broj manji od postojeceg broja officea
+        business.setMaxNumberOffices(maxRequest.getMax());
+        businessService.save(business);
+
+        return new ApiResponse("Max number of offices in business changed to " + maxRequest.getMax(),
+                200);
     }
 
     @GetMapping("/mainOffice")

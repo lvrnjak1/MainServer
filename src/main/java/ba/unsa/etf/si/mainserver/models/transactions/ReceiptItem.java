@@ -15,6 +15,7 @@ public class ReceiptItem extends AuditModel {
 
     private Long productId;
     private String productName;
+    private double pdv;
     private String barcode;
     private BigDecimal price;
     private int discountPercentage;
@@ -38,6 +39,7 @@ public class ReceiptItem extends AuditModel {
         else this.discountPercentage = product.getDiscount().getPercentage();
         this.quantity = quantity;
         this.unit = product.getUnit();
+        this.pdv = product.getPdv();
     }
 
     public Long getId() {
@@ -110,5 +112,13 @@ public class ReceiptItem extends AuditModel {
 
     public void setReceipt(Receipt receipt) {
         this.receipt = receipt;
+    }
+
+    public double getPdv() {
+        return pdv;
+    }
+
+    public void setPdv(double pdv) {
+        this.pdv = pdv;
     }
 }

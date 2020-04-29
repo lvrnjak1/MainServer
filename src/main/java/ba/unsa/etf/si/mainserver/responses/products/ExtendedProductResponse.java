@@ -15,6 +15,7 @@ public class ExtendedProductResponse {
     private Long id;
     private String name;
     private BigDecimal price;
+    private double pdv;
     private String image = null;
     private String unit;
     private DiscountResponse discount;
@@ -39,5 +40,6 @@ public class ExtendedProductResponse {
         this.business = product.getBusiness().getName();
         this.barcode = product.getBarcode();
         this.description = product.getDescription();
+        this.pdv = product.getPdv();
     }
 }

@@ -42,6 +42,7 @@ public class ReservationsController {
     public List<ReservationResponse> getAllReservationsForOfficeInBusiness(@PathVariable Long businessId,
                                                                            @PathVariable Long officeId){
         validate(businessId, officeId);
+        businessService.checkIfTablesAvailable(businessService.findBusinessById(businessId));
         return reservationService.
                 findAllForOffice(officeService.findByIdOrThrow(officeId))
                 .stream()
@@ -55,6 +56,7 @@ public class ReservationsController {
                                                @PathVariable Long officeId,
                                                @RequestBody ReservationRequest reservationRequest){
         validate(businessId, officeId);
+        businessService.checkIfTablesAvailable(businessService.findBusinessById(businessId));
         return reservationService.makeReservation(reservationRequest);
     }
 

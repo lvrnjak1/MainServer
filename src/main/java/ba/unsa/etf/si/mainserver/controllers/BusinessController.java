@@ -5,6 +5,7 @@ import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
+import ba.unsa.etf.si.mainserver.models.Language;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.*;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeActivity;
@@ -14,6 +15,8 @@ import ba.unsa.etf.si.mainserver.repositories.business.CashRegisterRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.EmployeeProfileRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.business.*;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.CashServerConfigResponse;
 import ba.unsa.etf.si.mainserver.responses.business.*;
@@ -33,6 +36,7 @@ import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/business")
@@ -172,6 +176,9 @@ public class BusinessController {
             @CurrentUser UserPrincipal userPrincipal) throws ParseException {
 
         Business business = businessService.findBusinessById(businessId);
+        if(business.getMaxNumberOffices() == businessService.countOfficesInBusiness(businessId)){
+            throw new AppException("Business has reached max number of offices");
+        }
         ContactInformation contactInformation = new ContactInformation(officeRequest.getAddress(),
                 officeRequest.getCity(), officeRequest.getCountry(), officeRequest.getEmail(),
                 officeRequest.getPhoneNumber());
@@ -185,6 +192,51 @@ public class BusinessController {
                 "Admin " + userPrincipal.getUsername() + " has created an office!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "open_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been opened."
+                        )
+                ),
+                "user_management"
+        );
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "open_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been opened."
+                        )
+                ),
+                "warehouse"
+        );
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "open_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been opened."
+                        )
+                ),
+                "merchant_dashboard"
+        );
         return new OfficeResponse(officeService.save(office), new ArrayList<>());
     }
 
@@ -213,12 +265,60 @@ public class BusinessController {
                 "Admin " + userPrincipal.getUsername() + " has deleted an office!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "close_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been closed."
+                        )
+                ),
+                "warehouse"
+        );
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "close_office",
+                                "Office in " +
+                                        office.getContactInformation().getCity() +
+                                        " " +
+                                        office.getContactInformation().getAddress() +
+                                        " has been closed."
+                        )
+                ),
+                "merchant_dashboard"
+        );
         return ResponseEntity.ok(officeService.deleteOfficeOfBusiness(officeId, businessId));
     }
 
 
 
     // TODO make update route(/{businessId}/offices/{officeId}) for admin
+
+    @PutMapping("/{businessId}/offices/{officeId}/maxCashRegisters")
+    @Secured("ROLE_ADMIN")
+    public ApiResponse ChangeMaxNumberCashRegisters(
+            @PathVariable("officeId") Long officeId,
+            @PathVariable("businessId") Long businessId,
+            @RequestBody MaxRequest maxRequest) {
+
+        Office office = officeService.findOfficeById(officeId, businessId);
+        if(officeService.countCashRegsitersInOffice(officeId) > maxRequest.getMax()){
+            throw new AppException("Currently there are more cash registers in office than " + maxRequest.getMax());
+        }
+        office.setMaxNumberCashRegisters(maxRequest.getMax());
+        officeService.save(office);
+
+        return new ApiResponse("Max number of cash registers in office changed to " + maxRequest.getMax(),
+                200);
+    }
 
     @PostMapping("/{businessId}/offices/{officeId}/cashRegisters")
     @Secured("ROLE_ADMIN")
@@ -227,6 +327,10 @@ public class BusinessController {
             @PathVariable("businessId") Long businessId,
             @RequestBody CashRegisterRequest cashRegisterRequest,
             @CurrentUser UserPrincipal userPrincipal) {
+        Office office = officeService.findOfficeById(officeId, businessId);
+        if(office.getMaxNumberCashRegisters() == officeService.countCashRegsitersInOffice(officeId)){
+            throw new AppException("Office has reached max number of cash registers");
+        }
         // DO NOT EDIT THIS CODE BELOW, EVER
         logServerService.documentAction(
                 userPrincipal.getUsername(),
@@ -510,8 +614,9 @@ public class BusinessController {
         Office office = officeService.findOfficeById(officeId, businessId);
 
         List<CashRegister> cashRegisters = cashRegisterRepository.findAllByOfficeId(officeId);
-        return new CashServerConfigResponse(business.getName(), business.isRestaurantFeature(),
-                cashRegisters.stream().map(CashRegisterWithUUIDResponse::new).collect(Collectors.toList()));
+        return new CashServerConfigResponse(business.getName(),business.isRestaurantFeature(),
+                cashRegisters.stream().map(CashRegisterWithUUIDResponse::new).collect(Collectors.toList()),
+                office.getLanguageName().toString());
     }
 
     //ruta za PR app da vide informacije o svim offices u svim businesses
@@ -553,6 +658,23 @@ public class BusinessController {
                 + " set as main office of your business", 200);
     }
 
+    @PutMapping("/{businessId}/maxOffices")
+    @Secured("ROLE_ADMIN")
+    public ApiResponse changeMaxNumberOffices(
+            @PathVariable("businessId") Long businessId,
+            @RequestBody MaxRequest maxRequest) {
+
+        Business business = businessService.findBusinessById(businessId);
+        if(businessService.countOfficesInBusiness(businessId) > maxRequest.getMax()){
+            throw new AppException("Currently there are more offices in business than " + maxRequest.getMax());
+        }
+        business.setMaxNumberOffices(maxRequest.getMax());
+        businessService.save(business);
+
+        return new ApiResponse("Max number of offices in business changed to " + maxRequest.getMax(),
+                200);
+    }
+
     @GetMapping("/mainOffice")
     @Secured({"ROLE_MERCHANT", "ROLE_PRW", "ROLE_PRP", "ROLE_ADMIN", "ROLE_MANAGER", "ROLE_WAREMAN", "ROLE_OFFICEMAN"})
     public MainOfficeResponse getMyMainOffice(@CurrentUser UserPrincipal userPrincipal){
@@ -565,5 +687,32 @@ public class BusinessController {
     public MainOfficeResponse getMainOfficeForBusiness(@PathVariable Long businessId){
         Business business = businessService.findBusinessById(businessId);
         return new MainOfficeResponse(business.getMainOfficeId());
+    }
+
+    @GetMapping("/languages")
+    public List<LanguageResponse> getAllLanguages(){
+        return Stream.of(Language.values())
+                .map(language -> new LanguageResponse(language.toString()))
+                .collect(Collectors.toList());
+    }
+
+    @PutMapping("/{businessId}/offices/{officeId}/language")
+    @Secured("ROLE_ADMIN")
+    public ApiResponse ChangeOfficeDefaultLanguage(
+            @PathVariable("officeId") Long officeId,
+            @PathVariable("businessId") Long businessId,
+            @RequestBody LanguageRequest languageRequest) {
+
+        Office office = officeService.findOfficeById(officeId, businessId);
+        try {
+            office.setLanguage(languageRequest.getLanguage());
+            officeService.save(office);
+        }
+        catch (IllegalArgumentException e){
+            throw new BadParameterValueException("Language is not defined");
+        }
+
+        return new ApiResponse("Office language set to " + languageRequest.getLanguage(),
+                200);
     }
 }

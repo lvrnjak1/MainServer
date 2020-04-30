@@ -1,6 +1,7 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
 import ba.unsa.etf.si.mainserver.configurations.Actions;
+import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.*;
@@ -9,6 +10,7 @@ import ba.unsa.etf.si.mainserver.repositories.products.AdminMerchantNotification
 import ba.unsa.etf.si.mainserver.requests.business.CloseOfficeRequest;
 import ba.unsa.etf.si.mainserver.requests.business.NotificationRequest;
 import ba.unsa.etf.si.mainserver.requests.business.OpenOfficeRequest;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.business.CloseOfficeResponse;
 import ba.unsa.etf.si.mainserver.responses.business.MANotificationResponse;
@@ -144,7 +146,9 @@ public class NotificationController {
     public ResponseEntity<ApiResponse> notifyAdminToOpen(@CurrentUser UserPrincipal userPrincipal,
                                                          @RequestBody OpenOfficeRequest notificationRequest) throws ParseException {
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
-
+        if(business.getMaxNumberOffices() == businessService.countOfficesInBusiness(business.getId())){
+            throw new AppException("Business has reached max number of offices");
+        }
         AdminMerchantNotification adminMerchantNotification = new AdminMerchantNotification(
                 business,
                 notificationRequest.getAddress(),
@@ -165,6 +169,17 @@ public class NotificationController {
                 "Employee " + userPrincipal.getUsername() + " has sent a notification to the admin to open an office!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                userPrincipal.getUsername(),
+                                "open_request",
+                                "User "+userPrincipal.getUsername()+" has sent a request to open an office."
+                        )
+                ),
+                "admin"
+        );
         return ResponseEntity.ok(new ApiResponse("Notification successfully sent", 200));
     }
 
@@ -196,6 +211,17 @@ public class NotificationController {
                 "Employee " + userPrincipal.getUsername() + " has sent a notification to the admin to close an office!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                userPrincipal.getUsername(),
+                                "close_request",
+                                "User "+userPrincipal.getUsername()+" has sent a request to close an office."
+                        )
+                ),
+                "admin"
+        );
         return ResponseEntity.ok(new ApiResponse("Notification successfully sent", 200));
     }
 

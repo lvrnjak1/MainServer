@@ -14,4 +14,5 @@ public class CashServerConfigResponse {
     private String businessName;
     private boolean restaurant;
     private List<CashRegisterWithUUIDResponse> cashRegisters;
+    private String language;
 }

@@ -15,6 +15,8 @@ import ba.unsa.etf.si.mainserver.models.employees.EmploymentHistory;
 import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.EmploymentHistoryRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.UserResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.RegistrationResponse;
@@ -229,6 +231,17 @@ public class EmployeeController {
                 "Employee " + userPrincipal.getUsername() + " has fired employee " + employeeProfile.getName()
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "warning",
+                        new NotificationPayload(
+                                userPrincipal.getUsername(),
+                                "fire_employee",
+                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has been fired."
+                        )
+                ),
+                "merchant_dashboard"
+        );
         return ResponseEntity.ok(new ApiResponse("Employee successfully fired", 200));
     }
 

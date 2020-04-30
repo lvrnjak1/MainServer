@@ -1,6 +1,7 @@
 package ba.unsa.etf.si.mainserver.services.admin.logs;
 
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
 import ba.unsa.etf.si.mainserver.responses.admin.logs.LogCollectionResponse;
 import ba.unsa.etf.si.mainserver.responses.admin.logs.LogResponse;
 import ba.unsa.etf.si.mainserver.responses.admin.logs.SimpleActionResponse;
@@ -97,6 +98,21 @@ public class LogServerService {
         );
 
         HttpEntity<LogResponse> entity = new HttpEntity<>(requestBody, headers);
+        System.out.println(restTemplate.postForObject(url, entity, String.class));
+    }
+
+    public void broadcastNotification(NotificationRequest notification, String receiver) {
+        if (logServerUrl.contains("localhost")) {
+            return;
+        }
+        String url = logServerUrl + "/notify/" + receiver;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set("pass", pass);
+
+        HttpEntity<NotificationRequest> entity = new HttpEntity<>(notification, headers);
         System.out.println(restTemplate.postForObject(url, entity, String.class));
     }
 }

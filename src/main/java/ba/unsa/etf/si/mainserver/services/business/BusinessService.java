@@ -97,6 +97,10 @@ public class BusinessService {
         }
     }
 
+    public int countOfficesInBusiness(Long businessId){
+        return officeRepository.findAllByBusinessId(businessId).size();
+    }
+
 //    public Optional<Business> getBusinessByProductId(Product product){
 //        Optional<Office> officeOptional = officeRepository.findById(product.getId());
 //        if(officeOptional.isPresent()){

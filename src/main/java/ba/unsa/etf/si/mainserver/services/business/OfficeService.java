@@ -100,4 +100,8 @@ public class OfficeService {
             throw new UnauthorizedException("Not your office");
         }
     }
+
+    public int countCashRegsitersInOffice(Long officeId){
+        return cashRegisterService.getAllCashRegistersByOfficeId(officeId).size();
+    }
 }

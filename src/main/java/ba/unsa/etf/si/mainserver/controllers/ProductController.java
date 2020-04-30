@@ -7,7 +7,10 @@ import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.products.*;
+import ba.unsa.etf.si.mainserver.repositories.PDVRepository;
 import ba.unsa.etf.si.mainserver.repositories.products.WarehouseRepository;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
 import ba.unsa.etf.si.mainserver.requests.products.CommentRequest;
 import ba.unsa.etf.si.mainserver.requests.products.DiscountRequest;
 import ba.unsa.etf.si.mainserver.requests.products.InventoryRequest;
@@ -45,6 +48,7 @@ public class ProductController {
     private final WarehouseRepository warehouseRepository;
     private final CommentService commentService;
     private final LogServerService logServerService;
+    private final PDVRepository pdvRepository;
 
     public ProductController(ProductService productService,
                              BusinessService businessService,
@@ -53,7 +57,7 @@ public class ProductController {
                              CashRegisterService cashRegisterService,
                              WarehouseRepository warehouseRepository,
                              CommentService commentService,
-                             LogServerService logServerService) {
+                             LogServerService logServerService, PDVRepository pdvRepository) {
         this.productService = productService;
         this.businessService = businessService;
         this.officeService = officeService;
@@ -62,6 +66,7 @@ public class ProductController {
         this.cashRegisterService = cashRegisterService;
         this.commentService = commentService;
         this.logServerService = logServerService;
+        this.pdvRepository = pdvRepository;
     }
 
     @GetMapping("/products")
@@ -89,14 +94,17 @@ public class ProductController {
 
     @PostMapping("/products")
     @Secured({"ROLE_WAREMAN","ROLE_MERCHANT"})
-    public ProductResponse addProductFroBusiness(@CurrentUser UserPrincipal userPrincipal,
+    public ProductResponse addProductForBusiness(@CurrentUser UserPrincipal userPrincipal,
                                                  @RequestBody ProductRequest productRequest){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        pdvRepository.findByPdvRate(productRequest.getPdv())
+                .orElseThrow(() -> new BadParameterValueException("PDV rate doesn't exist"));
         Product product = new Product(productRequest.getName(),
                 productRequest.getPrice(),
                 productRequest.getUnit(),
                 productRequest.getBarcode(),
-                productRequest.getDescription());
+                productRequest.getDescription(),
+                productRequest.getPdv());
 
         product.setBusiness(business);
         businessService.save(business);
@@ -145,12 +153,14 @@ public class ProductController {
                                                     @CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         Product product = productService.findProductById(productId, business.getId());
-
+        pdvRepository.findByPdvRate(productRequest.getPdv())
+                .orElseThrow(() -> new BadParameterValueException("PDV rate doesn't exist"));
         product.setName(productRequest.getName());
         product.setPrice(productRequest.getPrice());
         product.setUnit(productRequest.getUnit());
         product.setBarcode(productRequest.getBarcode());
         product.setDescription(productRequest.getDescription());
+        product.setPdv(productRequest.getPdv());
         // DO NOT EDIT THIS CODE BELOW, EVER
         logServerService.documentAction(
                 userPrincipal.getUsername(),
@@ -227,6 +237,34 @@ public class ProductController {
                         product.getName() + " to office " + office.getContactInformation().getCity() + "!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                product.getName(),
+                                "office_products_add",
+                                inventoryRequest.getQuantity() + " " +
+                                        product.getName() + " have been added to the office in " +
+                                        office.getContactInformation().getCity() + " " +
+                                        office.getContactInformation().getAddress() + "(" + office.getId() + ")"
+                        )
+                ),
+                "merchant_dashboard"
+        );
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                product.getName(),
+                                "office_products_add",
+                                inventoryRequest.getQuantity() + " " +
+                                        product.getName() + " have been added to the office in " +
+                                        office.getContactInformation().getCity() + " " +
+                                        office.getContactInformation().getAddress() + "(" + office.getId() + ")"
+                        )
+                ),
+                "cash_register"
+        );
         return new OfficeInventoryResponse(
                 officeInventoryService.save(officeInventory));
     }

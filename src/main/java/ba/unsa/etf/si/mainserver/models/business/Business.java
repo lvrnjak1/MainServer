@@ -28,6 +28,8 @@ public class Business extends AuditModel { //ovo je kao Bingo
     @Column(name = "main_office_id")
     private Long mainOfficeId = null;
 
+    private int maxNumberOffices = 5;
+
     public Business(String name, boolean restaurantFeature, EmployeeProfile merchant) {
         this.name = name;
         this.restaurantFeature = restaurantFeature;
@@ -72,5 +74,13 @@ public class Business extends AuditModel { //ovo je kao Bingo
 
     public void setMainOfficeId(Long mainOfficeId) {
         this.mainOfficeId = mainOfficeId;
+    }
+
+    public int getMaxNumberOffices() {
+        return maxNumberOffices;
+    }
+
+    public void setMaxNumberOffices(int max_number_offices) {
+        this.maxNumberOffices = max_number_offices;
     }
 }

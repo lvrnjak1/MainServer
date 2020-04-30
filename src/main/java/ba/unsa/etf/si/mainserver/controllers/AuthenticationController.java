@@ -10,6 +10,9 @@ import ba.unsa.etf.si.mainserver.repositories.business.EmploymentHistoryReposito
 import ba.unsa.etf.si.mainserver.requests.auth.ChangePasswordRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.LoginRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.RegistrationRequest;
+import ba.unsa.etf.si.mainserver.requests.auth.SyncPasswordRequest;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.UserResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.LoginResponse;
@@ -90,7 +93,17 @@ public class AuthenticationController {
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath().path("/api/users/{username}")
                 .buildAndExpand(result.getUsername()).toUri();
-
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                result.getUsername(),
+                                "hire_employee",
+                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has has been hired."
+                        )
+                ),
+                "merchant_dashboard"
+        );
         return ResponseEntity.created(location).body(
                 new RegistrationResponse(
                         result.getId(),
@@ -120,12 +133,7 @@ public class AuthenticationController {
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         String jwt = userService.authenticateUser(loginRequest);
         UserResponse userResponse = userService.getUserResponseByUsername(loginRequest.getUsername());
-        logServerService.documentAction(
-                loginRequest.getUsername(),
-                Actions.LOGIN_ACTION_NAME,
-                "system",
-                "User " + loginRequest.getUsername() + " has logged into the system!"
-        );
+        logAndNotify(loginRequest);
         return ResponseEntity.ok(new LoginResponse(jwt, "Bearer", userResponse));
     }
 
@@ -144,6 +152,11 @@ public class AuthenticationController {
                     .toString();
             userService.changeUserPassword(user.getId(), generatedString);
         }
+        logAndNotify(loginRequest);
+        return ResponseEntity.ok(new LoginResponse(jwt, "Bearer", userResponse));
+    }
+
+    private void logAndNotify(@RequestBody @Valid LoginRequest loginRequest) {
         // DO NOT EDIT THIS CODE BELOW, EVER
         logServerService.documentAction(
                 loginRequest.getUsername(),
@@ -151,7 +164,19 @@ public class AuthenticationController {
                 "system",
                 "User " + loginRequest.getUsername() + " has logged into the system!"
         );
-        return ResponseEntity.ok(new LoginResponse(jwt, "Bearer", userResponse));
+        if (loginRequest.getRole().equals("ROLE_MERCHANT")) {
+            logServerService.broadcastNotification(
+                    new NotificationRequest(
+                            "info",
+                            new NotificationPayload(
+                                    loginRequest.getUsername(),
+                                    "login",
+                                    "User " + loginRequest.getUsername() + " has logged into the Merchant Dashboard Web app."
+                            )
+                    ),
+                    "user_management"
+            );
+        }
     }
 
     @PutMapping("/user/{userId}")
@@ -205,20 +230,48 @@ public class AuthenticationController {
                                       @RequestBody ChangePasswordRequest changePasswordRequest) {
         User user = userService.findUserByUsername(userPrincipal.getUsername());
         if (userPrincipal.getAuthorities().stream().noneMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
-            if(!user.isOtp()){
+            if (!user.isOtp()) {
                 throw new UnauthorizedException("You do not have permission to change password");
             }
         }
         user.setOtp(false);
-        userService.changeUserPassword(user.getId(),changePasswordRequest.getPassword());
+        userService.save(user);
+        userService.changeUserPassword(user.getId(), changePasswordRequest.getPassword());
+        logAndNotifyPasswordChange(userPrincipal.getUsername());
+        return new ApiResponse("Password changed!", 200);
+    }
+
+    @PutMapping("/office-changePassword")
+    @Secured({"ROLE_OFFICEMAN"})
+    public ApiResponse officeChangePassword(@RequestBody SyncPasswordRequest syncPasswordRequest) {
+        User user = userService.findUserByUsername(syncPasswordRequest.getUsername());
+        user.setOtp(false);
+        //oni posalju zakodiran string
+        user.setPassword(syncPasswordRequest.getPassword());
+        userService.save(user);
+        logAndNotifyPasswordChange(syncPasswordRequest.getUsername());
+        return new ApiResponse("Password changed!", 200);
+    }
+
+    private void logAndNotifyPasswordChange(String username){
         // DO NOT EDIT THIS CODE BELOW, EVER
         logServerService.documentAction(
-                userPrincipal.getUsername(),
+                username,
                 Actions.PASSWORD_CHANGE_ACTION_NAME,
                 "user_acount",
-                "User " + userPrincipal.getUsername() + " has changed his password!"
+                "User " + username + " has changed his password!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
-        return new ApiResponse("Password changed!", 200);
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                username,
+                                "password_change",
+                                username + " has changed his/her password."
+                        )
+                ),
+                "user_management"
+        );
     }
 }

@@ -6,6 +6,8 @@ import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.pr.Answer;
 import ba.unsa.etf.si.mainserver.models.pr.Question;
 import ba.unsa.etf.si.mainserver.models.pr.QuestionAuthor;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
 import ba.unsa.etf.si.mainserver.requests.pr.AnswerRequest;
 import ba.unsa.etf.si.mainserver.requests.pr.QuestionRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
@@ -21,6 +23,9 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoField;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,6 +55,17 @@ public class QuestionController {
             throw new AppException("Invalid date or time format");
         }
         questionAuthor.setQuestion(question);
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "question",
+                                "question_add",
+                                "A user has asked a question"
+                        )
+                ),
+                "public_relations"
+        );
         return new QuestionResponse(questionService.save(question));
     }
 

@@ -14,4 +14,5 @@ import java.util.List;
 public class CashServerConfigResponse {
     private String businessName;
     private List<CashRegisterWithUUIDResponse> cashRegisters;
+    private String language;
 }

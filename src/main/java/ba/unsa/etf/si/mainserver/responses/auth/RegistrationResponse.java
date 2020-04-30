@@ -15,6 +15,7 @@ public class RegistrationResponse {
     private String username;
     private String password;
     private String email;
+    private boolean otp;
     private List<RoleResponse> roles;
     private EmployeeProfileResponse profile;
 }

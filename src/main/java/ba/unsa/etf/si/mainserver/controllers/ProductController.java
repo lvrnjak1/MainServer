@@ -288,6 +288,17 @@ public class ProductController {
         }
         Product product = optionalProduct.get();
         Comment comment = new Comment(product, commentRequest.getFirstName(), commentRequest.getLastName(), commentRequest.getEmail(), commentRequest.getText());
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "comment",
+                                "comment_add",
+                                "A new comment on " + product.getName() + " (" + product.getBarcode()+") - " + product.getBusiness().getName()
+                        )
+                ),
+                "public_relations"
+        );
         return new CommentResponse(commentService.save(comment));
     }
 

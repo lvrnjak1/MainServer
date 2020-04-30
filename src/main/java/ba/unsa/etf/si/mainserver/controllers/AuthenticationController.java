@@ -10,6 +10,7 @@ import ba.unsa.etf.si.mainserver.repositories.business.EmploymentHistoryReposito
 import ba.unsa.etf.si.mainserver.requests.auth.ChangePasswordRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.LoginRequest;
 import ba.unsa.etf.si.mainserver.requests.auth.RegistrationRequest;
+import ba.unsa.etf.si.mainserver.requests.auth.SyncPasswordRequest;
 import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
 import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
@@ -229,31 +230,48 @@ public class AuthenticationController {
                                       @RequestBody ChangePasswordRequest changePasswordRequest) {
         User user = userService.findUserByUsername(userPrincipal.getUsername());
         if (userPrincipal.getAuthorities().stream().noneMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"))) {
-            if(!user.isOtp()){
+            if (!user.isOtp()) {
                 throw new UnauthorizedException("You do not have permission to change password");
             }
         }
         user.setOtp(false);
-        userService.changeUserPassword(user.getId(),changePasswordRequest.getPassword());
+        userService.save(user);
+        userService.changeUserPassword(user.getId(), changePasswordRequest.getPassword());
+        logAndNotifyPasswordChange(userPrincipal.getUsername());
+        return new ApiResponse("Password changed!", 200);
+    }
+
+    @PutMapping("/office-changePassword")
+    @Secured({"ROLE_OFFICEMAN"})
+    public ApiResponse officeChangePassword(@RequestBody SyncPasswordRequest syncPasswordRequest) {
+        User user = userService.findUserByUsername(syncPasswordRequest.getUsername());
+        user.setOtp(false);
+        //oni posalju zakodiran string
+        user.setPassword(syncPasswordRequest.getPassword());
+        userService.save(user);
+        logAndNotifyPasswordChange(syncPasswordRequest.getUsername());
+        return new ApiResponse("Password changed!", 200);
+    }
+
+    private void logAndNotifyPasswordChange(String username){
         // DO NOT EDIT THIS CODE BELOW, EVER
         logServerService.documentAction(
-                userPrincipal.getUsername(),
+                username,
                 Actions.PASSWORD_CHANGE_ACTION_NAME,
                 "user_acount",
-                "User " + userPrincipal.getUsername() + " has changed his password!"
+                "User " + username + " has changed his password!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
         logServerService.broadcastNotification(
                 new NotificationRequest(
                         "info",
                         new NotificationPayload(
-                                user.getUsername(),
+                                username,
                                 "password_change",
-                                user.getUsername() + " has changed his/her password."
+                                username + " has changed his/her password."
                         )
                 ),
                 "user_management"
         );
-        return new ApiResponse("Password changed!", 200);
     }
 }

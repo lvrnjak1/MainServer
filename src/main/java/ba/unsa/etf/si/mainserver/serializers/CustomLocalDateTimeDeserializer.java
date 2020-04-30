@@ -23,6 +23,6 @@ public class CustomLocalDateTimeDeserializer extends StdDeserializer<LocalDateTi
     public LocalDateTime deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         JsonNode node = jsonParser.getCodec().readTree(jsonParser);
         long timestamp = node.longValue();
-        return LocalDateTime.ofEpochSecond(timestamp, 0, OffsetDateTime.now().getOffset());
+        return LocalDateTime.ofEpochSecond(timestamp/1000, 0, OffsetDateTime.now().getOffset());
     }
 }

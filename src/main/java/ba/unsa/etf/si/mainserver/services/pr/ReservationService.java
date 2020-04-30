@@ -73,8 +73,9 @@ public class ReservationService {
     }
 
     private void checkAvailability(Reservation reservation) {
-        Long durationMins = 1L; //ovo je koliko minuta traje rezervacija business.getDurationMins()
-        List<Reservation> reservationsForTable = reservationRepository.findAllByTable(reservation.getTable());
+        Long durationMins = 60L; //ovo je koliko minuta traje rezervacija business.getDurationMins()
+        List<Reservation> reservationsForTable =
+                findAllByTableAndStatus(reservation.getTable(), "VERIFIED");
         if (reservationsForTable.stream().anyMatch(r -> timesIntersect(r.getReservationDateTime(),
                 reservation.getReservationDateTime(),
                 durationMins))){
@@ -82,9 +83,21 @@ public class ReservationService {
         }
     }
 
+    private List<Reservation> findAllByTableAndStatus(Table table, String statusName){
+        ReservationStatus reservationStatus = reservationStatusService.getFromName(statusName);
+        return reservationRepository.findAllByTableAndReservationStatus(table, reservationStatus);
+    }
+
     private static boolean timesIntersect(LocalDateTime dateTime1, LocalDateTime dateTime2, Long durationMins) {
-        return (dateTime2.isAfter(dateTime1) && (dateTime2.isBefore(dateTime1.plusMinutes(durationMins))))
-                || dateTime1.isBefore(dateTime2.plusMinutes(durationMins));
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+//        System.out.println(dateTime1.format(formatter));
+//        System.out.println((dateTime1.plusMinutes(durationMins)).format(formatter));
+//        System.out.println(dateTime2.format(formatter));
+//        System.out.println((dateTime2.plusMinutes(durationMins)).format(formatter));
+        return ((dateTime2.isAfter(dateTime1) || dateTime2.isEqual(dateTime1))
+                && (dateTime2.isBefore(dateTime1.plusMinutes(durationMins))))
+                || (dateTime1.isBefore(dateTime2.plusMinutes(durationMins))
+                && (dateTime1.isAfter(dateTime2) || dateTime1.isEqual(dateTime2)));
     }
 
     private Reservation mapReservationRequestToReservation(ReservationRequest reservationRequest) {
@@ -107,5 +120,10 @@ public class ReservationService {
         long lowerBound = 100000L;
         long upperBound = 999999L;
         return lowerBound + (long) (Math.random() * (upperBound - lowerBound));
+    }
+
+    public Reservation findById(Long reservationId) {
+        return reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation doesn't exist"));
     }
 }

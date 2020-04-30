@@ -1,5 +1,6 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
+import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.pr.Reservation;
@@ -58,16 +59,17 @@ public class ReservationsController {
     }
 
     //ruta da se verifikuje rezervacija
-    @PostMapping("/business/{businessId}/offices/{officeId}/reservations/{reservationId}")
-    public ApiResponse verifyReservation(@PathVariable Long businessId,
-                                                 @PathVariable Long officeId,
-                                                 @PathVariable Long reservationId,
+    @PostMapping("/reservations/{reservationId}")
+    public ApiResponse verifyReservation(@PathVariable Long reservationId,
                                                  @RequestBody UpdateReservation verifyReservationRequest){
-        validate(businessId, officeId);
-        Reservation reservation = reservationService.findByIdAndOffice(reservationId, officeId);
+        Reservation reservation = reservationService.findById(reservationId);
         reservationService.validateEmailAndCode(reservation,
                 verifyReservationRequest.getEmail(),
                 verifyReservationRequest.getVerificationCode());
+
+        if(!reservation.getReservationStatus().getName().toString().equals("UNVERIFIED")){
+            throw new AppException("You can't verify this reservation");
+        }
 
         reservation.setReservationStatus(reservationStatusService.getFromName("VERIFIED"));
         reservationService.save(reservation);

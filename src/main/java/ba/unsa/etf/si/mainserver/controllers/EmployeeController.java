@@ -143,6 +143,7 @@ public class EmployeeController {
                                     user.getUsername(),
                                     user.getPassword(),
                                     user.getEmail(),
+                                    user.isOtp(),
                                     user.getRoles()
                                             .stream()
                                             .map(role -> new RoleResponse(role.getId(), role.getName().name()))

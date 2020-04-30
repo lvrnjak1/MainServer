@@ -126,4 +126,10 @@ public class ReservationService {
         return reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation doesn't exist"));
     }
+
+    public void checkIfPassed(Reservation reservation) {
+        if(reservation.getReservationDateTime().isBefore(LocalDateTime.now())){
+            throw new AppException("You can't cancel a reservation that has passed");
+        }
+    }
 }

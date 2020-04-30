@@ -1,6 +1,5 @@
 package ba.unsa.etf.si.mainserver.responses;
 
-import ba.unsa.etf.si.mainserver.responses.business.CashRegisterResponse;
 import ba.unsa.etf.si.mainserver.responses.business.CashRegisterWithUUIDResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 public class CashServerConfigResponse {
     private String businessName;
+    private boolean restaurant;
     private List<CashRegisterWithUUIDResponse> cashRegisters;
     private String language;
 }

@@ -1,6 +1,7 @@
 package ba.unsa.etf.si.mainserver.models.business;
 
 import ba.unsa.etf.si.mainserver.models.AuditModel;
+import ba.unsa.etf.si.mainserver.models.Language;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
@@ -45,6 +46,10 @@ public class Office extends AuditModel { //ovo je poslovnica
     private Date workDayEnd;
 
     private int maxNumberCashRegisters = 5;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 60)
+    private Language languageName = Language.ENGLISH;
 
     public Office(ContactInformation contactInformation, Business business, Date start, Date end){
         this.contactInformation = contactInformation;
@@ -107,6 +112,18 @@ public class Office extends AuditModel { //ovo je poslovnica
 
     public void setMaxNumberCashRegisters(int max_number_cashRegisters) {
         this.maxNumberCashRegisters = max_number_cashRegisters;
+    }
+
+    public Language getLanguageName() {
+        return languageName;
+    }
+
+    public void setLanguageName(Language language) {
+        this.languageName = language;
+    }
+
+    public void setLanguage(String language) {
+        this.languageName = Language.valueOf(language.toUpperCase());
     }
 
     public String getStringStart(){

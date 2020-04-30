@@ -235,6 +235,7 @@ public class AuthenticationController {
             }
         }
         user.setOtp(false);
+        userService.save(user);
         userService.changeUserPassword(user.getId(), changePasswordRequest.getPassword());
         logAndNotifyPasswordChange(userPrincipal.getUsername());
         return new ApiResponse("Password changed!", 200);
@@ -245,7 +246,9 @@ public class AuthenticationController {
     public ApiResponse officeChangePassword(@RequestBody SyncPasswordRequest syncPasswordRequest) {
         User user = userService.findUserByUsername(syncPasswordRequest.getUsername());
         user.setOtp(false);
-        userService.changeUserPassword(user.getId(), syncPasswordRequest.getPassword());
+        //oni posalju zakodiran string
+        user.setPassword(syncPasswordRequest.getPassword());
+        userService.save(user);
         logAndNotifyPasswordChange(syncPasswordRequest.getUsername());
         return new ApiResponse("Password changed!", 200);
     }

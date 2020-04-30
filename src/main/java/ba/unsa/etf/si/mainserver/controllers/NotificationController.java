@@ -1,6 +1,7 @@
 package ba.unsa.etf.si.mainserver.controllers;
 
 import ba.unsa.etf.si.mainserver.configurations.Actions;
+import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.*;
@@ -145,7 +146,9 @@ public class NotificationController {
     public ResponseEntity<ApiResponse> notifyAdminToOpen(@CurrentUser UserPrincipal userPrincipal,
                                                          @RequestBody OpenOfficeRequest notificationRequest) throws ParseException {
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
-
+        if(business.getMaxNumberOffices() == businessService.countOfficesInBusiness(business.getId())){
+            throw new AppException("Business has reached max number of offices");
+        }
         AdminMerchantNotification adminMerchantNotification = new AdminMerchantNotification(
                 business,
                 notificationRequest.getAddress(),

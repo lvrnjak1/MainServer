@@ -174,6 +174,9 @@ public class BusinessController {
             @CurrentUser UserPrincipal userPrincipal) throws ParseException {
 
         Business business = businessService.findBusinessById(businessId);
+        if(business.getMaxNumberOffices() == businessService.countOfficesInBusiness(businessId)){
+            throw new AppException("Business has reached max number of offices");
+        }
         ContactInformation contactInformation = new ContactInformation(officeRequest.getAddress(),
                 officeRequest.getCity(), officeRequest.getCountry(), officeRequest.getEmail(),
                 officeRequest.getPhoneNumber());
@@ -305,7 +308,9 @@ public class BusinessController {
             @RequestBody MaxRequest maxRequest) {
 
         Office office = officeService.findOfficeById(officeId, businessId);
-        //provjeri je li broj manji od postojeceg broja kasa
+        if(officeService.countCashRegsitersInOffice(officeId) > maxRequest.getMax()){
+            throw new AppException("Currently there are more cash registers in office than " + maxRequest.getMax());
+        }
         office.setMaxNumberCashRegisters(maxRequest.getMax());
         officeService.save(office);
 
@@ -320,6 +325,10 @@ public class BusinessController {
             @PathVariable("businessId") Long businessId,
             @RequestBody CashRegisterRequest cashRegisterRequest,
             @CurrentUser UserPrincipal userPrincipal) {
+        Office office = officeService.findOfficeById(officeId, businessId);
+        if(office.getMaxNumberCashRegisters() == officeService.countCashRegsitersInOffice(officeId)){
+            throw new AppException("Office has reached max number of cash registers");
+        }
         // DO NOT EDIT THIS CODE BELOW, EVER
         logServerService.documentAction(
                 userPrincipal.getUsername(),
@@ -653,7 +662,9 @@ public class BusinessController {
             @RequestBody MaxRequest maxRequest) {
 
         Business business = businessService.findBusinessById(businessId);
-        //provjeri je li broj manji od postojeceg broja officea
+        if(businessService.countOfficesInBusiness(businessId) > maxRequest.getMax()){
+            throw new AppException("Currently there are more offices in business than " + maxRequest.getMax());
+        }
         business.setMaxNumberOffices(maxRequest.getMax());
         businessService.save(business);
 

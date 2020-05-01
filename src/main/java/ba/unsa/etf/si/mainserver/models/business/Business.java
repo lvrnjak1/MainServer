@@ -46,6 +46,9 @@ public class Business extends AuditModel { //ovo je kao Bingo
         }
     }
 
+    @Column(name = "reservation_duration")
+    private Long reservationDurationMins = 60L;
+
     public Business(String name, boolean restaurantFeature, EmployeeProfile merchant) {
         this.name = name;
         this.restaurantFeature = restaurantFeature;
@@ -111,5 +114,13 @@ public class Business extends AuditModel { //ovo je kao Bingo
     public String getStringSyncDate(){
         DateFormat dateFormat = new SimpleDateFormat("HH:mm");
         return dateFormat.format(getSyncTime());
+    }
+
+    public Long getReservationDurationMins() {
+        return reservationDurationMins;
+    }
+
+    public void setReservationDurationMins(Long reservationDurationMins) {
+        this.reservationDurationMins = reservationDurationMins;
     }
 }

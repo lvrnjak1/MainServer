@@ -19,6 +19,7 @@ public class OfficeResponse {
     private String phoneNumber;
     private String workDayStart;
     private String workDayEnd;
+    private String language;
     private List<CashRegisterResponse> cashRegisters;
     private EmployeeProfileResponse manager;
 
@@ -32,6 +33,7 @@ public class OfficeResponse {
         this.workDayStart = office.getStringStart();
         this.workDayEnd = office.getStringEnd();
         this.cashRegisters = cashRegisters;
+        this.language = office.getLanguageName().toString();
         this.manager = new EmployeeProfileResponse();
         if(office.getManager() != null){
             this.manager = new EmployeeProfileResponse(office.getManager());

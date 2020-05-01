@@ -243,6 +243,17 @@ public class EmployeeController {
                 ),
                 "merchant_dashboard"
         );
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "warning",
+                        new NotificationPayload(
+                                userPrincipal.getUsername(),
+                                "fire_employee",
+                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has been fired."
+                        )
+                ),
+                "admin"
+        );
         return ResponseEntity.ok(new ApiResponse("Employee successfully fired", 200));
     }
 

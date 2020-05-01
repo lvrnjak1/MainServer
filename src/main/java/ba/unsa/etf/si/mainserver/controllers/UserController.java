@@ -10,6 +10,8 @@ import ba.unsa.etf.si.mainserver.repositories.business.EmploymentHistoryReposito
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.business.EmployeeProfileRequest;
 import ba.unsa.etf.si.mainserver.requests.business.RoleChangeRequest;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
 import ba.unsa.etf.si.mainserver.responses.UserResponse;
 import ba.unsa.etf.si.mainserver.responses.auth.UserNameResponse;
 import ba.unsa.etf.si.mainserver.responses.business.EmployeeProfileResponse;
@@ -112,6 +114,18 @@ public class UserController {
                 "User " + userPrincipal.getUsername() + " has changed profile of " + user.getUsername() + "!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "warning",
+                        new NotificationPayload(
+                                userPrincipal.getUsername(),
+                                "profile_change",
+                                "User " + userPrincipal.getUsername() + " has changed profile of " + user.getUsername() + "!"
+                        )
+                )
+                ,
+                "admin"
+        );
         return ResponseEntity.ok(new EmployeeProfileResponse(result));
     }
 

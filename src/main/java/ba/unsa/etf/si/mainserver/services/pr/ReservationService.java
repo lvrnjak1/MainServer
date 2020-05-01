@@ -102,9 +102,11 @@ public class ReservationService {
 
     private Reservation mapReservationRequestToReservation(ReservationRequest reservationRequest) {
         Long verificationCode = generateNewCode();
+
         while (!isUniqueCode(verificationCode)){
             verificationCode = generateNewCode();
         }
+//TODO fix this loop
         ReservationStatus reservationStatus = reservationStatusService.getFromName("UNVERIFIED");
         Table table = tableService.findById(reservationRequest.getTableId());
         return new Reservation(reservationStatus, table, reservationRequest.getName(),

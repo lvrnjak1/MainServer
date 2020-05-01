@@ -78,6 +78,18 @@ public class AuthenticationController {
         userService.checkPermissions(registrationRequest, userPrincipal);
         userService.checkAvailability(registrationRequest);
         userService.checkBusinessPermissions(registrationRequest.getBusinessId(), userPrincipal);
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                userPrincipal.getUsername(),
+                                "user_create",
+                                "User " + userPrincipal.getUsername() + " has created an account with username " + registrationRequest.getUsername() + "!"
+                        )
+                )
+                ,
+                "admin"
+        );
         return evaluateRegistrationAndGetEmployeeProfile(registrationRequest);
     }
 

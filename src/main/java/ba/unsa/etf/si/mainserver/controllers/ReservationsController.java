@@ -4,9 +4,11 @@ import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.pr.Reservation;
+import ba.unsa.etf.si.mainserver.requests.pr.ReservationDurationRequest;
 import ba.unsa.etf.si.mainserver.requests.pr.ReservationRequest;
 import ba.unsa.etf.si.mainserver.requests.pr.UpdateReservation;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
+import ba.unsa.etf.si.mainserver.responses.pr.ReservationDurationResponse;
 import ba.unsa.etf.si.mainserver.responses.pr.ReservationResponse;
 import ba.unsa.etf.si.mainserver.services.EmailService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
@@ -14,6 +16,7 @@ import ba.unsa.etf.si.mainserver.services.business.OfficeService;
 import ba.unsa.etf.si.mainserver.services.pr.ReservationService;
 import ba.unsa.etf.si.mainserver.services.pr.ReservationStatusService;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.format.DateTimeFormatter;
@@ -125,5 +128,27 @@ public class ReservationsController {
         Office office = officeService.findByIdOrThrow(officeId);
         officeService.validateBusiness(office, business);
         businessService.checkIfTablesAvailable(business);
+    }
+
+    @GetMapping("/business/{businessId}/reservations/duration")
+    @Secured("ROLE_ADMIN")
+    public ReservationDurationResponse getReservationDurationForBusiness(@PathVariable Long businessId){
+        Business business = businessService.findBusinessById(businessId);
+        businessService.checkIfTablesAvailable(business);
+        return new ReservationDurationResponse(
+                business.getReservationDurationMins()
+        );
+    }
+
+    @PutMapping("/business/{businessId}/reservations/duration")
+    @Secured("ROLE_ADMIN")
+    public ReservationDurationResponse changeReservationDurationForBusiness(
+            @PathVariable Long businessId,
+            @RequestBody ReservationDurationRequest reservationDurationRequest){
+        Business business = businessService.findBusinessById(businessId);
+        businessService.checkIfTablesAvailable(business);
+        business.setReservationDurationMins(reservationDurationRequest.getDuration());
+        return new ReservationDurationResponse(businessService
+                .save(business).getReservationDurationMins());
     }
 }

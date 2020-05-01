@@ -616,7 +616,10 @@ public class BusinessController {
         List<CashRegister> cashRegisters = cashRegisterRepository.findAllByOfficeId(officeId);
         return new CashServerConfigResponse(business.getName(),business.isRestaurantFeature(),
                 cashRegisters.stream().map(CashRegisterWithUUIDResponse::new).collect(Collectors.toList()),
-                office.getLanguageName().toString());
+                office.getLanguageName().toString(),
+                business.getStringSyncDate(),
+                office.getStringStart(),
+                office.getStringEnd());
     }
 
     //ruta za PR app da vide informacije o svim offices u svim businesses
@@ -713,6 +716,35 @@ public class BusinessController {
         }
 
         return new ApiResponse("Office language set to " + languageRequest.getLanguage(),
+                200);
+    }
+
+    @PutMapping("/{businessId}/syncTime")
+    @Secured("ROLE_ADMIN")
+    public ApiResponse ChangeSyncTime(
+            @PathVariable("businessId") Long businessId,
+            @RequestBody SyncTimeRequest syncTimeRequest) throws ParseException {
+
+        Business business = businessService.findBusinessById(businessId);
+        business.setSyncTime(syncTimeRequest.getSyncTimeFromString());
+        businessService.save(business);
+
+        return new ApiResponse("Synchronization time set to " + syncTimeRequest.getSyncTime(),
+                200);
+    }
+
+    @PutMapping("/{businessId}/offices/{officeId}/workHours")
+    @Secured("ROLE_ADMIN")
+    public ApiResponse ChangeOfficeWorkHours(
+            @PathVariable("businessId") Long businessId,
+            @PathVariable("officeId") Long officeId,
+            @RequestBody WorkHoursRequest workHoursRequest) throws ParseException {
+
+        Office office = officeService.findOfficeById(officeId,businessId);
+        office.setWorkDayStart(workHoursRequest.getStartTimeFromString());
+        office.setWorkDayEnd(workHoursRequest.getEndTimeFromString());
+        officeService.save(office);
+        return new ApiResponse("Office work hours successfully changed",
                 200);
     }
 }

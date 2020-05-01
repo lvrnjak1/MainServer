@@ -15,4 +15,7 @@ public class CashServerConfigResponse {
     private boolean restaurant;
     private List<CashRegisterWithUUIDResponse> cashRegisters;
     private String language;
+    private String syncTime;
+    private String startTime;
+    private String endTime;
 }

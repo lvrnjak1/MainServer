@@ -7,6 +7,10 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import javax.persistence.Table;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @Entity
 @Table(name = "businesses")
@@ -29,6 +33,18 @@ public class Business extends AuditModel { //ovo je kao Bingo
     private Long mainOfficeId = null;
 
     private int maxNumberOffices = 5;
+
+    @Basic
+    @Temporal(TemporalType.TIME)
+    private Date syncTime;
+
+    {
+        try {
+            syncTime = new SimpleDateFormat("HH:mm").parse("06:00");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
 
     public Business(String name, boolean restaurantFeature, EmployeeProfile merchant) {
         this.name = name;
@@ -82,5 +98,18 @@ public class Business extends AuditModel { //ovo je kao Bingo
 
     public void setMaxNumberOffices(int max_number_offices) {
         this.maxNumberOffices = max_number_offices;
+    }
+
+    public Date getSyncTime() {
+        return syncTime;
+    }
+
+    public void setSyncTime(Date syncTime) {
+        this.syncTime = syncTime;
+    }
+
+    public String getStringSyncDate(){
+        DateFormat dateFormat = new SimpleDateFormat("HH:mm");
+        return dateFormat.format(getSyncTime());
     }
 }

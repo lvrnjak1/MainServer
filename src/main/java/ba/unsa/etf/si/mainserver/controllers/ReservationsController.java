@@ -133,8 +133,10 @@ public class ReservationsController {
     @GetMapping("/business/{businessId}/reservations/duration")
     @Secured("ROLE_ADMIN")
     public ReservationDurationResponse getReservationDurationForBusiness(@PathVariable Long businessId){
+        Business business = businessService.findBusinessById(businessId);
+        businessService.checkIfTablesAvailable(business);
         return new ReservationDurationResponse(
-                businessService.findBusinessById(businessId).getReservationDurationMins()
+                business.getReservationDurationMins()
         );
     }
 
@@ -144,6 +146,7 @@ public class ReservationsController {
             @PathVariable Long businessId,
             @RequestBody ReservationDurationRequest reservationDurationRequest){
         Business business = businessService.findBusinessById(businessId);
+        businessService.checkIfTablesAvailable(business);
         business.setReservationDurationMins(reservationDurationRequest.getDuration());
         return new ReservationDurationResponse(businessService
                 .save(business).getReservationDurationMins());

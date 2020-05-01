@@ -110,6 +110,7 @@ public class AuthenticationController {
                         result.getUsername(),
                         registrationRequest.getPassword(),
                         result.getEmail(),
+                        result.isOtp(),
                         result.getRoles().stream().map(
                                 role -> new RoleResponse(role.getId(), role.getName().name())
                         ).collect(Collectors.toList()),
@@ -206,6 +207,7 @@ public class AuthenticationController {
                 user.getUsername(),
                 changePasswordRequest.getPassword(),
                 user.getEmail(),
+                user.isOtp(),
                 user.getRoles().stream().map(
                         role -> new RoleResponse(role.getId(), role.getName().name())
                 ).collect(Collectors.toList()),

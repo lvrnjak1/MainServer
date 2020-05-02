@@ -15,6 +15,7 @@ public class BusinessResponse {
     private String name;
     private boolean restaurantFeature;
     private String syncTime;
+    private Long duration;
     private int maxNumberOffices;
     private List<OfficeResponse> offices;
     private EmployeeProfileResponse merchant;
@@ -27,5 +28,6 @@ public class BusinessResponse {
         this.maxNumberOffices = business.getMaxNumberOffices();
         this.offices = offices;
         this.merchant = new EmployeeProfileResponse(business.getMerchant());
+        this.duration = business.getReservationDurationMins();
     }
 }

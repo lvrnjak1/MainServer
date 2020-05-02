@@ -67,6 +67,7 @@ public class ReservationService {
 
     public ReservationResponse makeReservation(ReservationRequest reservationRequest) {
         Reservation reservation = mapReservationRequestToReservation(reservationRequest);
+        checkIfPassed(reservation, "You can't make a reservation in past");
         checkAvailability(reservation);
         reservationRepository.save(reservation);
         return mapReservationToReservationResponse(reservation);
@@ -101,12 +102,7 @@ public class ReservationService {
     }
 
     private Reservation mapReservationRequestToReservation(ReservationRequest reservationRequest) {
-        Long verificationCode = generateNewCode();
-
-        while (!isUniqueCode(verificationCode)){
-            verificationCode = generateNewCode();
-        }
-//TODO fix this loop
+        Long verificationCode = generateUniqueCode();
         ReservationStatus reservationStatus = reservationStatusService.getFromName("UNVERIFIED");
         Table table = tableService.findById(reservationRequest.getTableId());
         return new Reservation(reservationStatus, table, reservationRequest.getName(),
@@ -118,20 +114,41 @@ public class ReservationService {
         return !reservationRepository.findByVerificationCode(verificationCode).isPresent();
     }
 
-    private static Long generateNewCode() {
-        long lowerBound = 100000L;
-        long upperBound = 999999L;
-        return lowerBound + (long) (Math.random() * (upperBound - lowerBound));
-    }
 
     public Reservation findById(Long reservationId) {
         return reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation doesn't exist"));
     }
 
-    public void checkIfPassed(Reservation reservation) {
-        if(reservation.getReservationDateTime().isBefore(LocalDateTime.now())){
-            throw new AppException("You can't cancel a reservation that has passed");
+    public void checkIfPassed(Reservation reservation, String message) {
+        if(isInPast(reservation)){
+            throw new AppException(message);
         }
+    }
+
+    public Long generateUniqueCode(){
+        Long verificationCode = generateNewRandomCode();
+
+        while (!isUniqueCode(verificationCode)){
+            verificationCode = generateNewRandomCode();
+        }
+        //TODO fix this loop
+        return verificationCode;
+    }
+
+    private static Long generateNewRandomCode() {
+        long lowerBound = 100000L;
+        long upperBound = 999999L;
+        return lowerBound + (long) (Math.random() * (upperBound - lowerBound));
+    }
+
+    public void regenerateCodeAndSave(Reservation reservation) {
+        Long verificationCode = generateUniqueCode();
+        reservation.setVerificationCode(verificationCode);
+        reservationRepository.save(reservation);
+    }
+
+    public boolean isInPast(Reservation reservation) {
+        return reservation.getReservationDateTime().isBefore(LocalDateTime.now());
     }
 }

@@ -535,6 +535,18 @@ public class BusinessController {
                 "Manager " + userPrincipal.getUsername() + " has assigned employee to office"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "employee",
+                                "hire_employee",
+                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has been hired!"
+                        )
+                )
+                ,
+                "merchant_dashboard"
+        );
         return ResponseEntity.ok(new ApiResponse("Employee successfully assigned to this office", 200));
     }
 
@@ -562,6 +574,18 @@ public class BusinessController {
                 "Employee " + userPrincipal.getUsername() + " has unassigned employee from office!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "warning",
+                        new NotificationPayload(
+                                "employee",
+                                "fire_employee",
+                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has been fired!"
+                        )
+                )
+                ,
+                "merchant_dashboard"
+        );
         return ResponseEntity.ok(new ApiResponse("Employee successfully unassigned from this office", 200));
 
     }

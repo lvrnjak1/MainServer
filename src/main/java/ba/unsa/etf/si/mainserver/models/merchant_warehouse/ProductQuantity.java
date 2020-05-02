@@ -6,13 +6,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.springframework.data.relational.core.mapping.Table;
+
 
 import javax.persistence.*;
 
 
 @Entity
-@Table("product_quantity")
+@Table(name = "product_quantity")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

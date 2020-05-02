@@ -20,6 +20,7 @@ public class OfficeResponse {
     private String workDayStart;
     private String workDayEnd;
     private String language;
+    private int maxNumberCashRegisters;
     private List<CashRegisterResponse> cashRegisters;
     private EmployeeProfileResponse manager;
 
@@ -34,6 +35,7 @@ public class OfficeResponse {
         this.workDayEnd = office.getStringEnd();
         this.cashRegisters = cashRegisters;
         this.language = office.getLanguageName().toString();
+        this.maxNumberCashRegisters = office.getMaxNumberCashRegisters();
         this.manager = new EmployeeProfileResponse();
         if(office.getManager() != null){
             this.manager = new EmployeeProfileResponse(office.getManager());

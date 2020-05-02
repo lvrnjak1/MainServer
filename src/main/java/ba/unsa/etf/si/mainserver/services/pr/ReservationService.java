@@ -67,6 +67,7 @@ public class ReservationService {
 
     public ReservationResponse makeReservation(ReservationRequest reservationRequest) {
         Reservation reservation = mapReservationRequestToReservation(reservationRequest);
+        checkIfPassed(reservation, "You can't make a reservation in past");
         checkAvailability(reservation);
         reservationRepository.save(reservation);
         return mapReservationToReservationResponse(reservation);
@@ -119,9 +120,9 @@ public class ReservationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation doesn't exist"));
     }
 
-    public void checkIfPassed(Reservation reservation) {
-        if(reservation.getReservationDateTime().isBefore(LocalDateTime.now())){
-            throw new AppException("You can't cancel a reservation that has passed");
+    public void checkIfPassed(Reservation reservation, String message) {
+        if(isInPast(reservation)){
+            throw new AppException(message);
         }
     }
 
@@ -145,5 +146,9 @@ public class ReservationService {
         Long verificationCode = generateUniqueCode();
         reservation.setVerificationCode(verificationCode);
         reservationRepository.save(reservation);
+    }
+
+    public boolean isInPast(Reservation reservation) {
+        return reservation.getReservationDateTime().isBefore(LocalDateTime.now());
     }
 }

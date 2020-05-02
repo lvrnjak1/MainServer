@@ -44,8 +44,7 @@ public class ReservationsController {
         this.emailService = emailService;
     }
 
-    //ruta da se dobiju sve rezervacije za ured
-    //za nelogovanog usera pr aplikacije
+
     @GetMapping("/business/{businessId}/offices/{officeId}/reservations")
     public List<ReservationResponse> getAllReservationsForOfficeInBusiness(@PathVariable Long businessId,
                                                                            @PathVariable Long officeId){
@@ -58,7 +57,6 @@ public class ReservationsController {
                 .collect(Collectors.toList());
     }
 
-    //ruta da se pošalje rezervacija
     @PostMapping("/business/{businessId}/offices/{officeId}/reservations")
     public ReservationResponse makeReservation(@PathVariable Long businessId,
                                                @PathVariable Long officeId,
@@ -92,7 +90,6 @@ public class ReservationsController {
         emailService.sendEmail(verificationEmail);
     }
 
-    //ruta da se verifikuje rezervacija
     @PostMapping("/reservations/{reservationId}")
     public ApiResponse verifyReservation(@PathVariable Long reservationId,
                                                  @RequestBody UpdateReservation verifyReservationRequest){
@@ -104,6 +101,9 @@ public class ReservationsController {
         if(!reservation.getReservationStatus().getName().toString().equals("UNVERIFIED")){
             throw new AppException("You can't verify this reservation");
         }
+
+        reservationService.checkIfPassed(reservation,
+                "You can't verify a reservation in past");
 
         reservation.setReservationStatus(reservationStatusService.getFromName("VERIFIED"));
         reservationService.save(reservation);
@@ -128,13 +128,13 @@ public class ReservationsController {
         return reservationResponse;
     }
 
-    //ruta da se obriše rezervacija
     @DeleteMapping("/reservations")
     public ApiResponse cancelReservation(@RequestBody UpdateReservation deleteReservationRequest){
         Reservation reservation = reservationService.findByEmailAndCodeAndVerified(deleteReservationRequest.getEmail(),
                 deleteReservationRequest.getVerificationCode());
 
-        reservationService.checkIfPassed(reservation);
+        reservationService.checkIfPassed(reservation,
+                "You can't cancel a reservation that has passed");
 
         reservation.setReservationStatus(reservationStatusService.getFromName("CANCELED"));
         reservationService.save(reservation);

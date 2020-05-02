@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -62,12 +63,18 @@ public class LogServerService {
 
         HttpEntity request = new HttpEntity(headers);
 
-        ResponseEntity<LogCollectionResponse> response = restTemplate.exchange(
-                url.toString(),
-                HttpMethod.GET,
-                request,
-                LogCollectionResponse.class
-        );
+        ResponseEntity<LogCollectionResponse> response = null;
+        try{
+            response = restTemplate.exchange(
+                    url.toString(),
+                    HttpMethod.GET,
+                    request,
+                    LogCollectionResponse.class
+            );
+        }catch (HttpServerErrorException ignored){
+            throw new AppException("Cannot establish connection to server");
+        }
+
 
         if (response.getStatusCode() == HttpStatus.OK) {
             System.out.println("Request Successful.");

@@ -9,12 +9,14 @@ import ba.unsa.etf.si.mainserver.models.products.Warehouse;
 import ba.unsa.etf.si.mainserver.repositories.products.WarehouseRepository;
 import ba.unsa.etf.si.mainserver.requests.products.WarehouseRequest;
 import ba.unsa.etf.si.mainserver.responses.products.QuantityResponse;
+import ba.unsa.etf.si.mainserver.responses.products.ShippingResponse;
 import ba.unsa.etf.si.mainserver.responses.products.WarehouseLogResponse;
 import ba.unsa.etf.si.mainserver.responses.products.WarehouseResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.admin.logs.LogServerService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
+import ba.unsa.etf.si.mainserver.services.products.InventoryLogService;
 import ba.unsa.etf.si.mainserver.services.products.ProductService;
 import ba.unsa.etf.si.mainserver.services.products.WarehouseLogService;
 import org.springframework.security.access.annotation.Secured;
@@ -32,16 +34,20 @@ public class WarehouseController {
     private final ProductService productService;
     private final WarehouseLogService warehouseLogService;
     private final LogServerService logServerService;
+    private final InventoryLogService inventoryLogService;
 
     public WarehouseController(WarehouseRepository warehouseRepository,
                                BusinessService businessService,
                                ProductService productService,
-                               WarehouseLogService warehouseLogService, LogServerService logServerService) {
+                               WarehouseLogService warehouseLogService,
+                               LogServerService logServerService,
+                               InventoryLogService inventoryLogService) {
         this.warehouseRepository = warehouseRepository;
         this.businessService = businessService;
         this.productService = productService;
         this.warehouseLogService = warehouseLogService;
         this.logServerService = logServerService;
+        this.inventoryLogService = inventoryLogService;
     }
 
     @PostMapping
@@ -116,5 +122,12 @@ public class WarehouseController {
         }
 
         return new QuantityResponse(productId, warehouseOptional.get().getQuantity());
+    }
+
+    @GetMapping("/shipping")
+    @Secured("ROLE_WAREMAN")
+    public List<ShippingResponse> getShippingInfo(@CurrentUser UserPrincipal userPrincipal){
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        return inventoryLogService.getShippingLogForBusiness(business);
     }
 }

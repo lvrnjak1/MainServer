@@ -11,9 +11,12 @@ import java.util.List;
 @Service
 public class WarehouseLogService {
     private final WarehouseLogRepository warehouseLogRepository;
+    private final ProductService productService;
 
-    public WarehouseLogService(WarehouseLogRepository warehouseLogRepository) {
+    public WarehouseLogService(WarehouseLogRepository warehouseLogRepository,
+                               ProductService productService) {
         this.warehouseLogRepository = warehouseLogRepository;
+        this.productService = productService;
     }
 
     public void logNewDelivery(Warehouse warehouse, double quantity) {

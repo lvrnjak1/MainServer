@@ -9,5 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ShippingResponse {
     private Long productId;
+    private String productName;
     private double quantity;
 }

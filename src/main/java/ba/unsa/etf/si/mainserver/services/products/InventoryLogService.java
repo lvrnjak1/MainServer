@@ -35,6 +35,6 @@ public class InventoryLogService {
                 .stream()
                 .mapToDouble(InventoryLog::getQuantity)
                 .sum();
-        return new ShippingResponse(product.getId(), quantity);
+        return new ShippingResponse(product.getId(), product.getName(), quantity);
     }
 }

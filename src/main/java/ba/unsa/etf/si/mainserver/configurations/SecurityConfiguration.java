@@ -48,7 +48,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     "/v2/api-docs",
                     "/api/business/**/mainOffice",
                     "/api/business/**/offices/**/tables",
-                    "/api/**/reservations"
+                    "/api/**/reservations/**"
             };
 
     public SecurityConfiguration(CustomUserDetailsService customUserDetailsService, JwtAuthenticationEntryPoint unauthorizedHandler) {

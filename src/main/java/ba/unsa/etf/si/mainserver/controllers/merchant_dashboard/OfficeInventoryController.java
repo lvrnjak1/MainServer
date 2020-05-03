@@ -132,67 +132,71 @@ public class OfficeInventoryController {
                     officeProductRequest -> offices.stream().anyMatch(office -> office.getId().equals(officeProductRequest.getOfficeId()))
                 )
                 .collect(Collectors.toList());
-        return requests
-                .stream()
-                .map(
-                        officeProductRequest -> {
-                            ArrayList<ProductQuantityResponse> productQuantityResponses = productQuantityRepository
-                                    .findAllByOfficeProductRequest_OfficeId(officeProductRequest.getOfficeId())
-                                    .stream()
-                                    .filter(
-                                            productQuantity ->
-                                                    productQuantity
-                                                            .getOfficeProductRequest()
-                                                            .getOfficeId()
-                                                            .equals(officeProductRequest.getOfficeId())
-                                    )
-                                    .map(productQuantity -> {
-                                        Optional<Product> optionalProduct = productRepository
-                                                .findById(productQuantity.getProductId());
-                                        if (!optionalProduct.isPresent()) {
-                                            return new ProductQuantityResponse();
-                                        }
-                                        Product product = optionalProduct.get();
-                                        ProductResponse productResponse = new ProductResponse(
-                                                product.getId(),
-                                                product.getName(),
-                                                product.getPrice(),
-                                                product.getPdv(),
-                                                null,
-                                                product.getUnit(),
-                                                product.getBarcode(),
-                                                product.getDescription(),
-                                                new DiscountResponse(
-                                                        product.getDiscount().getPercentage()
-                                                )
-                                        );
-                                        ArrayList<WarehouseResponse> warehouseResponses1 = warehouseResponses
-                                                .stream()
-                                                .filter(
-                                                        warehouseResponse ->
-                                                                warehouseResponse
-                                                                        .getProductId()
-                                                                        .equals(product.getId())
-                                                )
-                                                .collect(Collectors.toCollection(ArrayList::new));
-                                        double available = 0.0;
-                                        if (!warehouseResponses1.isEmpty()) {
+        try {
+            return requests
+                    .stream()
+                    .map(
+                            officeProductRequest -> {
+                                ArrayList<ProductQuantityResponse> productQuantityResponses = productQuantityRepository
+                                        .findAllByOfficeProductRequest_OfficeId(officeProductRequest.getOfficeId())
+                                        .stream()
+                                        .filter(
+                                                productQuantity ->
+                                                        productQuantity
+                                                                .getOfficeProductRequest()
+                                                                .getOfficeId()
+                                                                .equals(officeProductRequest.getOfficeId())
+                                        )
+                                        .map(productQuantity -> {
+                                            Optional<Product> optionalProduct = productRepository
+                                                    .findById(productQuantity.getProductId());
+                                            if (!optionalProduct.isPresent()) {
+                                                throw new NullPointerException();
+                                            }
+                                            Product product = optionalProduct.get();
+                                            ProductResponse productResponse = new ProductResponse(
+                                                    product.getId(),
+                                                    product.getName(),
+                                                    product.getPrice(),
+                                                    product.getPdv(),
+                                                    null,
+                                                    product.getUnit(),
+                                                    product.getBarcode(),
+                                                    product.getDescription(),
+                                                    new DiscountResponse(
+                                                            product.getDiscount().getPercentage()
+                                                    )
+                                            );
+                                            ArrayList<WarehouseResponse> warehouseResponses1 = warehouseResponses
+                                                    .stream()
+                                                    .filter(
+                                                            warehouseResponse ->
+                                                                    warehouseResponse
+                                                                            .getProductId()
+                                                                            .equals(product.getId())
+                                                    )
+                                                    .collect(Collectors.toCollection(ArrayList::new));
+                                            double available = 0.0;
+                                            if (!warehouseResponses1.isEmpty()) {
                                                 available = warehouseResponses1.get(0).getQuantity();
-                                        }
-                                        return new ProductQuantityResponse(
-                                                productResponse,
-                                                productQuantity.getQuantity(),
-                                                available
-                                        );
-                                    }).collect(Collectors.toCollection(ArrayList::new));
+                                            }
+                                            return new ProductQuantityResponse(
+                                                    productResponse,
+                                                    productQuantity.getQuantity(),
+                                                    available
+                                            );
+                                        }).collect(Collectors.toCollection(ArrayList::new));
 
-                            return new OfficeInventoryRequestResponse(
-                                    officeProductRequest.getId(),
-                                    officeService.getOfficeResponseByOfficeId(officeProductRequest.getOfficeId()),
-                                    productQuantityResponses
-                            );
-                        }
-                ).collect(Collectors.toList());
+                                return new OfficeInventoryRequestResponse(
+                                        officeProductRequest.getId(),
+                                        officeService.getOfficeResponseByOfficeId(officeProductRequest.getOfficeId()),
+                                        productQuantityResponses
+                                );
+                            }
+                    ).collect(Collectors.toList());
+        } catch (NullPointerException exception) {
+            return new ArrayList<>();
+        }
     }
 
     @PostMapping("/warehouse/requests/deny")

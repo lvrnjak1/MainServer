@@ -15,6 +15,7 @@ import ba.unsa.etf.si.mainserver.repositories.merchant_warehouse.ProductQuantity
 import ba.unsa.etf.si.mainserver.requests.merchant_dashboard.OfficeInventoryRequest;
 import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
 import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
+import ba.unsa.etf.si.mainserver.requests.warehouse.RequestAnswer;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.business.OfficeResponse;
 import ba.unsa.etf.si.mainserver.responses.warehouse.OfficeInventoryRequestResponse;
@@ -24,6 +25,7 @@ import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.admin.logs.LogServerService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
 import ba.unsa.etf.si.mainserver.services.business.OfficeService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
@@ -131,6 +133,51 @@ public class OfficeInventoryController {
                             );
                         }
                 ).collect(Collectors.toList());
+    }
 
+    @PostMapping("/warehouse/requests/deny")
+    @Secured("ROLE_WAREMAN")
+    public ResponseEntity<ApiResponse> denyRequest(@RequestBody RequestAnswer requestAnswer) {
+        Optional<OfficeProductRequest> optionalOfficeProductRequest = officeProductRequestRepository
+                .findById(requestAnswer.getRequestId());
+        if (!optionalOfficeProductRequest.isPresent()) {
+            throw new ResourceNotFoundException("That request does not exist");
+        }
+        officeProductRequestRepository.delete(optionalOfficeProductRequest.get());
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "warning",
+                        new NotificationPayload(
+                                "request",
+                                "request_deny",
+                                requestAnswer.getMessage()
+                        )
+                ),
+                "merchant_dashboard"
+        );
+        return ResponseEntity.ok(new ApiResponse("Successfully denied request!", 200));
+    }
+
+    @PostMapping("/warehouse/requests/accept")
+    @Secured("ROLE_WAREMAN")
+    public ResponseEntity<ApiResponse> acceptRequest(@RequestBody RequestAnswer requestAnswer) {
+        Optional<OfficeProductRequest> optionalOfficeProductRequest = officeProductRequestRepository
+                .findById(requestAnswer.getRequestId());
+        if (!optionalOfficeProductRequest.isPresent()) {
+            throw new ResourceNotFoundException("That request does not exist");
+        }
+        officeProductRequestRepository.delete(optionalOfficeProductRequest.get());
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "request",
+                                "request_deny",
+                                "request accepted!"
+                        )
+                ),
+                "merchant_dashboard"
+        );
+        return ResponseEntity.ok(new ApiResponse("Successfully accepted request!", 200));
     }
 }

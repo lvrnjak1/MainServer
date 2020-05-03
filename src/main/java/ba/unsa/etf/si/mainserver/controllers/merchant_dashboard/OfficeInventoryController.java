@@ -164,7 +164,7 @@ public class OfficeInventoryController {
                                                     product.getBarcode(),
                                                     product.getDescription(),
                                                     new DiscountResponse(
-                                                            product.getDiscount().getPercentage()
+                                                            product.getDiscount()!=null?product.getDiscount().getPercentage():0
                                                     )
                                             );
                                             ArrayList<WarehouseResponse> warehouseResponses1 = warehouseResponses

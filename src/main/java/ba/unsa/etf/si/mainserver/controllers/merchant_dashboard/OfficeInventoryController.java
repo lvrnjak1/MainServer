@@ -151,7 +151,7 @@ public class OfficeInventoryController {
                                             Optional<Product> optionalProduct = productRepository
                                                     .findById(productQuantity.getProductId());
                                             if (!optionalProduct.isPresent()) {
-                                                return new ProductQuantityResponse();
+                                                throw new NullPointerException();
                                             }
                                             Product product = optionalProduct.get();
                                             ProductResponse productResponse = new ProductResponse(

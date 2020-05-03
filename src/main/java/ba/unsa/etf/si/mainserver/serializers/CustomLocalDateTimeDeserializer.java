@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 
 public class CustomLocalDateTimeDeserializer extends StdDeserializer<LocalDateTime> {
 
@@ -23,6 +24,6 @@ public class CustomLocalDateTimeDeserializer extends StdDeserializer<LocalDateTi
     public LocalDateTime deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         JsonNode node = jsonParser.getCodec().readTree(jsonParser);
         long timestamp = node.longValue();
-        return LocalDateTime.ofEpochSecond(timestamp/1000, 0, OffsetDateTime.now().getOffset());
+        return LocalDateTime.ofEpochSecond(timestamp/1000, 0, OffsetDateTime.now(ZoneId.of("Europe/Paris")).getOffset());
     }
 }

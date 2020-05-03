@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 public class ProductQuantityResponse {
     private ProductResponse product;
     private Long quantity;
-    private Long availableQuantity;
+    private double availableQuantity;
 }

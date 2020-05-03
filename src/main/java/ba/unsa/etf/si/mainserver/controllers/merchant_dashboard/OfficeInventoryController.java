@@ -8,16 +8,21 @@ import ba.unsa.etf.si.mainserver.models.business.OfficeProfile;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.models.merchant_warehouse.OfficeProductRequest;
 import ba.unsa.etf.si.mainserver.models.merchant_warehouse.ProductQuantity;
+import ba.unsa.etf.si.mainserver.models.products.Product;
 import ba.unsa.etf.si.mainserver.repositories.auth.UserRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.repositories.merchant_warehouse.OfficeProductRequestRepository;
 import ba.unsa.etf.si.mainserver.repositories.merchant_warehouse.ProductQuantityRepository;
+import ba.unsa.etf.si.mainserver.repositories.products.ProductRepository;
+import ba.unsa.etf.si.mainserver.repositories.products.WarehouseRepository;
 import ba.unsa.etf.si.mainserver.requests.merchant_dashboard.OfficeInventoryRequest;
 import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
 import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
 import ba.unsa.etf.si.mainserver.requests.warehouse.RequestAnswer;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
-import ba.unsa.etf.si.mainserver.responses.business.OfficeResponse;
+import ba.unsa.etf.si.mainserver.responses.products.DiscountResponse;
+import ba.unsa.etf.si.mainserver.responses.products.ProductResponse;
+import ba.unsa.etf.si.mainserver.responses.products.WarehouseResponse;
 import ba.unsa.etf.si.mainserver.responses.warehouse.OfficeInventoryRequestResponse;
 import ba.unsa.etf.si.mainserver.responses.warehouse.ProductQuantityResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
@@ -44,6 +49,8 @@ public class OfficeInventoryController {
     private final ProductQuantityRepository productQuantityRepository;
     private final OfficeProductRequestRepository officeProductRequestRepository;
     private final OfficeService officeService;
+    private final WarehouseRepository warehouseRepository;
+    private final ProductRepository productRepository;
 
     public OfficeInventoryController(LogServerService logServerService,
                                      OfficeProfileRepository officeProfileRepository,
@@ -51,7 +58,7 @@ public class OfficeInventoryController {
                                      UserRepository userRepository,
                                      ProductQuantityRepository productQuantityRepository,
                                      OfficeProductRequestRepository officeProductRequestRepository,
-                                     OfficeService officeService) {
+                                     OfficeService officeService, WarehouseRepository warehouseRepository, ProductRepository productRepository) {
         this.logServerService = logServerService;
         this.officeProfileRepository = officeProfileRepository;
         this.employeeProfileService = employeeProfileService;
@@ -59,6 +66,8 @@ public class OfficeInventoryController {
         this.productQuantityRepository = productQuantityRepository;
         this.officeProductRequestRepository = officeProductRequestRepository;
         this.officeService = officeService;
+        this.warehouseRepository = warehouseRepository;
+        this.productRepository = productRepository;
     }
 
     @PostMapping("/merchant_dashboard/inventory_requests")
@@ -111,7 +120,10 @@ public class OfficeInventoryController {
             throw new ResourceNotFoundException("User not found");
         }
         EmployeeProfile employeeProfile = employeeProfileService.findEmployeeByAccount(optionalUser.get());
-
+        List<WarehouseResponse> warehouseResponses = warehouseRepository.findAllByBusiness(employeeProfile.getBusiness())
+                .stream()
+                .map(WarehouseResponse::new)
+                .collect(Collectors.toList());
         List<Office> offices = officeService.findAllByBusiness(employeeProfile.getBusiness());
         List<OfficeProductRequest> requests = officeProductRequestRepository
                 .findAll()
@@ -124,7 +136,55 @@ public class OfficeInventoryController {
                 .stream()
                 .map(
                         officeProductRequest -> {
-                            ArrayList<ProductQuantityResponse> productQuantityResponses = new ArrayList<>();
+                            ArrayList<ProductQuantityResponse> productQuantityResponses = productQuantityRepository
+                                    .findAllByOfficeProductRequest_OfficeId(officeProductRequest.getOfficeId())
+                                    .stream()
+                                    .filter(
+                                            productQuantity ->
+                                                    productQuantity
+                                                            .getOfficeProductRequest()
+                                                            .getOfficeId()
+                                                            .equals(officeProductRequest.getOfficeId())
+                                    )
+                                    .map(productQuantity -> {
+                                        Optional<Product> optionalProduct = productRepository
+                                                .findById(productQuantity.getProductId());
+                                        if (!optionalProduct.isPresent()) {
+                                            return new ProductQuantityResponse();
+                                        }
+                                        Product product = optionalProduct.get();
+                                        ProductResponse productResponse = new ProductResponse(
+                                                product.getId(),
+                                                product.getName(),
+                                                product.getPrice(),
+                                                product.getPdv(),
+                                                null,
+                                                product.getUnit(),
+                                                product.getBarcode(),
+                                                product.getDescription(),
+                                                new DiscountResponse(
+                                                        product.getDiscount().getPercentage()
+                                                )
+                                        );
+                                        ArrayList<WarehouseResponse> warehouseResponses1 = warehouseResponses
+                                                .stream()
+                                                .filter(
+                                                        warehouseResponse ->
+                                                                warehouseResponse
+                                                                        .getProductId()
+                                                                        .equals(product.getId())
+                                                )
+                                                .collect(Collectors.toCollection(ArrayList::new));
+                                        double available = 0.0;
+                                        if (!warehouseResponses1.isEmpty()) {
+                                                available = warehouseResponses1.get(0).getQuantity();
+                                        }
+                                        return new ProductQuantityResponse(
+                                                productResponse,
+                                                productQuantity.getQuantity(),
+                                                available
+                                        );
+                                    }).collect(Collectors.toCollection(ArrayList::new));
 
                             return new OfficeInventoryRequestResponse(
                                     officeProductRequest.getId(),

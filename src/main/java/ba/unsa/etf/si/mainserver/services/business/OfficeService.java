@@ -29,6 +29,28 @@ public class OfficeService {
         this.cashRegisterService = cashRegisterService;
     }
 
+    public OfficeResponse getOfficeResponseByOfficeId(Long officeId) {
+        Optional<Office> optionalOffice = officeRepository.findById(officeId);
+        if (!optionalOffice.isPresent()) {
+            throw new ResourceNotFoundException("No such office with id " + officeId);
+        }
+        Office office = optionalOffice.get();
+        return new OfficeResponse(
+          office.getId(),
+          office.getContactInformation().getAddress(),
+          office.getContactInformation().getCity(),
+          office.getContactInformation().getCountry(),
+          office.getContactInformation().getEmail(),
+          office.getContactInformation().getPhoneNumber(),
+          office.getStringStart(),
+          office.getStringEnd(),
+          office.getLanguageName().name(),
+          office.getMaxNumberCashRegisters(),
+          null,
+          null
+        );
+    }
+
     public Office findOfficeById(Long officeId, Long businessId){
         Optional<Business> optionalBusiness = businessRepository.findById(businessId);
         if (!optionalBusiness.isPresent()) {

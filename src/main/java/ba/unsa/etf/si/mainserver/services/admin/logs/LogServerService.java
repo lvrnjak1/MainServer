@@ -10,6 +10,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -104,8 +105,12 @@ public class LogServerService {
                 new SimpleActionResponse(actionName,actionObject,actionDescription)
         );
 
-        HttpEntity<LogResponse> entity = new HttpEntity<>(requestBody, headers);
-        System.out.println(restTemplate.postForObject(url, entity, String.class));
+        try {
+            HttpEntity<LogResponse> entity = new HttpEntity<>(requestBody, headers);
+            System.out.println(restTemplate.postForObject(url, entity, String.class));
+        } catch (RestClientException ignored) {
+
+        }
     }
 
     public void broadcastNotification(NotificationRequest notification, String receiver) {
@@ -119,7 +124,11 @@ public class LogServerService {
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         headers.set("pass", pass);
 
-        HttpEntity<NotificationRequest> entity = new HttpEntity<>(notification, headers);
-        System.out.println(restTemplate.postForObject(url, entity, String.class));
+        try {
+            HttpEntity<NotificationRequest> entity = new HttpEntity<>(notification, headers);
+            System.out.println(restTemplate.postForObject(url, entity, String.class));
+        } catch (RestClientException ignored) {
+
+        }
     }
 }

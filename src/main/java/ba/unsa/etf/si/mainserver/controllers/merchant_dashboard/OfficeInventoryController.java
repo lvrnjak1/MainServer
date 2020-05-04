@@ -132,6 +132,13 @@ public class OfficeInventoryController {
                     officeProductRequest -> offices.stream().anyMatch(office -> office.getId().equals(officeProductRequest.getOfficeId()))
                 )
                 .collect(Collectors.toList());
+
+        ArrayList<ProductQuantity> productQuantities = productQuantityRepository.findAll().stream().filter(productQuantity -> offices.stream().anyMatch(office -> productQuantity.getOfficeProductRequest().getOfficeId().equals(office.getId()))).collect(Collectors.toCollection(ArrayList::new));
+        requests.stream().forEach(System.out::println);
+        System.out.println("And after filtering");
+//        requests.stream().forEach(officeProductRequest -> {
+//            productQuantities.stream().filter(productQuantity -> productQuantity.getOfficeProductRequest().getId().equals(officeProductRequest.getId())).forEach(productQuantity -> System.out.println(productQuantity.getId() + " - " + ));
+//        });
         try {
             return requests
                     .stream()
@@ -142,10 +149,7 @@ public class OfficeInventoryController {
                                         .stream()
                                         .filter(
                                                 productQuantity ->
-                                                        productQuantity
-                                                                .getOfficeProductRequest()
-                                                                .getOfficeId()
-                                                                .equals(officeProductRequest.getOfficeId())
+                                                        productQuantity.getOfficeProductRequest().getId().equals(officeProductRequest.getId())
                                         )
                                         .map(productQuantity -> {
                                             Optional<Product> optionalProduct = productRepository

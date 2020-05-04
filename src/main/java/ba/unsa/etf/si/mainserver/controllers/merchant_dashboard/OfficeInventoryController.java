@@ -202,6 +202,11 @@ public class OfficeInventoryController {
     @PostMapping("/warehouse/requests/deny")
     @Secured("ROLE_WAREMAN")
     public ResponseEntity<ApiResponse> denyRequest(@RequestBody RequestAnswer requestAnswer) {
+        System.out.println("The id: " + requestAnswer.getRequestId());
+        System.out.println("The message: " + requestAnswer.getMessage());
+        if (requestAnswer.getRequestId() == null) {
+            throw new AppException("No id provided");
+        }
         Optional<OfficeProductRequest> optionalOfficeProductRequest = officeProductRequestRepository
                 .findById(requestAnswer.getRequestId());
         if (!optionalOfficeProductRequest.isPresent()) {
@@ -225,6 +230,11 @@ public class OfficeInventoryController {
     @PostMapping("/warehouse/requests/accept")
     @Secured("ROLE_WAREMAN")
     public ResponseEntity<ApiResponse> acceptRequest(@RequestBody RequestAnswer requestAnswer) {
+        System.out.println("The id: " + requestAnswer.getRequestId());
+        System.out.println("The message: " + requestAnswer.getMessage());
+        if (requestAnswer.getRequestId() == null) {
+            throw new AppException("No id provided");
+        }
         Optional<OfficeProductRequest> optionalOfficeProductRequest = officeProductRequestRepository
                 .findById(requestAnswer.getRequestId());
         if (!optionalOfficeProductRequest.isPresent()) {

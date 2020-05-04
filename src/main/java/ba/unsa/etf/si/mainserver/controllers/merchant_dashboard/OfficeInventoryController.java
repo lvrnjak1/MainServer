@@ -202,11 +202,19 @@ public class OfficeInventoryController {
     @PostMapping("/warehouse/requests/deny")
     @Secured("ROLE_WAREMAN")
     public ResponseEntity<ApiResponse> denyRequest(@RequestBody RequestAnswer requestAnswer) {
+        System.out.println("The id: " + requestAnswer.getRequestId());
+        System.out.println("The message: " + requestAnswer.getMessage());
+        if (requestAnswer.getRequestId() == null) {
+            throw new AppException("No id provided");
+        }
         Optional<OfficeProductRequest> optionalOfficeProductRequest = officeProductRequestRepository
                 .findById(requestAnswer.getRequestId());
         if (!optionalOfficeProductRequest.isPresent()) {
             throw new ResourceNotFoundException("That request does not exist");
         }
+        List<ProductQuantity> productQuantities = productQuantityRepository.findAllByOfficeProductRequest_OfficeId(optionalOfficeProductRequest.get().getOfficeId());
+        productQuantities = productQuantities.stream().filter(productQuantity -> productQuantity.getOfficeProductRequest().getId().equals(optionalOfficeProductRequest.get().getId())).collect(Collectors.toCollection(ArrayList::new));
+        productQuantityRepository.deleteAll(productQuantities);
         officeProductRequestRepository.delete(optionalOfficeProductRequest.get());
         logServerService.broadcastNotification(
                 new NotificationRequest(
@@ -225,11 +233,19 @@ public class OfficeInventoryController {
     @PostMapping("/warehouse/requests/accept")
     @Secured("ROLE_WAREMAN")
     public ResponseEntity<ApiResponse> acceptRequest(@RequestBody RequestAnswer requestAnswer) {
+        System.out.println("The id: " + requestAnswer.getRequestId());
+        System.out.println("The message: " + requestAnswer.getMessage());
+        if (requestAnswer.getRequestId() == null) {
+            throw new AppException("No id provided");
+        }
         Optional<OfficeProductRequest> optionalOfficeProductRequest = officeProductRequestRepository
                 .findById(requestAnswer.getRequestId());
         if (!optionalOfficeProductRequest.isPresent()) {
             throw new ResourceNotFoundException("That request does not exist");
         }
+        List<ProductQuantity> productQuantities = productQuantityRepository.findAllByOfficeProductRequest_OfficeId(optionalOfficeProductRequest.get().getOfficeId());
+        productQuantities = productQuantities.stream().filter(productQuantity -> productQuantity.getOfficeProductRequest().getId().equals(optionalOfficeProductRequest.get().getId())).collect(Collectors.toCollection(ArrayList::new));
+        productQuantityRepository.deleteAll(productQuantities);
         officeProductRequestRepository.delete(optionalOfficeProductRequest.get());
         logServerService.broadcastNotification(
                 new NotificationRequest(

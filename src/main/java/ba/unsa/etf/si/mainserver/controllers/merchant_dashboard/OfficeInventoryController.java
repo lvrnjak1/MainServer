@@ -136,9 +136,9 @@ public class OfficeInventoryController {
         ArrayList<ProductQuantity> productQuantities = productQuantityRepository.findAll().stream().filter(productQuantity -> offices.stream().anyMatch(office -> productQuantity.getOfficeProductRequest().getOfficeId().equals(office.getId()))).collect(Collectors.toCollection(ArrayList::new));
         requests.stream().forEach(System.out::println);
         System.out.println("And after filtering");
-        requests.stream().forEach(officeProductRequest -> {
-            productQuantities.stream().filter(productQuantity -> productQuantity.getOfficeProductRequest().getId().equals(officeProductRequest.getId())).map(ProductQuantity::getOfficeProductRequest).forEach(System.out::println);
-        });
+//        requests.stream().forEach(officeProductRequest -> {
+//            productQuantities.stream().filter(productQuantity -> productQuantity.getOfficeProductRequest().getId().equals(officeProductRequest.getId())).forEach(productQuantity -> System.out.println(productQuantity.getId() + " - " + ));
+//        });
         try {
             return requests
                     .stream()
@@ -216,9 +216,9 @@ public class OfficeInventoryController {
         if (!optionalOfficeProductRequest.isPresent()) {
             throw new ResourceNotFoundException("That request does not exist");
         }
-//        List<ProductQuantity> productQuantities = productQuantityRepository.findAllByOfficeProductRequest_OfficeId(optionalOfficeProductRequest.get().getOfficeId());
-//        productQuantities = productQuantities.stream().filter(productQuantity -> productQuantity.getOfficeProductRequest().getId().equals(optionalOfficeProductRequest.get().getId())).collect(Collectors.toCollection(ArrayList::new));
-//        productQuantityRepository.deleteAll(productQuantities);
+        List<ProductQuantity> productQuantities = productQuantityRepository.findAllByOfficeProductRequest_OfficeId(optionalOfficeProductRequest.get().getOfficeId());
+        productQuantities = productQuantities.stream().filter(productQuantity -> productQuantity.getOfficeProductRequest().getId().equals(optionalOfficeProductRequest.get().getId())).collect(Collectors.toCollection(ArrayList::new));
+        productQuantityRepository.deleteAll(productQuantities);
         officeProductRequestRepository.delete(optionalOfficeProductRequest.get());
         logServerService.broadcastNotification(
                 new NotificationRequest(
@@ -247,9 +247,9 @@ public class OfficeInventoryController {
         if (!optionalOfficeProductRequest.isPresent()) {
             throw new ResourceNotFoundException("That request does not exist");
         }
-//        List<ProductQuantity> productQuantities = productQuantityRepository.findAllByOfficeProductRequest_OfficeId(optionalOfficeProductRequest.get().getOfficeId());
-//        productQuantities = productQuantities.stream().filter(productQuantity -> productQuantity.getOfficeProductRequest().getId().equals(optionalOfficeProductRequest.get().getId())).collect(Collectors.toCollection(ArrayList::new));
-//        productQuantityRepository.deleteAll(productQuantities);
+        List<ProductQuantity> productQuantities = productQuantityRepository.findAllByOfficeProductRequest_OfficeId(optionalOfficeProductRequest.get().getOfficeId());
+        productQuantities = productQuantities.stream().filter(productQuantity -> productQuantity.getOfficeProductRequest().getId().equals(optionalOfficeProductRequest.get().getId())).collect(Collectors.toCollection(ArrayList::new));
+        productQuantityRepository.deleteAll(productQuantities);
         officeProductRequestRepository.delete(optionalOfficeProductRequest.get());
         logServerService.broadcastNotification(
                 new NotificationRequest(

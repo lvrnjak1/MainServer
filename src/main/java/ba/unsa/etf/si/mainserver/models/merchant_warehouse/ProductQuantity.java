@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 
 import javax.persistence.*;
@@ -23,6 +25,9 @@ public class ProductQuantity extends AuditModel {
     private Long id;
     private Long productId;
     private Long quantity;
+
     @ManyToOne
+    @JoinColumn(name = "office_product_request_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private OfficeProductRequest officeProductRequest;
 }

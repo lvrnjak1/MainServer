@@ -117,8 +117,13 @@ public class EmployeeProfileService {
     }
 
     public void createNewEmployment(EmployeeProfile employeeProfile, Office office, String role){
-        EmploymentHistory employmentHistory =
-                new EmploymentHistory(employeeProfile.getId(),office.getId(), new Date(), null, role);
+        EmploymentHistory employmentHistory = null;
+        if(office != null) {
+                    employmentHistory = new EmploymentHistory(employeeProfile.getId(), office.getId(), new Date(), null, role);
+        }
+        else{
+            employmentHistory = new EmploymentHistory(employeeProfile.getId(), null , new Date(), null, role);
+        }
         employmentHistoryRepository.save(employmentHistory);
     }
 

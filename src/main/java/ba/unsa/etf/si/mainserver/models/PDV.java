@@ -16,6 +16,7 @@ public class PDV {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private double pdvRate;
+    private boolean active = true;
 
     public Long getId() {
         return id;
@@ -35,5 +36,13 @@ public class PDV {
 
     public PDV (double pdv_rate){
         this.pdvRate = pdv_rate;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

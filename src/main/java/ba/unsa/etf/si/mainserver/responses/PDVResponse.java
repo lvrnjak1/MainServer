@@ -10,8 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PDVResponse {
     private double pdv;
+    private boolean active;
 
     public PDVResponse(PDV pdv){
         this.pdv = pdv.getPdvRate();
+        this.active = pdv.isActive();
     }
 }

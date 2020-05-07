@@ -49,6 +49,9 @@ public class Business extends AuditModel { //ovo je kao Bingo
     @Column(name = "reservation_duration")
     private Long reservationDurationMins = 60L;
 
+    private String placeName = "Tables";
+
+
     public Business(String name, boolean restaurantFeature, EmployeeProfile merchant) {
         this.name = name;
         this.restaurantFeature = restaurantFeature;
@@ -122,5 +125,13 @@ public class Business extends AuditModel { //ovo je kao Bingo
 
     public void setReservationDurationMins(Long reservationDurationMins) {
         this.reservationDurationMins = reservationDurationMins;
+    }
+
+    public String getPlaceName() {
+        return placeName;
+    }
+
+    public void setPlaceName(String placeName) {
+        this.placeName = placeName;
     }
 }

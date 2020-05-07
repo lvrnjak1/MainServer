@@ -11,5 +11,6 @@ import java.util.Optional;
 @Repository
 public interface TableRepository extends JpaRepository<Table, Long> {
     List<Table> findAllByOffice_Id(Long officeId);
-    Optional<Table> findByTableNumberAndOffice(int tableNumber, Office office);
+    Optional<Table> findByTableNameInOfficeAndOffice(String tableName, Office office);
+
 }

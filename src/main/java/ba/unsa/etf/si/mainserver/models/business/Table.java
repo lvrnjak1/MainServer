@@ -17,13 +17,13 @@ public class Table {
     @Column(name = "id")
     private Long id;
 
-    private int tableNumber;
+    private String tableNameInOffice;
 
     @ManyToOne
     private Office office;
 
-    public Table(int tableNumber, Office office){
-        this.tableNumber = tableNumber;
+    public Table(String tableNameInOffice, Office office){
+        this.tableNameInOffice = tableNameInOffice;
         this.office = office;
     }
 }

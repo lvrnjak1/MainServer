@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TableRequest {
-    private int tableNumber;
+    private String tableName;
 }

@@ -18,4 +18,5 @@ public class CashServerConfigResponse {
     private String syncTime;
     private String startTime;
     private String endTime;
+    private String placeName;
 }

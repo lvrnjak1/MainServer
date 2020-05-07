@@ -643,7 +643,8 @@ public class BusinessController {
                 office.getLanguageName().toString(),
                 business.getStringSyncDate(),
                 office.getStringStart(),
-                office.getStringEnd());
+                office.getStringEnd(),
+                business.getPlaceName());
     }
 
     //ruta za PR app da vide informacije o svim offices u svim businesses
@@ -770,5 +771,18 @@ public class BusinessController {
         officeService.save(office);
         return new ApiResponse("Office work hours successfully changed",
                 200);
+    }
+
+    @PutMapping("/{businessId}/placeName")
+    @Secured("ROLE_ADMIN")
+    public ApiResponse ChangePlaceName(
+            @PathVariable("businessId") Long businessId,
+            @RequestBody PlaceNameRequest placeNameRequest){
+
+        Business business = businessService.findBusinessById(businessId);
+        business.setPlaceName(placeNameRequest.getPlaceName());
+        businessService.save(business);
+
+        return new ApiResponse("Business place name changed!", 200);
     }
 }

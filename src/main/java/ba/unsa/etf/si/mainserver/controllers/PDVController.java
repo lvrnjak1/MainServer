@@ -24,9 +24,27 @@ public class PDVController {
     }
 
     @GetMapping
-    @Secured({"ROLE_ADMIN","ROLE_WAREMAN"})
+    @Secured({"ROLE_ADMIN"})
     public List<PDVResponse> getAllPDVRates(){
-        return pdvRepository.findAll().stream().map(pdv -> new PDVResponse(pdv)).collect(Collectors.toList());
+        return pdvRepository.findAll().stream().map(PDVResponse::new).collect(Collectors.toList());
+    }
+
+    @GetMapping("/active")
+    @Secured({"ROLE_WAREMAN"})
+    public List<PDVResponse> getAllActivePDVRates(){
+        return pdvRepository.findAll().stream()
+                .filter(PDV::isActive)
+                .map(PDVResponse::new).collect(Collectors.toList());
+    }
+
+    @PostMapping("/switch")
+    @Secured({"ROLE_ADMIN"})
+    public ApiResponse switchPDVRateActiveState(@RequestBody PDVRequest pdvRequest){
+        PDV pdv = pdvRepository.findByPdvRate(pdvRequest.getPdv())
+                .orElseThrow(() -> new BadParameterValueException("PDV rate doesn't exists"));
+        pdv.setActive(!pdv.isActive());
+        pdvRepository.save(pdv);
+        return new ApiResponse("Active state set to " + pdv.isActive(), 200);
     }
 
     @PostMapping

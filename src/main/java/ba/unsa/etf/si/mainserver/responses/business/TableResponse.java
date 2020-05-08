@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TableResponse {
     private Long id;
-    private int tableNumber;
+    private String tableName;
 }
 

@@ -9,13 +9,11 @@ import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.repositories.products.AdminMerchantNotificationRepository;
 import ba.unsa.etf.si.mainserver.requests.business.CloseOfficeRequest;
 import ba.unsa.etf.si.mainserver.requests.business.NotificationRequest;
+import ba.unsa.etf.si.mainserver.requests.business.OfficeRequest;
 import ba.unsa.etf.si.mainserver.requests.business.OpenOfficeRequest;
 import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
-import ba.unsa.etf.si.mainserver.responses.business.CloseOfficeResponse;
-import ba.unsa.etf.si.mainserver.responses.business.MANotificationResponse;
-import ba.unsa.etf.si.mainserver.responses.business.NotificationResponse;
-import ba.unsa.etf.si.mainserver.responses.business.OpenOfficeResponse;
+import ba.unsa.etf.si.mainserver.responses.business.*;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
@@ -29,6 +27,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -295,5 +294,71 @@ public class NotificationController {
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
         return ResponseEntity.ok(new ApiResponse("Notification is read", 200));
+    }
+
+    @PostMapping("/{businessId}/open/reject/{notificationId}")
+    @Secured("ROLE_ADMIN")
+    public ApiResponse rejectOfficeOpening(
+            @PathVariable("businessId") Long businessId,
+            @PathVariable("notificationId") Long notificationId){
+
+        Business business = businessService.findBusinessById(businessId);
+        AdminMerchantNotification notification = adminMerchantNotificationRepository.findByIdAndBusiness_Id(notificationId, businessId)
+                .orElseThrow(() -> new BadParameterValueException("Bad notification"));
+
+        if(!notification.isOpen()){
+            throw new BadParameterValueException("This is not notification for office opening!");
+        }
+
+        // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "reject_open_office",
+                                "Office in " +
+                                        notification.getCity() +
+                                        " " +
+                                        notification.getAddress()+
+                                        " has not been opened."
+                        )
+                ),
+                "merchant_dashboard"
+        );
+        return new ApiResponse("Request for office opening rejected!", 200);
+    }
+
+    @PostMapping("/{businessId}/close/reject/{notificationId}")
+    @Secured("ROLE_ADMIN")
+    public ApiResponse rejectOfficeClosing(
+            @PathVariable("businessId") Long businessId,
+            @PathVariable("notificationId") Long notificationId){
+
+        Business business = businessService.findBusinessById(businessId);
+        AdminMerchantNotification notification = adminMerchantNotificationRepository.findByIdAndBusiness_Id(notificationId, businessId)
+                .orElseThrow(() -> new BadParameterValueException("Bad notification"));
+
+        if(notification.isOpen()){
+            throw new BadParameterValueException("This is not notification for office closing!");
+        }
+
+        // DO NOT EDIT THIS CODE ABOVE, EVER
+        logServerService.broadcastNotification(
+                new ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "office",
+                                "reject_close_office",
+                                "Office in " +
+                                        notification.getCity() +
+                                        " " +
+                                        notification.getAddress()+
+                                        " has not been closed."
+                        )
+                ),
+                "merchant_dashboard"
+        );
+        return new ApiResponse("Request for office closing rejected!", 200);
     }
 }

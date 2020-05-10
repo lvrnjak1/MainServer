@@ -33,13 +33,13 @@ public class TableService {
                 .anyMatch(table -> table.getId().equals(tableId));
     }
 
-    public boolean isUniqueTableNumberInOffice(int tableNumber, Office office) {
-        return !tableRepository.findByTableNumberAndOffice(tableNumber, office).isPresent();
+    public boolean isUniqueTableNameInOffice(String tableName, Office office) {
+        return !tableRepository.findByTableNameInOfficeAndOffice(tableName, office).isPresent();
     }
 
     public Table save(Table table){
-        if(!isUniqueTableNumberInOffice(table.getTableNumber(), table.getOffice())){
-            throw new BadParameterValueException("Table with this number already exists in office " +
+        if(!isUniqueTableNameInOffice(table.getTableNameInOffice(), table.getOffice())){
+            throw new BadParameterValueException("Table with this name already exists in office " +
                     table.getOffice().getId());
         }
         return tableRepository.save(table);
@@ -50,12 +50,12 @@ public class TableService {
     }
 
     public static TableResponse mapTableToTableResponse(Table table){
-        return new TableResponse(table.getId(), table.getTableNumber());
+        return new TableResponse(table.getId(), table.getTableNameInOffice());
     }
 
     public Table getFromTableRequestAndOfficeId(TableRequest tableRequest, Long officeId){
         Office office = officeService.findByIdOrThrow(officeId);
-        return new Table(tableRequest.getTableNumber(), office);
+        return new Table(tableRequest.getTableName(), office);
     }
 
     public void delete(Long tableId) {

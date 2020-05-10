@@ -26,7 +26,7 @@ public class PDVController {
     @GetMapping
     @Secured({"ROLE_ADMIN","ROLE_WAREMAN"})
     public List<PDVResponse> getAllPDVRates(){
-        return pdvRepository.findAll().stream().map(pdv -> new PDVResponse(pdv)).collect(Collectors.toList());
+        return pdvRepository.findAll().stream().map(PDVResponse::new).collect(Collectors.toList());
     }
 
     @PostMapping

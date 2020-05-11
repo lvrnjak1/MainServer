@@ -26,4 +26,10 @@ public class Item {
     @ManyToOne
     @OnDelete(action = OnDeleteAction.CASCADE)
     private ItemType itemType;
+
+    public Item(String name, String unit, ItemType itemType) {
+        this.name = name;
+        this.unit = unit;
+        this.itemType = itemType;
+    }
 }

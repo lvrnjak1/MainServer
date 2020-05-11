@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class ItemRequest {
     private String name;
     private String unit;
+    private Long itemTypeId;
 }

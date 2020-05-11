@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class ProductItemRequest {
     private Long productId;
     private Long itemId;
+    private double value;
 }

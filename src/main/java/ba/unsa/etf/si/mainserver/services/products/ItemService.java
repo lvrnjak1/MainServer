@@ -2,8 +2,10 @@ package ba.unsa.etf.si.mainserver.services.products;
 
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.models.business.Business;
+import ba.unsa.etf.si.mainserver.models.products.Product;
 import ba.unsa.etf.si.mainserver.models.products.items.Item;
 import ba.unsa.etf.si.mainserver.models.products.items.ItemType;
+import ba.unsa.etf.si.mainserver.models.products.items.ProductItem;
 import ba.unsa.etf.si.mainserver.repositories.products.ProductRepository;
 import ba.unsa.etf.si.mainserver.repositories.products.items.ItemRepository;
 import ba.unsa.etf.si.mainserver.repositories.products.items.ItemTypeRepository;
@@ -39,18 +41,18 @@ public class ItemService {
         return itemTypeRepository.findByName(name);
     }
 
-    public ItemType save(ItemType itemType) {
+    public ItemType saveItemType(ItemType itemType) {
         return itemTypeRepository.save(itemType);
     }
 
-    public ItemType findById(Long typeId) {
+    public ItemType findItemTypeById(Long typeId) {
         return itemTypeRepository
                 .findById(typeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Type doesn't exist"));
     }
 
-    public ItemType findByIdAndBusinessId(Long typeId, Long businessId) {
-        ItemType itemType = findById(typeId);
+    public ItemType findItemTypeByIdAndBusinessId(Long typeId, Long businessId) {
+        ItemType itemType = findItemTypeById(typeId);
         if(!itemType.getBusinessId().equals(businessId)){
             throw new ResourceNotFoundException("Type doesn't exist");
         }
@@ -58,13 +60,49 @@ public class ItemService {
         return itemType;
     }
 
-    public void delete(ItemType itemType) {
+    public void deleteItemType(ItemType itemType) {
         productRepository.findAllByItemType(itemType)
         .forEach(product -> product.setItemType(null));
+        //itemRepository.findAllByItemType(itemType).forEach(itemRepository::delete);
         itemTypeRepository.delete(itemType);
     }
 
     public List<Item> getItemsByType(ItemType itemType) {
         return itemRepository.findAllByItemType(itemType);
+    }
+
+    public Item saveItem(Item item) {
+        return itemRepository.save(item);
+    }
+
+    public Item findItemByIdAndBusiness(Long itemId, Long businessId) {
+        return itemRepository.findByIdAndItemType_BusinessId(itemId, businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Item doesn't exist"));
+    }
+
+    public void deleteItem(Item item) {
+        itemRepository.delete(item);
+    }
+
+    public ProductItem findProductItem(Long productId, Long itemId) {
+        return productItemRepository.findByProduct_IdAndItem_Id(productId, itemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Item doesn't exist for this product"));
+    }
+
+    public void deleteProductItem(ProductItem productItem) {
+        productItemRepository.delete(productItem);
+    }
+
+    public ProductItem saveProductItem(ProductItem productItem) {
+        return productItemRepository.save(productItem);
+    }
+
+    public List<ProductItem> findProductItemsByProduct(Product product) {
+        return productItemRepository.findAllByProduct(product);
+    }
+
+    public Item findItemByIdAndBusinessAndItemType(Long itemId, Long businessId, ItemType itemType) {
+        return itemRepository.findByIdAndItemType_BusinessIdAndItemType_Id(itemId, businessId, itemType.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Item doesn't exist"));
     }
 }

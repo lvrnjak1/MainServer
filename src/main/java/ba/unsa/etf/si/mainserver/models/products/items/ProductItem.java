@@ -29,4 +29,10 @@ public class ProductItem {
     private Item item;
 
     private double value;
+
+    public ProductItem(Product product, Item item, double value) {
+        this.product = product;
+        this.item = item;
+        this.value = value;
+    }
 }

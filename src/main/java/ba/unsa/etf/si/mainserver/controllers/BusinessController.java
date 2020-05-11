@@ -656,6 +656,12 @@ public class BusinessController {
                 .collect(Collectors.toList());
     }
 
+    //ruta za PR app da vide informacije o svim biznisima
+    @GetMapping("/allBusinesses")
+    public List<BusinessResponse> getAllBusinessesForPR(){
+        return businessService.getAllBusinessResponses();
+    }
+
     @PutMapping("/mainOffice")
     @Secured("ROLE_MERCHANT")
     public ApiResponse setMainOffice(

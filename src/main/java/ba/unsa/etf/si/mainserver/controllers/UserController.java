@@ -5,7 +5,9 @@ import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
 import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeActivity;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
+import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.EmploymentHistoryRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.requests.business.EmployeeProfileRequest;
@@ -42,11 +44,12 @@ public class UserController {
     private final EmploymentHistoryRepository employmentHistoryRepository;
     private final ReceiptService receiptService;
     private final LogServerService logServerService;
+    private final EmployeeActivityRepository employeeActivityRepository;
 
     public UserController(UserService userService, EmployeeProfileService employeeProfileService,
                           OfficeProfileRepository officeProfileRepository,
                           BusinessService businessService,
-                          EmploymentHistoryRepository employmentHistoryRepository, ReceiptService receiptService, LogServerService logServerService) {
+                          EmploymentHistoryRepository employmentHistoryRepository, ReceiptService receiptService, LogServerService logServerService, EmployeeActivityRepository employeeActivityRepository) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.officeProfileRepository = officeProfileRepository;
@@ -54,12 +57,14 @@ public class UserController {
         this.employmentHistoryRepository = employmentHistoryRepository;
         this.receiptService = receiptService;
         this.logServerService = logServerService;
+        this.employeeActivityRepository = employeeActivityRepository;
     }
 
     @GetMapping("/users")
     @Secured("ROLE_ADMIN")
     public List<UserResponse> getUsers(@RequestParam(required = false) Long businessId) {
-       return employeeProfileService.findAllByOptionalBusinessId(businessId)
+        List<EmployeeActivity> employeeActivities = employeeActivityRepository.findAll();
+        return employeeProfileService.findAllByOptionalBusinessId(businessId)
                .stream()
                 .map(
                         employeeProfile -> new UserResponse(
@@ -75,6 +80,18 @@ public class UserController {
                                 employeeProfile.getContactInformation().getCountry(),
                                 employeeProfile.getContactInformation().getCity(),
                                 employeeProfile.getAccount())
+                )
+                .filter(
+                        userResponse ->
+                                employeeActivities
+                                        .stream()
+                                        .noneMatch(
+                                                employeeActivity ->
+                                                        employeeActivity
+                                                                .getAccount()
+                                                                .getId()
+                                                                .equals(userResponse.getUserId())
+                                        )
                 )
                 .collect(Collectors.toList());
     }

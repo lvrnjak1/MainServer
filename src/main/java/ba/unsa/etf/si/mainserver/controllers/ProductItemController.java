@@ -183,8 +183,18 @@ public class ProductItemController {
         itemService.deleteProductItem(productItem);
         return new ApiResponse("Item successfully removed from this product's item list", 200);
     }
-    
-    //rijadova ruta da uzme item type
+
+    @GetMapping("/products/{productId}/items")
+    @Secured("ROLE_WAREMAN")
+    public List<ItemResponse> getAllItemsForProduct(@CurrentUser UserPrincipal userPrincipal,
+                                                    @PathVariable Long productId){
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        Product product = productService.findProductById(productId, business.getId());
+        return itemService.findAllProductItems(product)
+                .stream()
+                .map(ItemResponse::new)
+                .collect(Collectors.toList());
+    }
     //rijadova ruta za proizvode da se promijeni
     //matejeva ruta za proizvode??
 }

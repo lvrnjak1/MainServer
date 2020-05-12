@@ -24,6 +24,7 @@ import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.CashRegisterService;
 import ba.unsa.etf.si.mainserver.services.business.OfficeService;
 import ba.unsa.etf.si.mainserver.services.products.CommentService;
+import ba.unsa.etf.si.mainserver.services.products.ItemService;
 import ba.unsa.etf.si.mainserver.services.products.OfficeInventoryService;
 import ba.unsa.etf.si.mainserver.services.products.ProductService;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +50,7 @@ public class ProductController {
     private final CommentService commentService;
     private final LogServerService logServerService;
     private final PDVRepository pdvRepository;
+    private final ItemService itemService;
 
     public ProductController(ProductService productService,
                              BusinessService businessService,
@@ -57,7 +59,7 @@ public class ProductController {
                              CashRegisterService cashRegisterService,
                              WarehouseRepository warehouseRepository,
                              CommentService commentService,
-                             LogServerService logServerService, PDVRepository pdvRepository) {
+                             LogServerService logServerService, PDVRepository pdvRepository, ItemService itemService) {
         this.productService = productService;
         this.businessService = businessService;
         this.officeService = officeService;
@@ -67,6 +69,7 @@ public class ProductController {
         this.commentService = commentService;
         this.logServerService = logServerService;
         this.pdvRepository = pdvRepository;
+        this.itemService = itemService;
     }
 
     @GetMapping("/products")
@@ -89,7 +92,9 @@ public class ProductController {
 
         return officeInventoryService.findAllProductsForOffice(office).stream().
                 map(officeInventory -> new ProductInventoryResponse(officeInventory.getProduct(),
-                        officeInventory)).collect(Collectors.toList());
+                        officeInventory,
+                        itemService.findAllProductItems(officeInventory.getProduct())))
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/products")
@@ -117,7 +122,8 @@ public class ProductController {
                         + "!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
-        return new ProductResponse(productService.save(product));
+        Product savedProduct = productService.save(product);
+        return new ProductResponse(savedProduct);
     }
 
     @PostMapping("/products/{productId}/image")

@@ -6,6 +6,7 @@ import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.models.products.Product;
+import ba.unsa.etf.si.mainserver.models.products.items.Item;
 import ba.unsa.etf.si.mainserver.repositories.auth.UserRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.BusinessRepository;
 import ba.unsa.etf.si.mainserver.repositories.products.ProductRepository;
@@ -25,12 +26,18 @@ public class ProductService {
     private final BusinessRepository businessRepository;
     private final EmployeeProfileService employeeProfileService;
     private final UserRepository userRepository;
+    private final ItemService itemService;
 
-    public ProductService(ProductRepository productRepository, BusinessRepository businessRepository, EmployeeProfileService employeeProfileService,UserRepository userRepository) {
+    public ProductService(ProductRepository productRepository,
+                          BusinessRepository businessRepository,
+                          EmployeeProfileService employeeProfileService,
+                          UserRepository userRepository,
+                          ItemService itemService) {
         this.productRepository = productRepository;
         this.businessRepository = businessRepository;
         this.employeeProfileService = employeeProfileService;
         this.userRepository = userRepository;
+        this.itemService = itemService;
     }
 
     public Product save(Product product) {
@@ -70,7 +77,10 @@ public class ProductService {
 
     public List<ExtendedProductResponse> getAllProductResponsesWithBusiness() {
         List<Product> products = productRepository.findAll();
-        return products.stream().map(ExtendedProductResponse::new).collect(Collectors.toList());
+        return products.stream().map(product -> {
+            List<Item> productItems = itemService.findAllProductItems(product);
+            return new ExtendedProductResponse(product, productItems);
+        }).collect(Collectors.toList());
     }
 
     public List<ExtendedProductResponse> getAllProductOnSaleResponsesWithBusiness() {

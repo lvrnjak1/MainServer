@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class ItemService {
@@ -34,11 +33,11 @@ public class ItemService {
         this.productRepository = productRepository;
     }
 
-    public  List<Item> findAllProductItems(Product product) {
-        return productItemRepository.findAllByProduct(product)
-                .stream()
-                .map(productItem -> productItem.getItem())
-                .collect(Collectors.toList());
+    public  List<ProductItem> findAllProductItems(Product product) {
+        return productItemRepository.findAllByProduct(product);
+                //.stream()
+                //.map(productItem -> productItem.getItem())
+                //.collect(Collectors.toList());
     }
 
     public List<ItemType> findAllItemTypesByBusiness(Business business) {

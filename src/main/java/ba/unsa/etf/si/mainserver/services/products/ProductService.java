@@ -6,7 +6,7 @@ import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.models.products.Product;
-import ba.unsa.etf.si.mainserver.models.products.items.Item;
+import ba.unsa.etf.si.mainserver.models.products.items.ProductItem;
 import ba.unsa.etf.si.mainserver.repositories.auth.UserRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.BusinessRepository;
 import ba.unsa.etf.si.mainserver.repositories.products.ProductRepository;
@@ -78,7 +78,7 @@ public class ProductService {
     public List<ExtendedProductResponse> getAllProductResponsesWithBusiness() {
         List<Product> products = productRepository.findAll();
         return products.stream().map(product -> {
-            List<Item> productItems = itemService.findAllProductItems(product);
+            List<ProductItem> productItems = itemService.findAllProductItems(product);
             return new ExtendedProductResponse(product, productItems);
         }).collect(Collectors.toList());
     }

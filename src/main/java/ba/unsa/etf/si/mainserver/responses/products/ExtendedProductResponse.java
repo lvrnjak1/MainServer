@@ -1,8 +1,7 @@
 package ba.unsa.etf.si.mainserver.responses.products;
 
 import ba.unsa.etf.si.mainserver.models.products.Product;
-import ba.unsa.etf.si.mainserver.models.products.items.Item;
-import ba.unsa.etf.si.mainserver.responses.products.items.ItemResponse;
+import ba.unsa.etf.si.mainserver.models.products.items.ProductItem;
 import ba.unsa.etf.si.mainserver.responses.products.items.ItemTypeResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,15 +27,15 @@ public class ExtendedProductResponse {
     private String business;
     private String description;
     private ItemTypeResponse itemType;
-    private List<ItemResponse> productItems;
+    private List<ProductItemResponse> items;
 
     public ExtendedProductResponse(Product product){
         setAttributes(product);
     }
 
-    public ExtendedProductResponse(Product product, List<Item> productItems) {
+    public ExtendedProductResponse(Product product, List<ProductItem> items) {
         setAttributes(product);
-        this.productItems = productItems.stream().map(ItemResponse::new).collect(Collectors.toList());
+        this.items = items.stream().map(ProductItemResponse::new).collect(Collectors.toList());
     }
 
     private void setAttributes(Product product){

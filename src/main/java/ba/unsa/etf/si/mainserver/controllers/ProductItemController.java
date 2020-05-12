@@ -12,6 +12,7 @@ import ba.unsa.etf.si.mainserver.requests.products.items.ItemTypeRequest;
 import ba.unsa.etf.si.mainserver.requests.products.items.ProductItemRequest;
 import ba.unsa.etf.si.mainserver.requests.products.items.ProductItemTypeRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
+import ba.unsa.etf.si.mainserver.responses.products.ProductItemResponse;
 import ba.unsa.etf.si.mainserver.responses.products.items.ItemResponse;
 import ba.unsa.etf.si.mainserver.responses.products.items.ItemTypeResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
@@ -186,13 +187,13 @@ public class ProductItemController {
 
     @GetMapping("/products/{productId}/items")
     @Secured("ROLE_WAREMAN")
-    public List<ItemResponse> getAllItemsForProduct(@CurrentUser UserPrincipal userPrincipal,
+    public List<ProductItemResponse> getAllItemsForProduct(@CurrentUser UserPrincipal userPrincipal,
                                                     @PathVariable Long productId){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         Product product = productService.findProductById(productId, business.getId());
         return itemService.findAllProductItems(product)
                 .stream()
-                .map(ItemResponse::new)
+                .map(ProductItemResponse::new)
                 .collect(Collectors.toList());
     }
     //rijadova ruta za proizvode da se promijeni

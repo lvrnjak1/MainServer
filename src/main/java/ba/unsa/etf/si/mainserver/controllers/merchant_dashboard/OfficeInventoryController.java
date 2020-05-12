@@ -23,6 +23,7 @@ import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.products.DiscountResponse;
 import ba.unsa.etf.si.mainserver.responses.products.ProductResponse;
 import ba.unsa.etf.si.mainserver.responses.products.WarehouseResponse;
+import ba.unsa.etf.si.mainserver.responses.products.items.ItemTypeResponse;
 import ba.unsa.etf.si.mainserver.responses.warehouse.OfficeInventoryRequestResponse;
 import ba.unsa.etf.si.mainserver.responses.warehouse.ProductQuantityResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
@@ -163,13 +164,15 @@ public class OfficeInventoryController {
                                                     product.getName(),
                                                     product.getPrice(),
                                                     product.getPdv(),
-                                                    null,
                                                     product.getUnit(),
                                                     product.getBarcode(),
                                                     product.getDescription(),
                                                     new DiscountResponse(
                                                             product.getDiscount()!=null?product.getDiscount().getPercentage():0
-                                                    )
+                                                    ),
+                                                    new ItemTypeResponse(product.getItemType()),
+                                                    null,
+                                                    null
                                             );
                                             ArrayList<WarehouseResponse> warehouseResponses1 = warehouseResponses
                                                     .stream()
@@ -231,7 +234,7 @@ public class OfficeInventoryController {
                 ),
                 "merchant_dashboard"
         );
-        return ResponseEntity.ok(new ApiResponse("Successfully denied request!", 200));
+        return ResponseEntity.ok(new ApiResponse("The request for products has been denied!", 200));
     }
 
     @PostMapping("/warehouse/requests/accept")
@@ -262,6 +265,6 @@ public class OfficeInventoryController {
                 ),
                 "merchant_dashboard"
         );
-        return ResponseEntity.ok(new ApiResponse("Successfully accepted request!", 200));
+        return ResponseEntity.ok(new ApiResponse("The request for products has been accepted!", 200));
     }
 }

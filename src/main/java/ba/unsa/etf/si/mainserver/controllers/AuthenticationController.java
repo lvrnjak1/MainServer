@@ -278,7 +278,7 @@ public class AuthenticationController {
         // DO NOT EDIT THIS CODE ABOVE, EVER
         logServerService.broadcastNotification(
                 new NotificationRequest(
-                        "info",
+                        "warning",
                         new NotificationPayload(
                                 username,
                                 "password_change",

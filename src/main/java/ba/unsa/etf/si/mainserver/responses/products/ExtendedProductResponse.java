@@ -1,12 +1,16 @@
 package ba.unsa.etf.si.mainserver.responses.products;
 
 import ba.unsa.etf.si.mainserver.models.products.Product;
+import ba.unsa.etf.si.mainserver.models.products.items.ProductItem;
+import ba.unsa.etf.si.mainserver.responses.products.items.ItemTypeResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.Base64;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -22,8 +26,19 @@ public class ExtendedProductResponse {
     private String barcode;
     private String business;
     private String description;
+    private ItemTypeResponse itemType;
+    private List<ProductItemResponse> items;
 
     public ExtendedProductResponse(Product product){
+        setAttributes(product);
+    }
+
+    public ExtendedProductResponse(Product product, List<ProductItem> items) {
+        setAttributes(product);
+        this.items = items.stream().map(ProductItemResponse::new).collect(Collectors.toList());
+    }
+
+    private void setAttributes(Product product){
         this.id = product.getId();
         this.name = product.getName();
         this.price = product.getPrice();
@@ -41,5 +56,8 @@ public class ExtendedProductResponse {
         this.barcode = product.getBarcode();
         this.description = product.getDescription();
         this.pdv = product.getPdv();
+        if(product.getItemType()!= null) {
+            this.itemType = new ItemTypeResponse(product.getItemType());
+        }
     }
 }

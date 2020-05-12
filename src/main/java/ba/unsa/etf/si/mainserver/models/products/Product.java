@@ -2,6 +2,7 @@ package ba.unsa.etf.si.mainserver.models.products;
 
 import ba.unsa.etf.si.mainserver.models.AuditModel;
 import ba.unsa.etf.si.mainserver.models.business.Business;
+import ba.unsa.etf.si.mainserver.models.products.items.ItemType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
@@ -43,6 +44,9 @@ public class Product extends AuditModel {
     @JsonBackReference
     @JoinColumn(name="business_id", nullable=false)
     private Business business;
+
+    @ManyToOne
+    private ItemType itemType;
 
     public Product(String name, BigDecimal price, String unit, byte[] image, double pdv) throws IOException {
         this.name = name;

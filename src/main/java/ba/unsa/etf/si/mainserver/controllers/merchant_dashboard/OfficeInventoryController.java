@@ -234,7 +234,7 @@ public class OfficeInventoryController {
                 ),
                 "merchant_dashboard"
         );
-        return ResponseEntity.ok(new ApiResponse("Successfully denied request!", 200));
+        return ResponseEntity.ok(new ApiResponse("The request for products has been denied!", 200));
     }
 
     @PostMapping("/warehouse/requests/accept")
@@ -265,6 +265,6 @@ public class OfficeInventoryController {
                 ),
                 "merchant_dashboard"
         );
-        return ResponseEntity.ok(new ApiResponse("Successfully accepted request!", 200));
+        return ResponseEntity.ok(new ApiResponse("The request for products has been accepted!", 200));
     }
 }

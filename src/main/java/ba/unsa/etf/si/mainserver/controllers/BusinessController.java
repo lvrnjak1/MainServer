@@ -540,8 +540,8 @@ public class BusinessController {
                         "info",
                         new NotificationPayload(
                                 "employee",
-                                "hire_employee",
-                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has been hired!"
+                                "assign_employee",
+                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has been assigned to office!"
                         )
                 )
                 ,
@@ -579,8 +579,8 @@ public class BusinessController {
                         "warning",
                         new NotificationPayload(
                                 "employee",
-                                "fire_employee",
-                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has been fired!"
+                                "unassign_employee",
+                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has been unassigned from office!"
                         )
                 )
                 ,
@@ -654,6 +654,12 @@ public class BusinessController {
                 .stream()
                 .map(OfficeResponseLite::new)
                 .collect(Collectors.toList());
+    }
+
+    //ruta za PR app da vide informacije o svim biznisima
+    @GetMapping("/allBusinesses")
+    public List<BusinessResponse> getAllBusinessesForPR(){
+        return businessService.getAllBusinessResponses();
     }
 
     @PutMapping("/mainOffice")

@@ -15,6 +15,8 @@ import ba.unsa.etf.si.mainserver.repositories.business.PaymentMethodRepository;
 import ba.unsa.etf.si.mainserver.repositories.transactions.ReceiptItemRepository;
 import ba.unsa.etf.si.mainserver.repositories.transactions.ReceiptRepository;
 import ba.unsa.etf.si.mainserver.repositories.transactions.ReceiptStatusRepository;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
+import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
 import ba.unsa.etf.si.mainserver.requests.transactions.PayServerInfoRequest;
 import ba.unsa.etf.si.mainserver.requests.transactions.PayServerStatusRequest;
 import ba.unsa.etf.si.mainserver.requests.transactions.ReceiptFilterRequest;
@@ -56,6 +58,8 @@ public class TransactionsController {
     private final ReceiptService receiptService;
     private final OfficeInventoryService officeInventoryService;
     private final CashRegisterService cashRegisterService;
+    private final LogServerService logServerService;
+
 
     public TransactionsController(ReceiptRepository receiptRepository,
                                   ReceiptItemRepository receiptItemRepository,
@@ -65,7 +69,9 @@ public class TransactionsController {
                                   CashRegisterRepository cashRegisterRepository,
                                   PaymentMethodRepository paymentMethodRepository,
                                   ReceiptService receiptService,
-                                  OfficeInventoryService officeInventoryService, CashRegisterService cashRegisterService, LogServerService logServerService) {
+                                  OfficeInventoryService officeInventoryService,
+                                  CashRegisterService cashRegisterService,
+                                  LogServerService logServerService) {
         this.receiptRepository = receiptRepository;
         this.receiptItemRepository = receiptItemRepository;
         this.productService = productService;
@@ -77,6 +83,7 @@ public class TransactionsController {
         this.receiptService = receiptService;
         this.officeInventoryService = officeInventoryService;
         this.cashRegisterService = cashRegisterService;
+        this.logServerService =logServerService;
     }
 
 
@@ -218,6 +225,24 @@ public class TransactionsController {
             officeInventoryService.processTransaction(receiptOptional.get().getOfficeId(),
                     receiptOptional.get().getReceiptItems());
         }
+
+        //broadcast notifikacije koju cash server osluskuje
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "Pay Server",
+                                "receipt_status_update",
+                                String.format("{\"receiptId\":\"%s\", \"status\":\"%s\"}",
+                                        receiptOptional.get().getReceiptId(),
+                                        receiptStatus.get().getStatusName().toString())
+                        )
+                )
+                ,
+                "cash_server"
+        );
+
+
         return ResponseEntity.ok(new ApiResponse("Status successfully changed", 200));
     }
 

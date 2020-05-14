@@ -54,6 +54,7 @@ public class BusinessController {
     private final EmployeeActivityRepository employeeActivityRepository;
     private final ReceiptService receiptService;
     private final LogServerService logServerService;
+    private final ServerOfficeService serverOfficeService;
 
     public BusinessController(BusinessService businessService, EmployeeProfileService employeeProfileService,
                               OfficeService officeService, CashRegisterService cashRegisterService,
@@ -61,7 +62,7 @@ public class BusinessController {
                               EmployeeProfileRepository employeeProfileRepository,
                               UserService userService, OfficeProfileRepository officeProfileRepository,
                               EmployeeActivityRepository employeeActivityRepository,
-                              ReceiptService receiptService, LogServerService logServerService) {
+                              ReceiptService receiptService, LogServerService logServerService, ServerOfficeService serverOfficeService) {
         this.businessService = businessService;
         this.employeeProfileService = employeeProfileService;
         this.officeService = officeService;
@@ -73,6 +74,7 @@ public class BusinessController {
         this.employeeActivityRepository = employeeActivityRepository;
         this.receiptService = receiptService;
         this.logServerService = logServerService;
+        this.serverOfficeService = serverOfficeService;
     }
 
     @PostMapping
@@ -184,6 +186,7 @@ public class BusinessController {
                 officeRequest.getPhoneNumber());
         Office office = new Office(contactInformation, business, officeRequest.getWorkDayStartDateFromString(),
                 officeRequest.getWorkDayEndDateFromString());
+
         // DO NOT EDIT THIS CODE BELOW, EVER
         logServerService.documentAction(
                 userPrincipal.getUsername(),
@@ -237,7 +240,16 @@ public class BusinessController {
                 ),
                 "merchant_dashboard"
         );
-        return new OfficeResponse(officeService.save(office), new ArrayList<>());
+        Office savedOffice = officeService.save(office);
+        try {
+            businessService.createServer(business, office,
+                    officeRequest.getServerUsername(), officeRequest.getServerPassword());
+        }catch (RuntimeException e){
+            officeService.delete(savedOffice);
+            throw e;
+        }
+
+        return new OfficeResponse(savedOffice, new ArrayList<>());
     }
 
     @DeleteMapping("/{businessId}/offices/{officeId}")
@@ -487,6 +499,10 @@ public class BusinessController {
             throw new BadParameterValueException("Employee with this id doesn't exist");
         }
 
+        if(serverOfficeService.isServer(employeeProfile)){
+            throw new BadParameterValueException("Employee with this id doesn't exist");
+        }
+
         List<OfficeProfile> officeProfileOptional = officeProfileRepository.findAllByEmployeeId(employeeProfile.getId());
         if(officeProfileOptional.isEmpty()){
             throw new BadParameterValueException("Employee with this id isn't hired at any office");
@@ -499,9 +515,6 @@ public class BusinessController {
                 )
                 .collect(Collectors.toList());
     }
-
-
-
 
     @PostMapping("/employees")
     @Secured("ROLE_MANAGER")
@@ -626,11 +639,15 @@ public class BusinessController {
     }
 
     @GetMapping("office-details")
-    @Secured("ROLE_OFFICEMAN")
+    @Secured({"ROLE_SERVER"})
     public CashServerConfigResponse getServerConfig(@CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
-        Office office = officeService.findByManager(userPrincipal);
-
+        User user = userService.findUserByUsername(userPrincipal.getUsername());
+        Optional<Office> officeOptional = serverOfficeService.findOfficeByServer(user);
+        if(!officeOptional.isPresent()){
+            throw new ResourceNotFoundException("Not a server");
+        }
+        Office office = officeOptional.get();
         List<CashRegister> cashRegisters = cashRegisterRepository.findAllByOfficeId(office.getId());
         return new CashServerConfigResponse(business.getName(),business.isRestaurantFeature(),
                 cashRegisters.stream().map(CashRegisterWithUUIDResponse::new).collect(Collectors.toList()),
@@ -706,7 +723,7 @@ public class BusinessController {
     }
 
     @GetMapping("/mainOffice")
-    @Secured({"ROLE_MERCHANT", "ROLE_PRW", "ROLE_PRP", "ROLE_ADMIN", "ROLE_MANAGER", "ROLE_WAREMAN", "ROLE_OFFICEMAN"})
+    @Secured({"ROLE_MERCHANT", "ROLE_PRW", "ROLE_PRP", "ROLE_ADMIN", "ROLE_MANAGER", "ROLE_WAREMAN"})
     public MainOfficeResponse getMyMainOffice(@CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         return new MainOfficeResponse(business.getMainOfficeId());

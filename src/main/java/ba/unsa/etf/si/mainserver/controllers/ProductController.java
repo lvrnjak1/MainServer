@@ -84,7 +84,7 @@ public class ProductController {
 
 
     @GetMapping("/offices/{officeId}/products")
-    @Secured({"ROLE_WAREMAN","ROLE_MERCHANT","ROLE_CASHIER","ROLE_OFFICEMAN","ROLE_BARTENDER"})
+    @Secured({"ROLE_WAREMAN","ROLE_MERCHANT","ROLE_CASHIER","ROLE_OFFICEMAN","ROLE_BARTENDER", "ROLE_SERVER"})
     public List<ProductInventoryResponse> getAllProductsForOffice(@CurrentUser UserPrincipal userPrincipal,
                                                                   @PathVariable("officeId") Long officeId){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
@@ -263,13 +263,16 @@ public class ProductController {
                         new NotificationPayload(
                                 product.getName(),
                                 "office_products_add",
-                                inventoryRequest.getQuantity() + " " +
-                                        product.getName() + " have been added to the office in " +
-                                        office.getContactInformation().getCity() + " " +
-                                        office.getContactInformation().getAddress() + "(" + office.getId() + ")"
+                                String.format("{\"businessId\":%d, \"officeId\":%d, " +
+                                        "\"productName\":\"%s\", \"quantity\":%.2f}", business.getId(),
+                                        office.getId(), product.getName(), officeInventory.getQuantity())
                         )
                 ),
                 "cash_server"
+//                inventoryRequest.getQuantity() + " " +
+//                        product.getName() + " have been added to the office in " +
+//                        office.getContactInformation().getCity() + " " +
+//                        office.getContactInformation().getAddress() + "(" + office.getId() + ")"
         );
         return new OfficeInventoryResponse(
                 officeInventoryService.save(officeInventory));

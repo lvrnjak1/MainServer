@@ -28,6 +28,10 @@ public class OfficeRequest {
     private String workDayStart;
     @NotBlank
     private String workDayEnd;
+    @NotBlank
+    private String serverUsername;
+    @NotBlank
+    private String serverPassword;
 
 
     @JsonIgnore

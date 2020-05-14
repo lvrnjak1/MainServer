@@ -499,6 +499,10 @@ public class BusinessController {
             throw new BadParameterValueException("Employee with this id doesn't exist");
         }
 
+        if(serverOfficeService.isServer(employeeProfile)){
+            throw new BadParameterValueException("Employee with this id doesn't exist");
+        }
+
         List<OfficeProfile> officeProfileOptional = officeProfileRepository.findAllByEmployeeId(employeeProfile.getId());
         if(officeProfileOptional.isEmpty()){
             throw new BadParameterValueException("Employee with this id isn't hired at any office");

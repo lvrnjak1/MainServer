@@ -24,6 +24,7 @@ import ba.unsa.etf.si.mainserver.services.UserService;
 import ba.unsa.etf.si.mainserver.services.admin.logs.LogServerService;
 import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
+import ba.unsa.etf.si.mainserver.services.business.ServerOfficeService;
 import ba.unsa.etf.si.mainserver.services.transactions.ReceiptService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -45,11 +46,12 @@ public class UserController {
     private final ReceiptService receiptService;
     private final LogServerService logServerService;
     private final EmployeeActivityRepository employeeActivityRepository;
+    private final ServerOfficeService serverOfficeService;
 
     public UserController(UserService userService, EmployeeProfileService employeeProfileService,
                           OfficeProfileRepository officeProfileRepository,
                           BusinessService businessService,
-                          EmploymentHistoryRepository employmentHistoryRepository, ReceiptService receiptService, LogServerService logServerService, EmployeeActivityRepository employeeActivityRepository) {
+                          EmploymentHistoryRepository employmentHistoryRepository, ReceiptService receiptService, LogServerService logServerService, EmployeeActivityRepository employeeActivityRepository, ServerOfficeService serverOfficeService) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.officeProfileRepository = officeProfileRepository;
@@ -58,6 +60,7 @@ public class UserController {
         this.receiptService = receiptService;
         this.logServerService = logServerService;
         this.employeeActivityRepository = employeeActivityRepository;
+        this.serverOfficeService = serverOfficeService;
     }
 
     @GetMapping("/users")
@@ -66,6 +69,7 @@ public class UserController {
         List<EmployeeActivity> employeeActivities = employeeActivityRepository.findAll();
         return employeeProfileService.findAllByOptionalBusinessId(businessId)
                .stream()
+                .filter(employeeProfile -> !serverOfficeService.isServer(employeeProfile))
                 .map(
                         employeeProfile -> new UserResponse(
                                 employeeProfile.getAccount().getId(),

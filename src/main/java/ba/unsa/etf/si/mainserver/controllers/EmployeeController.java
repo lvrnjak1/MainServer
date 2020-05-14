@@ -29,10 +29,7 @@ import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
 import ba.unsa.etf.si.mainserver.services.admin.logs.LogServerService;
-import ba.unsa.etf.si.mainserver.services.business.BusinessService;
-import ba.unsa.etf.si.mainserver.services.business.CashRegisterService;
-import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
-import ba.unsa.etf.si.mainserver.services.business.OfficeService;
+import ba.unsa.etf.si.mainserver.services.business.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
@@ -56,11 +53,12 @@ public class EmployeeController {
     private final OfficeService officeService;
     private final CashRegisterService cashRegisterService;
     private final LogServerService logServerService;
+    private final ServerOfficeService serverOfficeService;
 
     public EmployeeController(UserService userService, EmployeeProfileService employeeProfileService,
                               OfficeProfileRepository officeProfileRepository,
                               BusinessService businessService,
-                              EmploymentHistoryRepository employmentHistoryRepository, EmployeeActivityRepository employeeActivityRepository, OfficeService officeService, CashRegisterService cashRegisterService, LogServerService logServerService) {
+                              EmploymentHistoryRepository employmentHistoryRepository, EmployeeActivityRepository employeeActivityRepository, OfficeService officeService, CashRegisterService cashRegisterService, LogServerService logServerService, ServerOfficeService serverOfficeService) {
         this.userService = userService;
         this.employeeProfileService = employeeProfileService;
         this.officeProfileRepository = officeProfileRepository;
@@ -70,6 +68,7 @@ public class EmployeeController {
         this.officeService = officeService;
         this.cashRegisterService = cashRegisterService;
         this.logServerService = logServerService;
+        this.serverOfficeService = serverOfficeService;
     }
 
     @GetMapping("/offices/{officeId}/employees")
@@ -89,6 +88,7 @@ public class EmployeeController {
         return employeeProfileService
                 .findAllByOptionalBusinessId(employeeProfile2.getBusiness().getId())
                 .stream().filter(employeeProfile -> officeProfiles.stream().anyMatch(officeProfile -> officeProfile.getEmployee().getId().equals(employeeProfile.getId())))
+                .filter(employeeProfile -> !serverOfficeService.isServer(employeeProfile))
                 .map(
                         employeeProfile -> new UserResponse(
                                 employeeProfile.getAccount().getId(),
@@ -134,6 +134,7 @@ public class EmployeeController {
         List<EmployeeActivity> employeeActivities = employeeActivityRepository.findAll();
         return officeProfiles
                 .stream()
+                .filter(officeProfile -> !serverOfficeService.isServer(officeProfile.getEmployee()))
                 .map(
                         officeProfile -> {
                             EmployeeProfile employee = officeProfile.getEmployee();
@@ -175,6 +176,7 @@ public class EmployeeController {
         return employeeProfileService
                 .findAllByOptionalBusinessId(employeeProfile2.getBusiness().getId())
                 .stream()
+                .filter(employeeProfile -> !serverOfficeService.isServer(employeeProfile))
                 .map(
                         employeeProfile -> new UserResponse(
                                 employeeProfile.getAccount().getId(),

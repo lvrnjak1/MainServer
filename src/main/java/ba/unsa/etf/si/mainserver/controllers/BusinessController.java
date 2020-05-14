@@ -625,26 +625,22 @@ public class BusinessController {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping("/{businessId}/office-details/{officeId}")
+    @GetMapping("office-details")
     @Secured("ROLE_OFFICEMAN")
-    public CashServerConfigResponse getServerConfig(@PathVariable Long businessId,
-                                                    @PathVariable Long officeId,
-                                                    @CurrentUser UserPrincipal userPrincipal){
+    public CashServerConfigResponse getServerConfig(@CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
-        if(!business.getId().equals(businessId)){
-            throw new UnauthorizedException("Not your business");
-        }
+        Office office = officeService.findByManager(userPrincipal);
 
-        Office office = officeService.findOfficeById(officeId, businessId);
-
-        List<CashRegister> cashRegisters = cashRegisterRepository.findAllByOfficeId(officeId);
+        List<CashRegister> cashRegisters = cashRegisterRepository.findAllByOfficeId(office.getId());
         return new CashServerConfigResponse(business.getName(),business.isRestaurantFeature(),
                 cashRegisters.stream().map(CashRegisterWithUUIDResponse::new).collect(Collectors.toList()),
                 office.getLanguageName().toString(),
                 business.getStringSyncDate(),
                 office.getStringStart(),
                 office.getStringEnd(),
-                business.getPlaceName());
+                business.getPlaceName(),
+                business.getId(),
+                office.getId());
     }
 
     //ruta za PR app da vide informacije o svim offices u svim businesses

@@ -233,11 +233,9 @@ public class TransactionsController {
                         new NotificationPayload(
                                 "Pay Server",
                                 "receipt_status_update",
-                                String.format("{\"receiptId\":\"%s\", \"status\":\"%s\", \"businessId\":%d, \"officeId\":%d}",
+                                String.format("{\"receiptId\":\"%s\", \"status\":\"%s\"}",
                                         receiptOptional.get().getReceiptId(),
-                                        receiptStatus.get().getStatusName().toString(),
-                                        receiptOptional.get().getBusinessId(),
-                                        receiptOptional.get().getOfficeId())
+                                        receiptStatus.get().getStatusName().toString())
                         )
                 )
                 ,

@@ -3,14 +3,20 @@ package ba.unsa.etf.si.mainserver.services.business;
 import ba.unsa.etf.si.mainserver.exceptions.BadParameterValueException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.exceptions.UnauthorizedException;
+import ba.unsa.etf.si.mainserver.models.auth.User;
 import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.CashRegister;
 import ba.unsa.etf.si.mainserver.models.business.Office;
+import ba.unsa.etf.si.mainserver.models.employees.EmployeeActivity;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
+import ba.unsa.etf.si.mainserver.repositories.EmployeeActivityRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.BusinessRepository;
+import ba.unsa.etf.si.mainserver.repositories.business.EmployeeProfileRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeRepository;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.business.OfficeResponse;
+import ba.unsa.etf.si.mainserver.security.UserPrincipal;
+import ba.unsa.etf.si.mainserver.services.UserService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,11 +28,22 @@ public class OfficeService {
     private final OfficeRepository officeRepository;
     private final BusinessRepository businessRepository;
     private final CashRegisterService cashRegisterService;
+    private final UserService userService;
+    private final EmployeeProfileRepository employeeProfileRepository;
+    private final EmployeeActivityRepository employeeActivityRepository;
 
-    public OfficeService(OfficeRepository officeRepository, BusinessRepository businessRepository,CashRegisterService cashRegisterService) {
+    public OfficeService(OfficeRepository officeRepository,
+                         BusinessRepository businessRepository,
+                         CashRegisterService cashRegisterService,
+                         UserService userService,
+                         EmployeeProfileRepository employeeProfileRepository,
+                         EmployeeActivityRepository employeeActivityRepository) {
         this.officeRepository = officeRepository;
         this.businessRepository = businessRepository;
         this.cashRegisterService = cashRegisterService;
+        this.userService = userService;
+        this.employeeProfileRepository = employeeProfileRepository;
+        this.employeeActivityRepository = employeeActivityRepository;
     }
 
     public OfficeResponse getOfficeResponseByOfficeId(Long officeId) {
@@ -109,8 +126,8 @@ public class OfficeService {
                 ).collect(Collectors.toList());
     }
 
-    public List<Office> findAllByManager(EmployeeProfile employeeProfile) {
-        return officeRepository.findAllByManager(employeeProfile);
+    public Optional<Office> findByManager(EmployeeProfile employeeProfile) {
+        return officeRepository.findByManager(employeeProfile);
     }
 
     public List<Office> findAll() {
@@ -125,5 +142,20 @@ public class OfficeService {
 
     public int countCashRegsitersInOffice(Long officeId){
         return cashRegisterService.getAllCashRegistersByOfficeId(officeId).size();
+    }
+
+    public Office findByManager(UserPrincipal userPrincipal) {
+        User user = userService.findUserByUsername(userPrincipal.getUsername());
+        Optional<EmployeeProfile> optionalEmployeeProfile = employeeProfileRepository.findByAccountId(user.getId());
+        if (!optionalEmployeeProfile.isPresent()) {
+            throw new BadParameterValueException("User is not an employee");
+        }
+        Optional<EmployeeActivity> employeeActivity = employeeActivityRepository.findByEmployeeProfile(optionalEmployeeProfile.get());
+        if(employeeActivity.isPresent()){
+            //ova osoba je inactive employee
+            throw new ResourceNotFoundException("This employee doesn't exist");
+        }
+        return findByManager(optionalEmployeeProfile.get())
+                .orElseThrow(() -> new ResourceNotFoundException("Employee is not office manager"));
     }
 }

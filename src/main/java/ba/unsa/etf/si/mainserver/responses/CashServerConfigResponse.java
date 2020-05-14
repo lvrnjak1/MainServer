@@ -19,4 +19,6 @@ public class CashServerConfigResponse {
     private String startTime;
     private String endTime;
     private String placeName;
+    private Long businessId;
+    private Long officeId;
 }

@@ -218,10 +218,15 @@ public class EmployeeController {
             throw new UnauthorizedException("YOU DO NOT HAVE THE PERMISSION TO DO THIS");
         }
 
-        officeService.findAllByManager(employeeProfile).forEach(office -> {
-            office.setManager(null);
-            officeService.save(office);
-        });
+//        officeService.findAllByManager(employeeProfile).forEach(office -> {
+//            office.setManager(null);
+//            officeService.save(office);
+//        });
+        Optional<Office> office = officeService.findByManager(employeeProfile);
+        if(office.isPresent()){
+            office.get().setManager(null);
+            officeService.save(office.get());
+        }
 
         employeeProfileService.fireEmployee(employeeProfile);
         // DO NOT EDIT THIS CODE BELOW, EVER

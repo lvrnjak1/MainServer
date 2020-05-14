@@ -146,10 +146,15 @@ public class EmployeeProfileService {
     }
 
     public void unassignEmployee(EmployeeProfile employeeProfile){
-        officeService.findAllByManager(employeeProfile).forEach(office -> {
-            office.setManager(null);
-            officeService.save(office);
-        });
+//        officeService.findAllByManager(employeeProfile).forEach(office -> {
+//            office.setManager(null);
+//            officeService.save(office);
+//        });
+        Optional<Office> office = officeService.findByManager(employeeProfile);
+        if(office.isPresent()){
+            office.get().setManager(null);
+            officeService.save(office.get());
+        }
         officeProfileRepository.findAllByEmployeeId(employeeProfile.getId())
                 .forEach(officeProfile -> unassignEmployeeFromOffice(employeeProfile,officeProfile.getOffice()));
     }

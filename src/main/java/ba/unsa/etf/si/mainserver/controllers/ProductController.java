@@ -11,10 +11,7 @@ import ba.unsa.etf.si.mainserver.repositories.PDVRepository;
 import ba.unsa.etf.si.mainserver.repositories.products.WarehouseRepository;
 import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
 import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
-import ba.unsa.etf.si.mainserver.requests.products.CommentRequest;
-import ba.unsa.etf.si.mainserver.requests.products.DiscountRequest;
-import ba.unsa.etf.si.mainserver.requests.products.InventoryRequest;
-import ba.unsa.etf.si.mainserver.requests.products.ProductRequest;
+import ba.unsa.etf.si.mainserver.requests.products.*;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.products.*;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
@@ -33,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -203,6 +201,11 @@ public class ProductController {
     @Secured("ROLE_WAREMAN")
     public OfficeInventoryResponse addInventoryForOffice(@RequestBody InventoryRequest inventoryRequest,
                                                          @CurrentUser UserPrincipal userPrincipal){
+       return addOneInventory(userPrincipal, inventoryRequest, true);
+    }
+
+    private OfficeInventoryResponse addOneInventory(UserPrincipal userPrincipal, InventoryRequest inventoryRequest,
+                                                    boolean notifyCashRegister){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         Product product = productService.findProductById(inventoryRequest.getProductId(), business.getId());
 
@@ -222,17 +225,21 @@ public class ProductController {
 
         Optional<OfficeInventory> officeInventoryOptional = officeInventoryService.
                 findByProductAndOffice(product, office);
+        OfficeInventory officeInventory = null;
         if (officeInventoryOptional.isPresent()) {
+            officeInventory = officeInventoryOptional.get();
             officeInventoryOptional.get().setOffice(office);
             officeInventoryOptional.get().setProduct(product);
             double officeQuantity = officeInventoryOptional.get().getQuantity();
             officeInventoryOptional.get().setQuantity(inventoryRequest.getQuantity() + officeQuantity);
             officeInventoryService.logDelivery(officeInventoryOptional.get(), inventoryRequest.getQuantity());
-            return new OfficeInventoryResponse(
-                    officeInventoryService.save(officeInventoryOptional.get()));
+//            return new OfficeInventoryResponse(
+//                    officeInventoryService.save(officeInventoryOptional.get()));
+        }
+        else{
+            officeInventory = new OfficeInventory(office, product, inventoryRequest.getQuantity());
         }
 
-        OfficeInventory officeInventory = new OfficeInventory(office, product, inventoryRequest.getQuantity());
         officeInventoryService.logDelivery(officeInventory, inventoryRequest.getQuantity());
         // DO NOT EDIT THIS CODE BELOW, EVER
         logServerService.documentAction(
@@ -257,25 +264,66 @@ public class ProductController {
                 ),
                 "merchant_dashboard"
         );
+        String description = String.format("{\"businessId\":%d, \"officeId\":%d, " +
+                        "\"inventory\": [{\"productName\":\"%s\", \"productQuantity\":%.2f}]}", business.getId(),
+                office.getId(), product.getName(), officeInventory.getQuantity());
+        //System.out.println(description);
+        if(notifyCashRegister) {
+            logServerService.broadcastNotification(
+                    new NotificationRequest(
+                            "info",
+                            new NotificationPayload(
+                                    "products added",
+                                    "office_products_add",
+                                    description
+                            )
+                    ),
+                    "cash_server"
+            );
+        }
+        return new OfficeInventoryResponse(
+                officeInventoryService.save(officeInventory));
+    }
+
+    @PostMapping("/inventory/batch")
+    @Secured("ROLE_WAREMAN")
+    public List<OfficeInventoryResponse> addInventoriesForOffice(@CurrentUser UserPrincipal userPrincipal,
+                                                                 @RequestBody BatchInventoryRequest batchInventoryRequest){
+        if(batchInventoryRequest.getInventory().isEmpty()){
+            return new ArrayList<>();
+        }
+
+        List<OfficeInventoryResponse> inventory = batchInventoryRequest.getInventory().stream()
+                .map(inventoryRequest -> addOneInventory(userPrincipal, inventoryRequest,false))
+                .collect(Collectors.toList());
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        Office office = officeService.findOfficeById(inventory.get(0).getOfficeId(), business.getId());
+
+        String array = "[";
+        array += inventory.stream().map(officeInventory -> {
+            Product product = productService.findProductById(officeInventory.getProductId(), business.getId());
+            return String.format("{\"productName\":\"%s\", \"productQuantity\":%.2f}",
+                    product.getName(), officeInventory.getQuantity());
+        }).collect(Collectors.joining(","));
+        array += "]";
+        //System.out.println(array);
+
         logServerService.broadcastNotification(
                 new NotificationRequest(
                         "info",
                         new NotificationPayload(
-                                product.getName(),
+                                "products added",
                                 "office_products_add",
                                 String.format("{\"businessId\":%d, \"officeId\":%d, " +
-                                        "\"productName\":\"%s\", \"quantity\":%.2f}", business.getId(),
-                                        office.getId(), product.getName(), officeInventory.getQuantity())
+                                                "\"inventory\":" + array + "}",
+                                        business.getId(),
+                                        office.getId())
                         )
                 ),
                 "cash_server"
-//                inventoryRequest.getQuantity() + " " +
-//                        product.getName() + " have been added to the office in " +
-//                        office.getContactInformation().getCity() + " " +
-//                        office.getContactInformation().getAddress() + "(" + office.getId() + ")"
         );
-        return new OfficeInventoryResponse(
-                officeInventoryService.save(officeInventory));
+
+        return inventory;
     }
 
     @GetMapping("/inventory/log")

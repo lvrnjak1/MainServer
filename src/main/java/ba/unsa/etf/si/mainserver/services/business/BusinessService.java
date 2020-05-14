@@ -21,7 +21,6 @@ import java.text.ParseException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -158,26 +157,4 @@ public class BusinessService {
         return employeeProfileRepository.save(employeeProfile);
     }
 
-    private String generateRandomString(int length) {
-        int leftLimit = 97; // letter 'a'
-        int rightLimit = 122; // letter 'z'
-        Random random = new Random();
-        StringBuilder buffer = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            int randomLimitedInt = leftLimit + (int)
-                    (random.nextFloat() * (rightLimit - leftLimit + 1));
-            buffer.append((char) randomLimitedInt);
-        }
-        return buffer.toString();
-    }
-
-
-//    public Optional<Business> getBusinessByProductId(Product product){
-//        Optional<Office> officeOptional = officeRepository.findById(product.getId());
-//        if(officeOptional.isPresent()){
-//            return businessRepository.findById(officeOptional.get().getBusiness().getId());
-//        }
-//
-//        throw new AppException("Office with id " + product.getId() + " doesn't exist");
-//    }
 }

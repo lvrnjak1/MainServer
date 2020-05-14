@@ -1,0 +1,1 @@
+INSERT INTO public.roles (id, name) VALUES (10, 'ROLE_SERVER') ON CONFLICT ON CONSTRAINT roles_pkey DO NOTHING;

@@ -20,7 +20,9 @@ public class OpenOfficeResponse extends MANotificationResponse{
                 adminMerchantNotification.getEmail(),
                 adminMerchantNotification.getPhoneNumber(),
                 adminMerchantNotification.getStringStart(),
-                adminMerchantNotification.getStringEnd()
+                adminMerchantNotification.getStringEnd(),
+                "username",
+                "password"
         );
     }
 }

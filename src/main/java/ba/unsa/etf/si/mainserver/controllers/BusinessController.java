@@ -124,7 +124,7 @@ public class BusinessController {
                 .map(
                         office -> new OfficeResponse(
                                 office,
-                                cashRegisterService.getAllCashRegisterResponsesByOfficeId(office.getId()), null)
+                                cashRegisterService.getAllCashRegisterResponsesByOfficeId(office.getId()))
                 )
                 .collect(Collectors.toList());
     }
@@ -141,7 +141,7 @@ public class BusinessController {
                 .map(
                         office -> new OfficeResponse(
                                 office,
-                                cashRegisterService.getAllCashRegisterResponsesByOfficeId(office.getId()), null)
+                                cashRegisterService.getAllCashRegisterResponsesByOfficeId(office.getId()))
                 )
                 .collect(Collectors.toList());
     }
@@ -239,8 +239,9 @@ public class BusinessController {
                 "merchant_dashboard"
         );
         Office savedOffice = officeService.save(office);
-        ServerCredentialsResponse serverCredentialsResponse = businessService.createServer(business, office);
-        return new OfficeResponse(savedOffice, new ArrayList<>(), serverCredentialsResponse);
+        businessService.createServer(business, office,
+                officeRequest.getServerUsername(), officeRequest.getServerPassword());
+        return new OfficeResponse(savedOffice, new ArrayList<>());
     }
 
     @DeleteMapping("/{businessId}/offices/{officeId}")
@@ -498,7 +499,7 @@ public class BusinessController {
                 map(
                     officeProfile -> new OfficeResponse(
                             officeProfile.getOffice(),
-                            cashRegisterService.getAllCashRegisterResponsesByOfficeId(officeProfile.getOffice().getId()), null)
+                            cashRegisterService.getAllCashRegisterResponsesByOfficeId(officeProfile.getOffice().getId()))
                 )
                 .collect(Collectors.toList());
     }

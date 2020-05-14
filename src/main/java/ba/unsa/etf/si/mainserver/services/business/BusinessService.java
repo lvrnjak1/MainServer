@@ -12,11 +12,11 @@ import ba.unsa.etf.si.mainserver.repositories.business.*;
 import ba.unsa.etf.si.mainserver.requests.auth.RegistrationRequest;
 import ba.unsa.etf.si.mainserver.responses.auth.RoleResponse;
 import ba.unsa.etf.si.mainserver.responses.business.BusinessResponse;
-import ba.unsa.etf.si.mainserver.responses.business.ServerCredentialsResponse;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
 import ba.unsa.etf.si.mainserver.services.UserService;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.NotBlank;
 import java.text.ParseException;
 import java.util.Collections;
 import java.util.List;
@@ -112,9 +112,9 @@ public class BusinessService {
         return officeRepository.findAllByBusinessId(businessId).size();
     }
 
-    public ServerCredentialsResponse createServer(Business business, Office office) throws ParseException {
-        String username = generateRandomString(8);
-        String password = generateRandomString(10);
+    public void createServer(Business business, Office office,
+                                                  @NotBlank String username,
+                                                  @NotBlank String password) throws ParseException {
         RoleResponse roleResponse = new RoleResponse(null, "ROLE_SERVER");
         RegistrationRequest registration = new RegistrationRequest(
                 username, password, username+"@email.com", Collections.singletonList(roleResponse),
@@ -130,8 +130,6 @@ public class BusinessService {
 
         ServerOffice serverOffice = new ServerOffice(office, user); //mark this employee as server
         serverOfficeRepository.save(serverOffice);
-
-        return new ServerCredentialsResponse(user.getId(), username, password);
     }
 
     public EmployeeProfile createEmployeeProfile(RegistrationRequest registrationRequest, User user) throws ParseException {

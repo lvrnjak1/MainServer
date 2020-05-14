@@ -238,9 +238,9 @@ public class ProductController {
         }
         else{
             officeInventory = new OfficeInventory(office, product, inventoryRequest.getQuantity());
+            officeInventoryService.logDelivery(officeInventory, inventoryRequest.getQuantity());
         }
 
-        officeInventoryService.logDelivery(officeInventory, inventoryRequest.getQuantity());
         // DO NOT EDIT THIS CODE BELOW, EVER
         logServerService.documentAction(
                 userPrincipal.getUsername(),

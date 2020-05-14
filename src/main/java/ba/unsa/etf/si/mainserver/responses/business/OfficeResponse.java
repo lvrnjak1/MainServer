@@ -23,8 +23,9 @@ public class OfficeResponse {
     private int maxNumberCashRegisters;
     private List<CashRegisterResponse> cashRegisters;
     private EmployeeProfileResponse manager;
+    private ServerCredentialsResponse serverCredentialsResponse;
 
-    public OfficeResponse(Office office, List<CashRegisterResponse> cashRegisters){
+    public OfficeResponse(Office office, List<CashRegisterResponse> cashRegisters, ServerCredentialsResponse serverCredentialsResponse){
         this.id = office.getId();
         this.address = office.getContactInformation().getAddress();
         this.city = office.getContactInformation().getCity();
@@ -40,6 +41,7 @@ public class OfficeResponse {
         if(office.getManager() != null){
             this.manager = new EmployeeProfileResponse(office.getManager());
         }
+        this.serverCredentialsResponse = serverCredentialsResponse;
     }
 }
 

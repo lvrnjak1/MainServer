@@ -98,7 +98,7 @@ public class AuthenticationController {
         User result = userService.createUserAccount(registrationRequest);
         EmployeeProfile employeeProfile = employeeProfileService.createEmployeeProfile(registrationRequest, result);
         registrationRequest.getRoles().stream()
-                .map(roleResponse -> roleResponse.getRolename())
+                .map(RoleResponse::getRolename)
                 .filter(role -> role.equals("ROLE_PRW") || role.equals("ROLE_MANAGER") || role.equals("ROLE_WAREMAN") || role.equals("ROLE_PRP"))
                 .forEach(role -> employmentHistoryRepository.save(new EmploymentHistory(employeeProfile.getId(),null,new Date(),null,role)));
 

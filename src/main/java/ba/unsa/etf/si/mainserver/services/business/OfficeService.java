@@ -64,7 +64,8 @@ public class OfficeService {
           office.getLanguageName().name(),
           office.getMaxNumberCashRegisters(),
           null,
-          null
+          null,
+                null
         );
     }
 
@@ -122,7 +123,7 @@ public class OfficeService {
                 .stream()
                 .map(
                         office -> new OfficeResponse(
-                                office,cashRegisterService.getAllCashRegisterResponsesByOfficeId(office.getId()))
+                                office,cashRegisterService.getAllCashRegisterResponsesByOfficeId(office.getId()), null)
                 ).collect(Collectors.toList());
     }
 

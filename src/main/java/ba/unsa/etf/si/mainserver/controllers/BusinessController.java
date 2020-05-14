@@ -124,7 +124,7 @@ public class BusinessController {
                 .map(
                         office -> new OfficeResponse(
                                 office,
-                                cashRegisterService.getAllCashRegisterResponsesByOfficeId(office.getId()))
+                                cashRegisterService.getAllCashRegisterResponsesByOfficeId(office.getId()), null)
                 )
                 .collect(Collectors.toList());
     }
@@ -141,7 +141,7 @@ public class BusinessController {
                 .map(
                         office -> new OfficeResponse(
                                 office,
-                                cashRegisterService.getAllCashRegisterResponsesByOfficeId(office.getId()))
+                                cashRegisterService.getAllCashRegisterResponsesByOfficeId(office.getId()), null)
                 )
                 .collect(Collectors.toList());
     }
@@ -184,6 +184,7 @@ public class BusinessController {
                 officeRequest.getPhoneNumber());
         Office office = new Office(contactInformation, business, officeRequest.getWorkDayStartDateFromString(),
                 officeRequest.getWorkDayEndDateFromString());
+
         // DO NOT EDIT THIS CODE BELOW, EVER
         logServerService.documentAction(
                 userPrincipal.getUsername(),
@@ -237,7 +238,9 @@ public class BusinessController {
                 ),
                 "merchant_dashboard"
         );
-        return new OfficeResponse(officeService.save(office), new ArrayList<>());
+        Office savedOffice = officeService.save(office);
+        ServerCredentialsResponse serverCredentialsResponse = businessService.createServer(business, office);
+        return new OfficeResponse(savedOffice, new ArrayList<>(), serverCredentialsResponse);
     }
 
     @DeleteMapping("/{businessId}/offices/{officeId}")
@@ -495,7 +498,7 @@ public class BusinessController {
                 map(
                     officeProfile -> new OfficeResponse(
                             officeProfile.getOffice(),
-                            cashRegisterService.getAllCashRegisterResponsesByOfficeId(officeProfile.getOffice().getId()))
+                            cashRegisterService.getAllCashRegisterResponsesByOfficeId(officeProfile.getOffice().getId()), null)
                 )
                 .collect(Collectors.toList());
     }

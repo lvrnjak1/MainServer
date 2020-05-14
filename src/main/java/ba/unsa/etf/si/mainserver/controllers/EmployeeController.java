@@ -284,7 +284,8 @@ public class EmployeeController {
             OfficeResponse officeResponse = null;
             if(employmentHistory.getOfficeId() != null){
                 Office officeOptional = officeService.findOfficeById(employmentHistory.getOfficeId(), business.getId());
-                officeResponse = new OfficeResponse(officeOptional,cashRegisterService.getAllCashRegisterResponsesByOfficeId(officeOptional.getId()));
+                officeResponse = new OfficeResponse(officeOptional,
+                        cashRegisterService.getAllCashRegisterResponsesByOfficeId(officeOptional.getId()), null);
             }
             responseList.add(new OfficeHistory(employmentHistory,officeResponse));
         }

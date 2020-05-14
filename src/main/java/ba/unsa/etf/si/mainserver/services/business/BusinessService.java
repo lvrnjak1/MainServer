@@ -121,6 +121,7 @@ public class BusinessService {
                 "01.01.2020", "123456789", "address", "city",
                 "country", "123", business.getId()
         );
+        userService.checkAvailability(registration);
         User user = userService.createUserAccount(registration); //and saves it
         EmployeeProfile employeeProfile = createEmployeeProfile(registration, user); //and saves it
 

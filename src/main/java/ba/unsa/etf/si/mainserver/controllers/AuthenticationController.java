@@ -256,7 +256,7 @@ public class AuthenticationController {
     }
 
     @PutMapping("/office-changePassword")
-    @Secured({"ROLE_OFFICEMAN"})
+    @Secured({"ROLE_SERVER"})
     public ApiResponse officeChangePassword(@RequestBody SyncPasswordRequest syncPasswordRequest) {
         User user = userService.findUserByUsername(syncPasswordRequest.getUsername());
         user.setOtp(false);

@@ -84,7 +84,7 @@ public class ProductController {
 
 
     @GetMapping("/offices/{officeId}/products")
-    @Secured({"ROLE_WAREMAN","ROLE_MERCHANT","ROLE_CASHIER","ROLE_OFFICEMAN","ROLE_BARTENDER"})
+    @Secured({"ROLE_WAREMAN","ROLE_MERCHANT","ROLE_CASHIER","ROLE_OFFICEMAN","ROLE_BARTENDER", "ROLE_SERVER"})
     public List<ProductInventoryResponse> getAllProductsForOffice(@CurrentUser UserPrincipal userPrincipal,
                                                                   @PathVariable("officeId") Long officeId){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);

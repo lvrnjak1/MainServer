@@ -31,7 +31,7 @@ public class TableController {
     }
 
     @GetMapping("/offices/{officeId}/tables")
-    @Secured({"ROLE_OFFICEMAN", "ROLE_MERCHANT", "ROLE_PRW", "ROLE_PRP"})
+    @Secured({"ROLE_OFFICEMAN", "ROLE_MERCHANT", "ROLE_PRW", "ROLE_PRP", "ROLE_SERVER"})
     public List<TableResponse> getTablesForOffice(@PathVariable Long officeId,
                                                   @CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);

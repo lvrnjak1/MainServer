@@ -26,4 +26,8 @@ public class EmployeeActivity extends AuditModel {
     @JoinColumn(name = "account_id", referencedColumnName = "id")
     private User account;
 
+    public EmployeeActivity(EmployeeProfile employeeProfile, User user) {
+        this.employeeProfile = employeeProfile;
+        this.account = user;
+    }
 }

@@ -121,7 +121,7 @@ public class EmployeeController {
 
     //MORA BITI EMPLOYEE SAMO U JEDNOM OFISU ZA OVU RUTU, INACE PADA
     @GetMapping("/office-employees")
-    @Secured("ROLE_OFFICEMAN")
+    @Secured({"ROLE_SERVER"})
     public List<RegistrationResponse> getOfficeEmployees(@CurrentUser UserPrincipal userPrincipal) {
         User user2 = userService.findUserByUsername(userPrincipal.getUsername());
         EmployeeProfile employeeProfile = employeeProfileService.findEmployeeByAccount(user2);

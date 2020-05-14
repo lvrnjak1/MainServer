@@ -89,7 +89,7 @@ public class TransactionsController {
 
     //ruta na koju cash server salje racun
     @PostMapping("/receipts")
-    @Secured("ROLE_OFFICEMAN")
+    @Secured("ROLE_SERVER")
     public ResponseEntity<ApiResponse> saveReceipt(@CurrentUser UserPrincipal userPrincipal,
                                                    @RequestBody ReceiptRequest receiptRequest){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
@@ -154,7 +154,7 @@ public class TransactionsController {
 
     //ruta na koju cash server polla status pojedinog racuna
     @GetMapping("/receipts/{receiptId}")
-    @Secured("ROLE_OFFICEMAN")
+    @Secured({"ROLE_SERVER"})
     public ReceiptStatusResponse getReceiptStatus(@CurrentUser UserPrincipal userPrincipal,
                                                                   @PathVariable String receiptId){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);

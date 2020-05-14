@@ -10,10 +10,12 @@ import ba.unsa.etf.si.mainserver.repositories.products.ProductRepository;
 import ba.unsa.etf.si.mainserver.repositories.products.items.ItemRepository;
 import ba.unsa.etf.si.mainserver.repositories.products.items.ItemTypeRepository;
 import ba.unsa.etf.si.mainserver.repositories.products.items.ProductItemRepository;
+import ba.unsa.etf.si.mainserver.responses.products.items.ItemResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ItemService {
@@ -111,5 +113,12 @@ public class ItemService {
     public Item findItemByIdAndBusinessAndItemType(Long itemId, Long businessId, ItemType itemType) {
         return itemRepository.findByIdAndItemType_BusinessIdAndItemType_Id(itemId, businessId, itemType.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Item doesn't exist"));
+    }
+
+    public List<ItemResponse> getAllItemsForBusiness(Business business) {
+        return itemRepository.findAllByItemType_BusinessId(business.getId())
+                .stream()
+                .map(ItemResponse::new)
+                .collect(Collectors.toList());
     }
 }

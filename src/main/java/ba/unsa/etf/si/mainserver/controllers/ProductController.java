@@ -269,7 +269,7 @@ public class ProductController {
                                         office.getContactInformation().getAddress() + "(" + office.getId() + ")"
                         )
                 ),
-                "cash_register"
+                "cash_server"
         );
         return new OfficeInventoryResponse(
                 officeInventoryService.save(officeInventory));

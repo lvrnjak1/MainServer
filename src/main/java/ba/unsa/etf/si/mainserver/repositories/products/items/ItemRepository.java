@@ -15,4 +15,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     Optional<Item> findByIdAndItemType_BusinessId(Long itemId, Long businessId);
 
     Optional<Item> findByIdAndItemType_BusinessIdAndItemType_Id(Long itemId, Long businessId, Long itemTypeId);
+
+    List<Item> findAllByItemType_BusinessId(Long businessId);
 }

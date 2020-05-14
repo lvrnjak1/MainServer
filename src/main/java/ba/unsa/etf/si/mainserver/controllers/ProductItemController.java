@@ -43,11 +43,18 @@ public class ProductItemController {
 
     //ruta da se dobiju svi item typeovi
     @GetMapping("/itemtypes")
-    @Secured({"ROLE_WAREMAN", "ROLE_OFFICEMAN"})
+    @Secured({"ROLE_WAREMAN", "ROLE_OFFICEMAN", "ROLE_SERVER"})
     public List<ItemTypeResponse> getAllItemTypes(@CurrentUser UserPrincipal userPrincipal){
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         return getAllItemTypeResponsesByBusiness(business);
     }
+
+//    @GetMapping("/items")
+//    @Secured({"ROLE_WAREMAN", "ROLE_OFFICEMAN", "ROLE_SERVER"})
+//    public List<ItemResponse> getAllItems(@CurrentUser UserPrincipal userPrincipal){
+//        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+//        return itemService.getAllItemsForBusiness(business);
+//    }
 
     //ruta da se doda novi item type
     @PostMapping("/itemtypes")
@@ -196,6 +203,4 @@ public class ProductItemController {
                 .map(ProductItemResponse::new)
                 .collect(Collectors.toList());
     }
-    //rijadova ruta za proizvode da se promijeni
-    //matejeva ruta za proizvode??
 }

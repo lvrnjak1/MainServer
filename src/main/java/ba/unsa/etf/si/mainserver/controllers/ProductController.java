@@ -267,7 +267,7 @@ public class ProductController {
         String description = String.format("{\"businessId\":%d, \"officeId\":%d, " +
                         "\"inventory\": [{\"productName\":\"%s\", \"productQuantity\":%.2f}]}", business.getId(),
                 office.getId(), product.getName(), inventoryRequest.getQuantity());
-        //System.out.println(description);
+
         if(notifyCashRegister) {
             logServerService.broadcastNotification(
                     new NotificationRequest(
@@ -306,8 +306,6 @@ public class ProductController {
                     product.getName(), officeInventory.getQuantity());
         }).collect(Collectors.joining(","));
         array += "]";
-        //System.out.println(array);
-
         logServerService.broadcastNotification(
                 new NotificationRequest(
                         "info",

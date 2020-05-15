@@ -3,13 +3,13 @@ package ba.unsa.etf.si.mainserver.controllers.merchant_dashboard;
 import ba.unsa.etf.si.mainserver.exceptions.AppException;
 import ba.unsa.etf.si.mainserver.exceptions.ResourceNotFoundException;
 import ba.unsa.etf.si.mainserver.models.auth.User;
+import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.Office;
 import ba.unsa.etf.si.mainserver.models.business.OfficeProfile;
 import ba.unsa.etf.si.mainserver.models.employees.EmployeeProfile;
 import ba.unsa.etf.si.mainserver.models.merchant_warehouse.OfficeProductRequest;
 import ba.unsa.etf.si.mainserver.models.merchant_warehouse.ProductQuantity;
 import ba.unsa.etf.si.mainserver.models.products.Product;
-import ba.unsa.etf.si.mainserver.repositories.auth.UserRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeProfileRepository;
 import ba.unsa.etf.si.mainserver.repositories.merchant_warehouse.OfficeProductRequestRepository;
 import ba.unsa.etf.si.mainserver.repositories.merchant_warehouse.ProductQuantityRepository;
@@ -20,17 +20,17 @@ import ba.unsa.etf.si.mainserver.requests.notifications.NotificationPayload;
 import ba.unsa.etf.si.mainserver.requests.notifications.NotificationRequest;
 import ba.unsa.etf.si.mainserver.requests.warehouse.RequestAnswer;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
-import ba.unsa.etf.si.mainserver.responses.products.DiscountResponse;
 import ba.unsa.etf.si.mainserver.responses.products.ProductResponse;
 import ba.unsa.etf.si.mainserver.responses.products.WarehouseResponse;
-import ba.unsa.etf.si.mainserver.responses.products.items.ItemTypeResponse;
 import ba.unsa.etf.si.mainserver.responses.warehouse.OfficeInventoryRequestResponse;
 import ba.unsa.etf.si.mainserver.responses.warehouse.ProductQuantityResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
 import ba.unsa.etf.si.mainserver.security.UserPrincipal;
+import ba.unsa.etf.si.mainserver.services.UserService;
 import ba.unsa.etf.si.mainserver.services.admin.logs.LogServerService;
 import ba.unsa.etf.si.mainserver.services.business.EmployeeProfileService;
 import ba.unsa.etf.si.mainserver.services.business.OfficeService;
+import ba.unsa.etf.si.mainserver.services.products.ProductService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
@@ -46,42 +46,41 @@ public class OfficeInventoryController {
     private final LogServerService logServerService;
     private final OfficeProfileRepository officeProfileRepository;
     private final EmployeeProfileService employeeProfileService;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final ProductQuantityRepository productQuantityRepository;
     private final OfficeProductRequestRepository officeProductRequestRepository;
     private final OfficeService officeService;
     private final WarehouseRepository warehouseRepository;
     private final ProductRepository productRepository;
+    private final ProductService productService;
 
     public OfficeInventoryController(LogServerService logServerService,
                                      OfficeProfileRepository officeProfileRepository,
                                      EmployeeProfileService employeeProfileService,
-                                     UserRepository userRepository,
+                                     UserService userService,
                                      ProductQuantityRepository productQuantityRepository,
                                      OfficeProductRequestRepository officeProductRequestRepository,
-                                     OfficeService officeService, WarehouseRepository warehouseRepository, ProductRepository productRepository) {
+                                     OfficeService officeService, WarehouseRepository warehouseRepository, ProductRepository productRepository, ProductService productService) {
         this.logServerService = logServerService;
         this.officeProfileRepository = officeProfileRepository;
         this.employeeProfileService = employeeProfileService;
-        this.userRepository = userRepository;
+        this.userService = userService;
         this.productQuantityRepository = productQuantityRepository;
         this.officeProductRequestRepository = officeProductRequestRepository;
         this.officeService = officeService;
         this.warehouseRepository = warehouseRepository;
         this.productRepository = productRepository;
+        this.productService = productService;
     }
 
+    //ovo je ok
     @PostMapping("/merchant_dashboard/inventory_requests")
     @Secured("ROLE_MERCHANT")
     public ApiResponse sendRequestForProducts(
             @RequestBody OfficeInventoryRequest request,
             @CurrentUser UserPrincipal userPrincipal) {
-        Optional<User> optionalUser = userRepository.findByUsername(userPrincipal.getUsername());
-        if (!optionalUser.isPresent()) {
-            throw new ResourceNotFoundException("User not found");
-        }
-
-        EmployeeProfile employeeProfile = employeeProfileService.findEmployeeByAccount(optionalUser.get());
+        User user = userService.findUserByUsername(userPrincipal.getUsername());
+        EmployeeProfile employeeProfile = employeeProfileService.findEmployeeByAccount(user);
         List<OfficeProfile> offices = officeProfileRepository.findAllByOfficeIdAndOffice_BusinessId(request.getOfficeId(), employeeProfile.getBusiness().getId());
         if (offices.size() == 0) {
             throw new AppException("Office does not exist!");
@@ -116,15 +115,9 @@ public class OfficeInventoryController {
     @GetMapping("/warehouse/requests")
     @Secured("ROLE_WAREMAN")
     public List<OfficeInventoryRequestResponse> getRequests(@CurrentUser UserPrincipal userPrincipal) {
-        Optional<User> optionalUser = userRepository.findByUsername(userPrincipal.getUsername());
-        if (!optionalUser.isPresent()) {
-            throw new ResourceNotFoundException("User not found");
-        }
-        EmployeeProfile employeeProfile = employeeProfileService.findEmployeeByAccount(optionalUser.get());
-        List<WarehouseResponse> warehouseResponses = warehouseRepository.findAllByBusiness(employeeProfile.getBusiness())
-                .stream()
-                .map(WarehouseResponse::new)
-                .collect(Collectors.toList());
+        User user = userService.findUserByUsername(userPrincipal.getUsername());
+        EmployeeProfile employeeProfile = employeeProfileService.findEmployeeByAccount(user);
+
         List<Office> offices = officeService.findAllByBusiness(employeeProfile.getBusiness());
         List<OfficeProductRequest> requests = officeProductRequestRepository
                 .findAll()
@@ -134,95 +127,71 @@ public class OfficeInventoryController {
                 )
                 .collect(Collectors.toList());
 
-        ArrayList<ProductQuantity> productQuantities = productQuantityRepository.findAll().stream().filter(productQuantity -> offices.stream().anyMatch(office -> productQuantity.getOfficeProductRequest().getOfficeId().equals(office.getId()))).collect(Collectors.toCollection(ArrayList::new));
-        requests.stream().forEach(System.out::println);
-        System.out.println("And after filtering");
-//        requests.stream().forEach(officeProductRequest -> {
-//            productQuantities.stream().filter(productQuantity -> productQuantity.getOfficeProductRequest().getId().equals(officeProductRequest.getId())).forEach(productQuantity -> System.out.println(productQuantity.getId() + " - " + ));
-//        });
-        try {
-            return requests
-                    .stream()
-                    .map(
-                            officeProductRequest -> {
-                                ArrayList<ProductQuantityResponse> productQuantityResponses = productQuantityRepository
-                                        .findAllByOfficeProductRequest_OfficeId(officeProductRequest.getOfficeId())
-                                        .stream()
-                                        .filter(
-                                                productQuantity ->
-                                                        productQuantity.getOfficeProductRequest().getId().equals(officeProductRequest.getId())
-                                        )
-                                        .map(productQuantity -> {
-                                            Optional<Product> optionalProduct = productRepository
-                                                    .findById(productQuantity.getProductId());
-                                            if (!optionalProduct.isPresent()) {
-                                                throw new NullPointerException();
-                                            }
-                                            Product product = optionalProduct.get();
-                                            ProductResponse productResponse = new ProductResponse(
-                                                    product.getId(),
-                                                    product.getName(),
-                                                    product.getPrice(),
-                                                    product.getPdv(),
-                                                    product.getUnit(),
-                                                    product.getBarcode(),
-                                                    product.getDescription(),
-                                                    new DiscountResponse(
-                                                            product.getDiscount()!=null?product.getDiscount().getPercentage():0
-                                                    ),
-                                                    new ItemTypeResponse(product.getItemType()),
-                                                    null,
-                                                    null
-                                            );
-                                            ArrayList<WarehouseResponse> warehouseResponses1 = warehouseResponses
-                                                    .stream()
-                                                    .filter(
-                                                            warehouseResponse ->
-                                                                    warehouseResponse
-                                                                            .getProductId()
-                                                                            .equals(product.getId())
-                                                    )
-                                                    .collect(Collectors.toCollection(ArrayList::new));
-                                            double available = 0.0;
-                                            if (!warehouseResponses1.isEmpty()) {
-                                                available = warehouseResponses1.get(0).getQuantity();
-                                            }
-                                            return new ProductQuantityResponse(
-                                                    productResponse,
-                                                    productQuantity.getQuantity(),
-                                                    available
-                                            );
-                                        }).collect(Collectors.toCollection(ArrayList::new));
+        return requests
+                .stream()
+                .map(request -> getRequestProductsResponse(request, employeeProfile.getBusiness()))
+                .collect(Collectors.toList());
+    }
 
-                                return new OfficeInventoryRequestResponse(
-                                        officeProductRequest.getId(),
-                                        officeService.getOfficeResponseByOfficeId(officeProductRequest.getOfficeId()),
-                                        productQuantityResponses
-                                );
-                            }
-                    ).collect(Collectors.toList());
-        } catch (NullPointerException exception) {
-            return new ArrayList<>();
+    private OfficeInventoryRequestResponse getRequestProductsResponse(OfficeProductRequest officeProductRequest, Business business){
+
+        ArrayList<ProductQuantityResponse> productQuantityResponses = productQuantityRepository
+                .findAllByOfficeProductRequest_OfficeId(officeProductRequest.getOfficeId())
+                .stream()
+                .filter(
+                        productQuantity ->
+                                productQuantity.getOfficeProductRequest().getId().equals(officeProductRequest.getId())
+                )
+                .map(productQuantity -> {
+                    Product product = productService
+                            .findProductById(productQuantity.getProductId(), business.getId());
+                    return new ProductQuantityResponse(new ProductResponse(product), productQuantity.getQuantity(), getProductAvailableQuantity(product, business));
+                })
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        return new OfficeInventoryRequestResponse(
+                officeProductRequest.getId(),
+                officeService.getOfficeResponseByOfficeId(officeProductRequest.getOfficeId()),
+                productQuantityResponses
+        );
+    }
+
+    private double getProductAvailableQuantity(Product product, Business business){
+        ArrayList<WarehouseResponse> warehouseResponses = warehouseRepository.findAllByBusiness(business)
+                .stream()
+                .map(WarehouseResponse::new)
+                .filter(
+                        warehouseResponse ->
+                                warehouseResponse
+                                        .getProductId()
+                                        .equals(product.getId())
+                )
+                .collect(Collectors.toCollection(ArrayList::new));
+        double available = 0.0;
+        if (!warehouseResponses.isEmpty()) {
+            available = warehouseResponses.get(0).getQuantity();
         }
+        return available;
     }
 
     @PostMapping("/warehouse/requests/deny")
     @Secured("ROLE_WAREMAN")
     public ResponseEntity<ApiResponse> denyRequest(@RequestBody RequestAnswer requestAnswer) {
-        System.out.println("The id: " + requestAnswer.getRequestId());
-        System.out.println("The message: " + requestAnswer.getMessage());
         if (requestAnswer.getRequestId() == null) {
             throw new AppException("No id provided");
         }
-        Optional<OfficeProductRequest> optionalOfficeProductRequest = officeProductRequestRepository
-                .findById(requestAnswer.getRequestId());
-        if (!optionalOfficeProductRequest.isPresent()) {
-            throw new ResourceNotFoundException("That request does not exist");
-        }
-        List<ProductQuantity> productQuantities = productQuantityRepository.findAllByOfficeProductRequest_OfficeId(optionalOfficeProductRequest.get().getOfficeId());
-        productQuantities = productQuantities.stream().filter(productQuantity -> productQuantity.getOfficeProductRequest().getId().equals(optionalOfficeProductRequest.get().getId())).collect(Collectors.toCollection(ArrayList::new));
+        OfficeProductRequest officeProductRequest = officeProductRequestRepository.findById(requestAnswer.getRequestId())
+                .orElseThrow(() -> new ResourceNotFoundException("That request does not exist"));
+
+        List<ProductQuantity> productQuantities = productQuantityRepository
+                .findAllByOfficeProductRequest_OfficeId(officeProductRequest.getOfficeId())
+                .stream()
+                .filter(productQuantity ->
+                        productQuantity.getOfficeProductRequest().getId()
+                                .equals(officeProductRequest.getId()))
+                .collect(Collectors.toCollection(ArrayList::new));
         productQuantityRepository.deleteAll(productQuantities);
-        officeProductRequestRepository.delete(optionalOfficeProductRequest.get());
+        officeProductRequestRepository.delete(officeProductRequest);
         logServerService.broadcastNotification(
                 new NotificationRequest(
                         "warning",
@@ -240,20 +209,21 @@ public class OfficeInventoryController {
     @PostMapping("/warehouse/requests/accept")
     @Secured("ROLE_WAREMAN")
     public ResponseEntity<ApiResponse> acceptRequest(@RequestBody RequestAnswer requestAnswer) {
-        System.out.println("The id: " + requestAnswer.getRequestId());
-        System.out.println("The message: " + requestAnswer.getMessage());
         if (requestAnswer.getRequestId() == null) {
             throw new AppException("No id provided");
         }
-        Optional<OfficeProductRequest> optionalOfficeProductRequest = officeProductRequestRepository
-                .findById(requestAnswer.getRequestId());
-        if (!optionalOfficeProductRequest.isPresent()) {
-            throw new ResourceNotFoundException("That request does not exist");
-        }
-        List<ProductQuantity> productQuantities = productQuantityRepository.findAllByOfficeProductRequest_OfficeId(optionalOfficeProductRequest.get().getOfficeId());
-        productQuantities = productQuantities.stream().filter(productQuantity -> productQuantity.getOfficeProductRequest().getId().equals(optionalOfficeProductRequest.get().getId())).collect(Collectors.toCollection(ArrayList::new));
+        OfficeProductRequest officeProductRequest = officeProductRequestRepository.findById(requestAnswer.getRequestId())
+                .orElseThrow(() -> new ResourceNotFoundException("That request does not exist"));
+
+        List<ProductQuantity> productQuantities = productQuantityRepository
+                .findAllByOfficeProductRequest_OfficeId(officeProductRequest.getOfficeId())
+                .stream()
+                .filter(productQuantity ->
+                        productQuantity.getOfficeProductRequest().getId()
+                                .equals(officeProductRequest.getId()))
+                .collect(Collectors.toCollection(ArrayList::new));
         productQuantityRepository.deleteAll(productQuantities);
-        officeProductRequestRepository.delete(optionalOfficeProductRequest.get());
+        officeProductRequestRepository.delete(officeProductRequest);
         logServerService.broadcastNotification(
                 new NotificationRequest(
                         "info",

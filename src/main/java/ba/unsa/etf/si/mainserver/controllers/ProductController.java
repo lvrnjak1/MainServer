@@ -266,7 +266,7 @@ public class ProductController {
         );
         String description = String.format("{\"businessId\":%d, \"officeId\":%d, " +
                         "\"inventory\": [{\"productName\":\"%s\", \"productQuantity\":%.2f}]}", business.getId(),
-                office.getId(), product.getName(), officeInventory.getQuantity());
+                office.getId(), product.getName(), inventoryRequest.getQuantity());
         //System.out.println(description);
         if(notifyCashRegister) {
             logServerService.broadcastNotification(
@@ -300,7 +300,7 @@ public class ProductController {
         Office office = officeService.findOfficeById(inventory.get(0).getOfficeId(), business.getId());
 
         String array = "[";
-        array += inventory.stream().map(officeInventory -> {
+        array += batchInventoryRequest.getInventory().stream().map(officeInventory -> {
             Product product = productService.findProductById(officeInventory.getProductId(), business.getId());
             return String.format("{\"productName\":\"%s\", \"productQuantity\":%.2f}",
                     product.getName(), officeInventory.getQuantity());

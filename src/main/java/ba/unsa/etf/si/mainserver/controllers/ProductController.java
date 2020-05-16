@@ -264,7 +264,7 @@ public class ProductController {
                 ),
                 "merchant_dashboard"
         );
-        String description = String.format("{\"businessId\":%d, \"officeId\":%d, " +
+        String notifDescription = String.format("{\"businessId\":%d, \"officeId\":%d, " +
                         "\"inventory\": [{\"productName\":\"%s\", \"productQuantity\":%.2f}]}", business.getId(),
                 office.getId(), product.getName(), inventoryRequest.getQuantity());
 
@@ -275,7 +275,7 @@ public class ProductController {
                             new NotificationPayload(
                                     "products added",
                                     "office_products_add",
-                                    description
+                                    notifDescription
                             )
                     ),
                     "cash_server"

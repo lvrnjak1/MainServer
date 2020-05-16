@@ -121,4 +121,18 @@ public class ItemService {
                 .map(ItemResponse::new)
                 .collect(Collectors.toList());
     }
+
+    public List<ProductItem> findProductItemsByTypeForBusiness(Long typeId, Long businessId) {
+        return productItemRepository
+                .findAllByProduct_ItemType_IdAndProduct_Business_Id(typeId, businessId);
+    }
+
+    public List<ProductItem> findProductItemsByType(Long typeId) {
+        return productItemRepository
+                .findAllByProduct_ItemType_Id(typeId);
+    }
+
+    public List<ProductItem> findAllProductsByItem(Item item) {
+        return  productItemRepository.findAllByItem(item);
+    }
 }

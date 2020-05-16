@@ -105,6 +105,7 @@ public class ProductService {
     }
 
 
-
-
+    public List<Product> findProductItemsByType(Long typeId) {
+        return productRepository.findAllByItemType_Id(typeId);
+    }
 }

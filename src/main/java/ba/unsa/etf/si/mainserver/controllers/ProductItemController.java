@@ -13,6 +13,7 @@ import ba.unsa.etf.si.mainserver.requests.products.items.ProductItemRequest;
 import ba.unsa.etf.si.mainserver.requests.products.items.ProductItemTypeRequest;
 import ba.unsa.etf.si.mainserver.responses.ApiResponse;
 import ba.unsa.etf.si.mainserver.responses.products.ProductItemResponse;
+import ba.unsa.etf.si.mainserver.responses.products.ProductResponse;
 import ba.unsa.etf.si.mainserver.responses.products.items.ItemResponse;
 import ba.unsa.etf.si.mainserver.responses.products.items.ItemTypeResponse;
 import ba.unsa.etf.si.mainserver.security.CurrentUser;
@@ -201,6 +202,33 @@ public class ProductItemController {
         return itemService.findAllProductItems(product)
                 .stream()
                 .map(ProductItemResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/itemtypes/{typeId}/products")
+    @Secured("ROLE_WAREMAN")
+    public List<ProductResponse> getAllProductsByItemType(@CurrentUser UserPrincipal userPrincipal,
+                                                          @PathVariable Long typeId){
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        ItemType itemType =
+                itemService.findItemTypeByIdAndBusinessId(typeId, business.getId());
+        return productService
+                .findProductItemsByType(typeId)
+                .stream()
+                .map(product -> new ProductResponse(product, itemService.findAllProductItems(product)))
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/items/{itemId}/products")
+    @Secured("ROLE_WAREMAN")
+    public List<ProductResponse> getAllProductsWithItem(@CurrentUser UserPrincipal userPrincipal,
+                                                        @PathVariable Long itemId){
+        Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
+        Item item = itemService.findItemByIdAndBusiness(itemId, business.getId());
+        return itemService.findAllProductsByItem(item)
+                .stream()
+                .map(productItem -> new ProductResponse(productItem.getProduct(),
+                        itemService.findAllProductItems(productItem.getProduct())))
                 .collect(Collectors.toList());
     }
 }

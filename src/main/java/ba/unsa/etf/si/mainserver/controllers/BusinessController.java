@@ -785,9 +785,8 @@ public class BusinessController {
             @RequestBody WorkHoursRequest workHoursRequest) throws ParseException {
 
         Office office = officeService.findOfficeById(officeId,businessId);
-        office.setWorkDayStart(workHoursRequest.getStartTimeFromString());
-        office.setWorkDayEnd(workHoursRequest.getEndTimeFromString());
-        officeService.save(office);
+        officeService.changeWorkHours(office, workHoursRequest.getStartTimeFromString(), workHoursRequest.getEndTimeFromString());
+
         return new ApiResponse("Office work hours successfully changed",
                 200);
     }

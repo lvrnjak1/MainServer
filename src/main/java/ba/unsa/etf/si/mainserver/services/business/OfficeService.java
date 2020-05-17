@@ -16,6 +16,7 @@ import ba.unsa.etf.si.mainserver.responses.business.OfficeResponse;
 import ba.unsa.etf.si.mainserver.services.UserService;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -142,6 +143,12 @@ public class OfficeService {
 
     public int countCashRegsitersInOffice(Long officeId){
         return cashRegisterService.getAllCashRegistersByOfficeId(officeId).size();
+    }
+
+    public void changeWorkHours(Office office, Date startTime, Date endTime) {
+        office.setWorkDayStart(startTime);
+        office.setWorkDayEnd(endTime);
+        officeRepository.save(office);
     }
 
 //    public Office findByManager(UserPrincipal userPrincipal) {

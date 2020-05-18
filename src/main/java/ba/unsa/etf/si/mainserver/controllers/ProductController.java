@@ -320,14 +320,14 @@ public class ProductController {
                 ),
                 "cash_server"
         );
-        String description = "Following products have been transferred to office at"
+        String description = "Following products have been transferred to office at "
                 + office.getContactInformation().getAddress() + ":\n" +
                 batchInventoryRequest.getInventory().stream()
                 .map(inventoryRequest -> {
                     Product product = productService.findProductById(inventoryRequest.getProductId(), business.getId());
-                    return inventoryRequest.getQuantity() + product.getUnit() + " of " + product.getName();
+                    return inventoryRequest.getQuantity() + " " + product.getUnit() + " of " + product.getName();
                 })
-                .collect(Collectors.joining(","));
+                .collect(Collectors.joining(", "));
         logServerService.broadcastNotification(
                 new NotificationRequest(
                         "info",

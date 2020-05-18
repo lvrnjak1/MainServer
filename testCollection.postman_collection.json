@@ -1,0 +1,395 @@
+{
+	"info": {
+		"_postman_id": "5a0f8940-da11-4709-803f-9302f11b324c",
+		"name": "testCollection",
+		"description": "Integration testing for Spring Boot",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "adminLogin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "e22a841a-6785-402e-b14b-1dcf90edc463",
+						"exec": [
+							"pm.test(\"Admin login test\", function () {\r",
+							"    var jsonData = JSON.parse(responseBody);\r",
+							"    pm.collectionVariables.set(\"admin_token\", jsonData.token);\r",
+							"    \r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMzY3MCIsImlhdCI6MTU4NjEyMDUzMSwiZXhwIjoxNTg2NzI1MzMxfQ.lykf5nansvMig_AJzLt9decNpZaXGttc6j-jZoLIyYXnKLug-mUEANP34obgBFnm3TWNMwmG1esI_L91Etya6w",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"password\": \"password\",\r\n  \"role\": \"ROLE_ADMIN\",\r\n  \"username\": \"root\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{dn}}/api/auth/v2/login",
+					"host": [
+						"{{dn}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"v2",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "registerNewUser",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4f691717-0aa3-470f-bfe1-5dfb716e7907",
+						"exec": [
+							"pm.test(\"Register new user test\", function () {\r",
+							"    var jsonData = JSON.parse(responseBody);\r",
+							"    pm.collectionVariables.set(\"merchant_id\", jsonData.profile.id);\r",
+							"    \r",
+							"    pm.response.to.have.status(201);\r",
+							"    pm.expect(jsonData.profile.name).to.eql(\"Merchant\");\r",
+							"    pm.expect(jsonData.username).to.eql(\"testMerchant2345\");\r",
+							"    \r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"address\": \"Address\",\r\n  \"city\": \"City\",\r\n  \"country\": \"BiH\",\r\n  \"dateOfBirth\": \"09.09.1980\",\r\n  \"email\": \"testmerchant2345@gmail.com\",\r\n  \"jmbg\": \"1234567891234\",\r\n  \"name\": \"Merchant\",\r\n  \"password\": \"password\",\r\n  \"phoneNumber\": \"123-456\",\r\n  \"roles\": [\r\n    {\r\n      \"rolename\": \"ROLE_MERCHANT\"\r\n    }\r\n  ],\r\n  \"surname\": \"Surname\",\r\n  \"username\": \"testMerchant2345\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{dn}}/api/auth/_register",
+					"host": [
+						"{{dn}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"_register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "usedUsernameForRegistration",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4f691717-0aa3-470f-bfe1-5dfb716e7907",
+						"exec": [
+							"pm.test(\"Try to register new user with already used username test\", function () {\r",
+							"    var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"    pm.response.to.have.status(500);\r",
+							"    pm.expect(jsonData.message).to.eql(\"Username already taken\");\r",
+							"    \r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"address\": \"Address2\",\r\n  \"city\": \"City2\",\r\n  \"country\": \"BiH\",\r\n  \"dateOfBirth\": \"09.09.1951\",\r\n  \"email\": \"testmerchant111@gmail.com\",\r\n  \"jmbg\": \"1234567891234\",\r\n  \"name\": \"Merchant2\",\r\n  \"password\": \"password\",\r\n  \"phoneNumber\": \"123-456\",\r\n  \"roles\": [\r\n    {\r\n      \"rolename\": \"ROLE_MANAGER\"\r\n    }\r\n  ],\r\n  \"surname\": \"Surname\",\r\n  \"username\": \"testMerchant2345\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{dn}}/api/auth/_register",
+					"host": [
+						"{{dn}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"_register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getAllBusinessesBefore",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4f691717-0aa3-470f-bfe1-5dfb716e7907",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"pm.collectionVariables.set(\"number_of_businesses\", jsonData.length);\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{dn}}/api/business",
+					"host": [
+						"{{dn}}"
+					],
+					"path": [
+						"api",
+						"business"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "addBusiness",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4f691717-0aa3-470f-bfe1-5dfb716e7907",
+						"exec": [
+							"pm.test(\"Register new business test\", function () {\r",
+							"    var jsonData = JSON.parse(responseBody);\r",
+							"    pm.collectionVariables.set(\"business_id\", jsonData.id);\r",
+							"    \r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.expect(jsonData.merchant.id).to.eql(pm.collectionVariables.get(\"merchant_id\"));\r",
+							"    pm.expect(jsonData.name).to.eql(\"Amko\");\r",
+							"    \r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "0393bf6b-2958-4fc7-badb-8f11fb73b4b0",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"merchantId\": \"{{merchant_id}}\",\r\n  \"name\": \"Amko\",\r\n  \"restaurantFeature\": false\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{dn}}/api/business",
+					"host": [
+						"{{dn}}"
+					],
+					"path": [
+						"api",
+						"business"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getAllBusinessesAfter",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "4f691717-0aa3-470f-bfe1-5dfb716e7907",
+						"exec": [
+							"pm.test(\"Get all businesses test\", function () {\r",
+							"    var jsonData = JSON.parse(responseBody);\r",
+							"    \r",
+							"    pm.response.to.have.status(200);\r",
+							"    pm.expect(jsonData.length).to.eql(pm.collectionVariables.get(\"number_of_businesses\") + 1);    \r",
+							"    pm.expect(jsonData[jsonData.length - 1].id).to.eql(pm.collectionVariables.get(\"business_id\"));\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{admin_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{dn}}/api/business",
+					"host": [
+						"{{dn}}"
+					],
+					"path": [
+						"api",
+						"business"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "aeac6143-a522-4f2a-9362-2103a62fb940",
+				"type": "text/javascript",
+				"exec": [
+					"pm.collectionVariables.set(\"dn\", 'localhost:8080');"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "984c1b90-dce9-4524-b3d2-7828d823ddf6",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "fc1bf00b-63c8-401b-91ee-98ba099d82b8",
+			"key": "admin_token",
+			"value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNTg5ODA3NzA5LCJleHAiOjE1OTA0MTI1MDl9.iSV8t2KdHaMTpSCLJg11cnMxpGNZ2jBYyX-KEOAs_D-sDzUXAw-POryeEch2oWK9Gzmvrx5IyVqPOQiGze3lRw",
+			"type": "string"
+		},
+		{
+			"id": "5d3785a8-1a4d-4a0b-b377-6a078f02d5d6",
+			"key": "merchant_id",
+			"value": 51,
+			"type": "number"
+		},
+		{
+			"id": "f5ab91e5-edcb-44cf-89bf-798c9cb4e03e",
+			"key": "business_id",
+			"value": 53,
+			"type": "number"
+		},
+		{
+			"id": "8d291311-6802-4e1a-be2a-8fc3ebb06cad",
+			"key": "dn",
+			"value": "localhost:8080",
+			"type": "string"
+		},
+		{
+			"id": "b23b54a7-985e-41e7-87cd-26da901ab51c",
+			"key": "number_of_businesses",
+			"value": 0,
+			"type": "number"
+		}
+	],
+	"protocolProfileBehavior": {}
+}

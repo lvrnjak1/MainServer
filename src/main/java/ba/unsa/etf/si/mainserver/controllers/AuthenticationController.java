@@ -105,17 +105,17 @@ public class AuthenticationController {
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath().path("/api/users/{username}")
                 .buildAndExpand(result.getUsername()).toUri();
-        logServerService.broadcastNotification(
+        /*logServerService.broadcastNotification(
                 new NotificationRequest(
                         "info",
                         new NotificationPayload(
                                 result.getUsername(),
-                                "assign_employee",
-                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has has been assigned."
+                                "hire_employee",
+                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has has been hired."
                         )
                 ),
                 "merchant_dashboard"
-        );
+        );*/
         return ResponseEntity.created(location).body(
                 new RegistrationResponse(
                         result.getId(),

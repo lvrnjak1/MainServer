@@ -111,7 +111,7 @@ public class AuthenticationController {
                         new NotificationPayload(
                                 result.getUsername(),
                                 "assign_employee",
-                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has has been assigned."
+                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " hasgit  been assigned."
                         )
                 ),
                 "merchant_dashboard"

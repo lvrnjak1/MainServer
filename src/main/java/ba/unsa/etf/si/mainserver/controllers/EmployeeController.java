@@ -239,17 +239,17 @@ public class EmployeeController {
                 "Employee " + userPrincipal.getUsername() + " has fired employee " + employeeProfile.getName()
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
-        logServerService.broadcastNotification(
+        /*logServerService.broadcastNotification(
                 new NotificationRequest(
                         "warning",
                         new NotificationPayload(
                                 userPrincipal.getUsername(),
-                                "fire_employee",
-                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has been fired."
+                                "unassign_employee",
+                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has been unassigned from business " + business.getName() + "."
                         )
                 ),
                 "merchant_dashboard"
-        );
+        );*/
         logServerService.broadcastNotification(
                 new NotificationRequest(
                         "warning",

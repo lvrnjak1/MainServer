@@ -105,7 +105,7 @@ public class AuthenticationController {
         URI location = ServletUriComponentsBuilder
                 .fromCurrentContextPath().path("/api/users/{username}")
                 .buildAndExpand(result.getUsername()).toUri();
-        logServerService.broadcastNotification(
+        /*logServerService.broadcastNotification(
                 new NotificationRequest(
                         "info",
                         new NotificationPayload(
@@ -115,7 +115,7 @@ public class AuthenticationController {
                         )
                 ),
                 "merchant_dashboard"
-        );
+        );*/
         return ResponseEntity.created(location).body(
                 new RegistrationResponse(
                         result.getId(),

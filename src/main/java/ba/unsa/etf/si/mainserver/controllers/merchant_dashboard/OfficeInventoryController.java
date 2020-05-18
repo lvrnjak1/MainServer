@@ -37,7 +37,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -224,17 +223,17 @@ public class OfficeInventoryController {
                 .collect(Collectors.toCollection(ArrayList::new));
         productQuantityRepository.deleteAll(productQuantities);
         officeProductRequestRepository.delete(officeProductRequest);
-        logServerService.broadcastNotification(
-                new NotificationRequest(
-                        "info",
-                        new NotificationPayload(
-                                "request",
-                                "request_deny",
-                                "request accepted!"
-                        )
-                ),
-                "merchant_dashboard"
-        );
+//        logServerService.broadcastNotification(
+//                new NotificationRequest(
+//                        "info",
+//                        new NotificationPayload(
+//                                "request",
+//                                "request_deny",
+//                                "request accepted!"
+//                        )
+//                ),
+//                "merchant_dashboard"
+//        );
         return ResponseEntity.ok(new ApiResponse("The request for products has been accepted!", 200));
     }
 }

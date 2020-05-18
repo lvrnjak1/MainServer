@@ -244,8 +244,8 @@ public class EmployeeController {
                         "warning",
                         new NotificationPayload(
                                 userPrincipal.getUsername(),
-                                "fire_employee",
-                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has been fired."
+                                "unassign_employee",
+                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has been unassigned from business " + business.getName() + "."
                         )
                 ),
                 "merchant_dashboard"
@@ -256,7 +256,7 @@ public class EmployeeController {
                         new NotificationPayload(
                                 userPrincipal.getUsername(),
                                 "fire_employee",
-                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has been fired."
+                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has been unassigned from business " + business.getName() + "."
                         )
                 ),
                 "admin"

@@ -184,7 +184,18 @@ public class OfficeInventoryController {
                 .orElseThrow(() -> new ResourceNotFoundException("That request does not exist"));
 
         List<ProductQuantity> productQuantities = productQuantityRepository
-                .findAllByOfficeProductRequest_OfficeId(officeProductRequest.getOfficeId())
+                .findAllByOfficeProductRequest_OfficeId(officeProductRequest.getOfficeId());
+
+        String message = "Request for following products has been denied:\n" +
+                productQuantities.stream().map(productQuantity -> {
+            Optional<Product> product = productRepository.findById(productQuantity.getProductId());
+            if(!product.isPresent()){
+                throw new ResourceNotFoundException("Product doesn't exist");
+            }
+            return productQuantity.getQuantity() + " " + product.get().getUnit() + " of " + product.get().getName();
+        }).collect(Collectors.joining(", "));
+
+        productQuantities = productQuantities
                 .stream()
                 .filter(productQuantity ->
                         productQuantity.getOfficeProductRequest().getId()
@@ -198,7 +209,7 @@ public class OfficeInventoryController {
                         new NotificationPayload(
                                 "request",
                                 "request_deny",
-                                requestAnswer.getMessage()
+                                message
                         )
                 ),
                 "merchant_dashboard"
@@ -224,17 +235,17 @@ public class OfficeInventoryController {
                 .collect(Collectors.toCollection(ArrayList::new));
         productQuantityRepository.deleteAll(productQuantities);
         officeProductRequestRepository.delete(officeProductRequest);
-        logServerService.broadcastNotification(
-                new NotificationRequest(
-                        "info",
-                        new NotificationPayload(
-                                "request",
-                                "request_deny",
-                                "request accepted!"
-                        )
-                ),
-                "merchant_dashboard"
-        );
+//        logServerService.broadcastNotification(
+//                new NotificationRequest(
+//                        "info",
+//                        new NotificationPayload(
+//                                "request",
+//                                "request_deny",
+//                                "request accepted!"
+//                        )
+//                ),
+//                "merchant_dashboard"
+//        );
         return ResponseEntity.ok(new ApiResponse("The request for products has been accepted!", 200));
     }
 }

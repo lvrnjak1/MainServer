@@ -110,8 +110,8 @@ public class AuthenticationController {
                         "info",
                         new NotificationPayload(
                                 result.getUsername(),
-                                "hire_employee",
-                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has has been hired."
+                                "assign_employee",
+                                employeeProfile.getName() + " " + employeeProfile.getSurname() + " has been assigned."
                         )
                 ),
                 "merchant_dashboard"

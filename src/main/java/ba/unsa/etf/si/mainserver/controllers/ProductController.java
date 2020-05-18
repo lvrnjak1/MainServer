@@ -250,25 +250,25 @@ public class ProductController {
                         product.getName() + " to office " + office.getContactInformation().getCity() + "!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
-        logServerService.broadcastNotification(
-                new NotificationRequest(
-                        "info",
-                        new NotificationPayload(
-                                product.getName(),
-                                "office_products_add",
-                                inventoryRequest.getQuantity() + " " +
-                                        product.getName() + " have been added to the office in " +
-                                        office.getContactInformation().getCity() + " " +
-                                        office.getContactInformation().getAddress() + "(" + office.getId() + ")"
-                        )
-                ),
-                "merchant_dashboard"
-        );
-        String notifDescription = String.format("{\"businessId\":%d, \"officeId\":%d, " +
-                        "\"inventory\": [{\"productName\":\"%s\", \"productQuantity\":%.2f}]}", business.getId(),
-                office.getId(), product.getName(), inventoryRequest.getQuantity());
-
         if(notifyCashRegister) {
+            logServerService.broadcastNotification(
+                    new NotificationRequest(
+                            "info",
+                            new NotificationPayload(
+                                    product.getName(),
+                                    "office_products_add",
+                                    inventoryRequest.getQuantity() + " " +
+                                            product.getName() + " have been added to the office in " +
+                                            office.getContactInformation().getCity() + " " +
+                                            office.getContactInformation().getAddress() + "(" + office.getId() + ")"
+                            )
+                    ),
+                    "merchant_dashboard"
+            );
+            String notifDescription = String.format("{\"businessId\":%d, \"officeId\":%d, " +
+                            "\"inventory\": [{\"productName\":\"%s\", \"productQuantity\":%.2f}]}", business.getId(),
+                    office.getId(), product.getName(), inventoryRequest.getQuantity());
+
             logServerService.broadcastNotification(
                     new NotificationRequest(
                             "info",
@@ -320,7 +320,25 @@ public class ProductController {
                 ),
                 "cash_server"
         );
-
+        String description = "Following products have been transferred to office at "
+                + office.getContactInformation().getAddress() + ":\n" +
+                batchInventoryRequest.getInventory().stream()
+                .map(inventoryRequest -> {
+                    Product product = productService.findProductById(inventoryRequest.getProductId(), business.getId());
+                    return inventoryRequest.getQuantity() + " " + product.getUnit() + " of " + product.getName();
+                })
+                .collect(Collectors.joining(", "));
+        logServerService.broadcastNotification(
+                new NotificationRequest(
+                        "info",
+                        new NotificationPayload(
+                                "request accepted",
+                                "office_products_add",
+                                description
+                        )
+                ),
+                "merchant_dashboard"
+        );
         return inventory;
     }
 

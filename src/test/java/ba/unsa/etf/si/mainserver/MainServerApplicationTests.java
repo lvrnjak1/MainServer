@@ -60,7 +60,7 @@ class MainServerApplicationTests {
                 .stream()
                 .map(PDV::getPdvRate)
                 .collect(Collectors.toList());
-        boolean rightPDVData =  pdvData.contains(17.0); //&& pdvData.size() == 2 && pdvData.contains(0.0);
+        boolean rightPDVData =  pdvData.contains(17.0) && pdvData.size() == 2 && pdvData.contains(0.0);
         Assert.assertTrue(rightPDVData);
 
         List<String> receipStatuses = Stream.of(ReceiptStatusName.values())

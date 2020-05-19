@@ -429,8 +429,13 @@ public class ProductController {
         Business business = businessService.findBusinessOfCurrentUser(userPrincipal);
         Product product = productService.findProductById(productId, business.getId());
 
-        Discount discount = new Discount(discountRequest.getPercentage());
-        product.setDiscount(discount);
+        if(product.getDiscount() != null){
+            product.getDiscount().setPercentage(discountRequest.getPercentage());
+        }else{
+            Discount discount = new Discount(discountRequest.getPercentage());
+            product.setDiscount(discount);
+        }
+
         // DO NOT EDIT THIS CODE BELOW, EVER
         logServerService.documentAction(
                 userPrincipal.getUsername(),

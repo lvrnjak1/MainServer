@@ -422,7 +422,7 @@ public class ProductController {
     }
 
     @PutMapping("/products/{productId}/discount")
-    @Secured("ROLE_MERCHANT")
+    @Secured({"ROLE_MERCHANT", "ROLE_WAREMAN"})
     public ProductResponse updateDiscount(@PathVariable("productId") Long productId,
                                           @RequestBody DiscountRequest discountRequest,
                                           @CurrentUser UserPrincipal userPrincipal){

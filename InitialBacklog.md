@@ -319,7 +319,6 @@ The merchant needs to send a notification when the seat office changes
 Notifications#9
 ### Item
 The merchant needs to send a notification to request products from warehouses for one of the offices.
-
 ### Task
 - Create a new branch and switch to it
 - Implement sending appropriate notifications via Log server
@@ -333,7 +332,6 @@ The merchant needs to send a notification to request products from warehouses fo
 Notifications#10
 ### Item
 User management web app receives notification when merchant logs in to merchant dashboard web app.
-
 ### Task
 - Create a new branch and switch to it
 - Implement sending appropriate notifications via Log server
@@ -345,10 +343,46 @@ User management web app receives notification when merchant logs in to merchant 
 Notifications#11
 ### Item
 User management web app needs to receive notification when users change their password.
-
 ### Task
 - Create a new branch and switch to it
 - Implement sending appropriate notifications via Log server
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+User reservation
+### Item
+PR Web app must be able to save user reservation and delete it via a code.
+#### Task
+- Create a new branch and switch to it
+- Create routes for getting all reservations for office in business, making reservation, getting and changing reservation duration, canceling and verifying reservation and resending code
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Closing the cash register
+### Item
+An admin must be able to manage the closing of the cash register.
+#### Task
+- Create a new branch and switch to it
+- Create routes for closing the cash register
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Configurations
+### Item
+An admin must be able to configure everything in the ecosystem
+#### Task
+- Create a new branch and switch to it
+- Create route for allowing admin to manage the number of cash registers for an office
+- Create route for allowing admin to manage the synchronization time of the main and cash register servers.
+- Create route for allowing admin to manage the number of the offices for a business
+- Create route for allowing admin to change the language for the mobile seller app
+- Create route for allowing  admin to change the duration of the reservation
 - Create a contoller class, response class and request class if needed
 - Commit and push on your branch
 - Create a pull request

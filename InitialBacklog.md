@@ -315,5 +315,42 @@ The merchant needs to send a notification when the seat office changes
 - Create a pull request
 
 
+## Feature
+Notifications#9
+### Item
+The merchant needs to send a notification to request products from warehouses for one of the offices.
+
+### Task
+- Create a new branch and switch to it
+- Implement sending appropriate notifications via Log server
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+
+
+## Feature
+Notifications#10
+### Item
+User management web app receives notification when merchant logs in to merchant dashboard web app.
+
+### Task
+- Create a new branch and switch to it
+- Implement sending appropriate notifications via Log server
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Notifications#11
+### Item
+User management web app needs to receive notification when users change their password.
+
+### Task
+- Create a new branch and switch to it
+- Implement sending appropriate notifications via Log server
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
 
 

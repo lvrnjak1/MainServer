@@ -236,4 +236,14 @@ Admin should be able to add possible VATs for products and Warehouse manager sho
 - Commit and push on your branch
 - Create a pull request
 
+## Feature
+Tables in a restaurant
+### Item
+If the business is a restaurant, server should be able to keep track of the tables inside an office. Tables can be added by the admin and information about them exposed via endpoints to PR Web app and Cash register server. The table identifier should be a string
+#### Task
+-Create a new branch and switch to it
+-Create routes for getting tables for business and office, adding new table, deleting table and getting tables for office
+-Create a contoller class, response class and request class if needed
+-Commit and push on your branch
+-Create a pull request
 

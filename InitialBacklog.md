@@ -387,4 +387,38 @@ An admin must be able to configure everything in the ecosystem
 - Commit and push on your branch
 - Create a pull request
 
+## Feature
+Managing notifications
+### Item
+An admin must be able to receive notifications that they are interested in
+#### Task
+- Create a new branch and switch to it
+- Notifications when merchant requests opening for an office
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+
+## Feature
+Polling
+### Item
+Change polling to notifications
+#### Task
+- Create a new branch and switch to it
+- Create routes for polling
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request]
+
+## Feature
+Batch delivery 
+### Item
+Notification for batch delivery of products to the office and batch sending products to the office
+#### Task
+- Create a new branch and switch to it
+- Create routes for batch delivery 
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
 

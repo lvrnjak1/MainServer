@@ -269,5 +269,27 @@ Merchant needs to be notified when the products have been delivered to the offic
 - Commit and push on your branch
 - Create a pull request
 
+## Feature
+Notifications#5
+### Item
+Merchant needs to receive notification when the request to open or close an office is rejected by the admin.
+#### Task
+- Create a new branch and switch to it
+- Create routes for notification
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Notifications#6
+### Item
+When a new office is open, user management needs to receive notification 
+#### Task
+- Create a new branch and switch to it
+- Implement sending appropriate notifications via Log server
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
 
 

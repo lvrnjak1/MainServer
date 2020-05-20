@@ -295,7 +295,7 @@ When a new office is open, user management needs to receive notification
 Notifications#7
 ## Item
 Warehouse needs to be notified when a merchant asks for a certain amount of product for an office.
-The warehouse can eather accept or reject the request and the merchant gets feedback on it.
+The warehouse can either accept or reject the request and the merchant gets feedback on it.
 ### Task
 - Create a new branch and switch to it
 - Implement sending appropriate notifications via Log server

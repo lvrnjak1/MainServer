@@ -225,5 +225,200 @@ Main server must realize communication with cash register server and support who
 - Commit and push on your branch
 - Create a pull request
 
+## Feature
+VAT
+### Item
+Admin should be able to add possible VATs for products and Warehouse manager should be able to set vat for each product. Database should come with 0 and 17% vat by default as that is the case in Bosnia. Vat should be classified into active and inactive.
+#### Task
+- Create a new branch and switch to it
+- Create routes for getting all vat rates, adding new vat rate, getting all active vat rates and switching vat rate
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Tables in a restaurant
+### Item
+If the business is a restaurant, server should be able to keep track of the tables inside an office. Tables can be added by the admin and information about them exposed via endpoints to PR Web app and Cash register server. The table identifier should be a string
+#### Task
+- Create a new branch and switch to it
+- Create routes for getting tables for business and office, adding new table, deleting table and getting tables for office
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Notifications#3
+### Item
+Warehouse needs to be notified when a merchant asks him for a certain amount of product for an office
+#### Task
+- Create a new branch and switch to it
+- Create routes for notification
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Notifications#4
+### Item
+Merchant needs to be notified when the products have been delivered to the office or when products cannot be delivered to the office
+#### Task
+- Create a new branch and switch to it
+- Create routes for notification
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Notifications#5
+### Item
+Merchant needs to receive notification when the request to open or close an office is rejected by the admin.
+#### Task
+- Create a new branch and switch to it
+- Create routes for notification
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Notifications#6
+### Item
+When a new office is open, user management needs to receive notification 
+#### Task
+- Create a new branch and switch to it
+- Implement sending appropriate notifications via Log server
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Notifications#7
+## Item
+Warehouse needs to be notified when a merchant asks for a certain amount of product for an office.
+The warehouse can either accept or reject the request and the merchant gets feedback on it.
+### Task
+- Create a new branch and switch to it
+- Implement sending appropriate notifications via Log server
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Notifications#8
+### Item
+The merchant needs to send a notification when the seat office changes
+### Task
+- Create a new branch and switch to it
+- Implement sending appropriate notifications via Log server
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+
+## Feature
+Notifications#9
+### Item
+The merchant needs to send a notification to request products from warehouses for one of the offices.
+### Task
+- Create a new branch and switch to it
+- Implement sending appropriate notifications via Log server
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+
+
+## Feature
+Notifications#10
+### Item
+User management web app receives notification when merchant logs in to merchant dashboard web app.
+### Task
+- Create a new branch and switch to it
+- Implement sending appropriate notifications via Log server
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Notifications#11
+### Item
+User management web app needs to receive notification when users change their password.
+### Task
+- Create a new branch and switch to it
+- Implement sending appropriate notifications via Log server
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+User reservation
+### Item
+PR Web app must be able to save user reservation and delete it via a code.
+#### Task
+- Create a new branch and switch to it
+- Create routes for getting all reservations for office in business, making reservation, getting and changing reservation duration, canceling and verifying reservation and resending code
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Closing the cash register
+### Item
+An admin must be able to manage the closing of the cash register.
+#### Task
+- Create a new branch and switch to it
+- Create routes for closing the cash register
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Configurations
+### Item
+An admin must be able to configure everything in the ecosystem
+#### Task
+- Create a new branch and switch to it
+- Create route for allowing admin to manage the number of cash registers for an office
+- Create route for allowing admin to manage the synchronization time of the main and cash register servers.
+- Create route for allowing admin to manage the number of the offices for a business
+- Create route for allowing admin to change the language for the mobile seller app
+- Create route for allowing  admin to change the duration of the reservation
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Managing notifications
+### Item
+An admin must be able to receive notifications that they are interested in
+#### Task
+- Create a new branch and switch to it
+- Notifications when merchant requests opening for an office
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+
+## Feature
+Polling
+### Item
+Change polling to notifications
+#### Task
+- Create a new branch and switch to it
+- Create routes for polling
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request]
+
+## Feature
+Batch delivery 
+### Item
+Notification for batch delivery of products to the office and batch sending products to the office
+#### Task
+- Create a new branch and switch to it
+- Create routes for batch delivery 
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
 
 

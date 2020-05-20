@@ -291,5 +291,29 @@ When a new office is open, user management needs to receive notification
 - Commit and push on your branch
 - Create a pull request
 
+## Feature
+Notifications#7
+## Item
+Warehouse needs to be notified when a merchant asks for a certain amount of product for an office.
+The warehouse can eather accept or reject the request and the merchant gets feedback on it.
+### Task
+- Create a new branch and switch to it
+- Implement sending appropriate notifications via Log server
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Notifications#8
+### Item
+The merchant needs to send a notification when the seat office changes
+### Task
+- Create a new branch and switch to it
+- Implement sending appropriate notifications via Log server
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+
 
 

@@ -225,5 +225,15 @@ Main server must realize communication with cash register server and support who
 - Commit and push on your branch
 - Create a pull request
 
+## Feature
+VAT
+### Item
+Admin should be able to add possible VATs for products and Warehouse manager should be able to set vat for each product. Database should come with 0 and 17% vat by default as that is the case in Bosnia. Vat should be classified into active and inactive.
+#### Task
+- Create a new branch and switch to it
+- Create routes for getting all vat rates, adding new vat rate, getting all active vat rates and switching vat rate
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
 
 

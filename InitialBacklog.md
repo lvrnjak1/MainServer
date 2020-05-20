@@ -241,9 +241,33 @@ Tables in a restaurant
 ### Item
 If the business is a restaurant, server should be able to keep track of the tables inside an office. Tables can be added by the admin and information about them exposed via endpoints to PR Web app and Cash register server. The table identifier should be a string
 #### Task
--Create a new branch and switch to it
--Create routes for getting tables for business and office, adding new table, deleting table and getting tables for office
--Create a contoller class, response class and request class if needed
--Commit and push on your branch
--Create a pull request
+- Create a new branch and switch to it
+- Create routes for getting tables for business and office, adding new table, deleting table and getting tables for office
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Notifications#3
+### Item
+Warehouse needs to be notified when a merchant asks him for a certain amount of product for an office
+#### Task
+- Create a new branch and switch to it
+- Create routes for notification
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+## Feature
+Notifications#4
+### Item
+Merchant needs to be notified when the products have been delivered to the office or when products cannot be delivered to the office
+#### Task
+- Create a new branch and switch to it
+- Create routes for notification
+- Create a contoller class, response class and request class if needed
+- Commit and push on your branch
+- Create a pull request
+
+
 

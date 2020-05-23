@@ -435,7 +435,7 @@ public class ProductController {
             Discount discount = new Discount(discountRequest.getPercentage());
             product.setDiscount(discount);
         }
-
+        String name = product.getName();
         // DO NOT EDIT THIS CODE BELOW, EVER
         logServerService.documentAction(
                 userPrincipal.getUsername(),
@@ -443,7 +443,7 @@ public class ProductController {
                 "product",
                 "Employee " + userPrincipal.getUsername()
                         + " has updated discount for product " +
-                        product.getName() + "!"
+                        name + "!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER
         return new ProductResponse(productService.save(product));

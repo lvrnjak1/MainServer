@@ -441,7 +441,8 @@ public class ProductController {
                 userPrincipal.getUsername(),
                 Actions.UPDATE_DISCOUNT_ACTION_NAME,
                 "product",
-                "Employee " + userPrincipal.getUsername() + " has updated discount for product " +
+                "Employee " + userPrincipal.getUsername()
+                        + " has updated discount for product " +
                         product.getName() + "!"
         );
         // DO NOT EDIT THIS CODE ABOVE, EVER

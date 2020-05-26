@@ -171,7 +171,6 @@ public class TransactionsController {
     }
 
     //ruta na koju pay server trazi info o racunu sa neke kase office i businessa
-    //secured
     @PostMapping("/receipts/info")
     public PayServerInfoResponse getReceiptInfo(@RequestBody PayServerInfoRequest payServerInfoRequest){
         Business business = businessService.findByName(payServerInfoRequest.getBusinessName());

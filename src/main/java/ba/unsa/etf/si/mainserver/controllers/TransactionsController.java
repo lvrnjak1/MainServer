@@ -226,7 +226,7 @@ public class TransactionsController {
                     receiptOptional.get().getReceiptItems());
         }
 
-        //broadcast notifikacije koju cash server osluskuje
+
         logServerService.broadcastNotification(
                 new NotificationRequest(
                         "info",

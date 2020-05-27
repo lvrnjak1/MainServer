@@ -1,21 +1,16 @@
 package ba.unsa.etf.si.mainserver;
 
 import ba.unsa.etf.si.mainserver.models.PDV;
-import ba.unsa.etf.si.mainserver.models.business.Business;
 import ba.unsa.etf.si.mainserver.models.business.Office;
-import ba.unsa.etf.si.mainserver.models.business.Table;
 import ba.unsa.etf.si.mainserver.models.pr.Answer;
 import ba.unsa.etf.si.mainserver.models.pr.Question;
 import ba.unsa.etf.si.mainserver.models.pr.QuestionAuthor;
 import ba.unsa.etf.si.mainserver.models.transactions.ReceiptStatusName;
 import ba.unsa.etf.si.mainserver.repositories.PDVRepository;
 import ba.unsa.etf.si.mainserver.repositories.business.OfficeRepository;
-import ba.unsa.etf.si.mainserver.repositories.business.TableRepository;
 import ba.unsa.etf.si.mainserver.repositories.pr.QuestionRepository;
 import ba.unsa.etf.si.mainserver.services.UserService;
-import ba.unsa.etf.si.mainserver.services.business.BusinessService;
 import ba.unsa.etf.si.mainserver.services.business.OfficeService;
-import ba.unsa.etf.si.mainserver.services.business.TableService;
 import ba.unsa.etf.si.mainserver.services.pr.QuestionService;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
@@ -30,7 +25,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

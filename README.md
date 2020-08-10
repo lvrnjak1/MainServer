@@ -12,6 +12,9 @@ JSON Web Token is used for authorization
 and information exchange.  
 [PostgreSQL](https://www.postgresql.org/) relational database is used for data handling.   
 
+Api documentation can be found here: [Swagger documentation](https://main-server-si.herokuapp.com/swagger-ui.html).
+
+
 
 ## Get started
 - [IntelliJ IDEA Ultimate](https://www.jetbrains.com/idea/) is suitable for building and running this application  
@@ -19,7 +22,6 @@ Java 8 (Java 13 optimal)
 - PostgeSQL installation i database connection integrated in IDE is necessary
 - [Postman](https://www.postman.com/) is used for API testing  
 Sending requests with needed body and getting response
-
 
 ## Contributing
 To contribute to this project you can   
